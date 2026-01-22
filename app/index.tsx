@@ -1,5 +1,6 @@
 import { ThemeContext } from "@/context/themeContext";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
@@ -572,8 +573,8 @@ const slides = [
 ];
 
 export default function SignIn() {
-
   const { currentTheme } = useContext(ThemeContext);
+  const router = useRouter();
 
   const [active, setActive] = useState(0);
 
@@ -650,7 +651,12 @@ export default function SignIn() {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme === 'light' ? '#F5F5F5' : '#000000' }]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: currentTheme === "light" ? "#F5F5F5" : "#000000" },
+        ]}
+      >
         <ScrollView
           horizontal
           pagingEnabled
@@ -661,7 +667,9 @@ export default function SignIn() {
         >
           <View style={styles.slideContainer}>
             <View style={styles.illustrationContainer}>
-              <BlobComponent color={currentTheme === 'light' ? "#BBDEFB" : "#4A6FA5"} />
+              <BlobComponent
+                color={currentTheme === "light" ? "#BBDEFB" : "#4A6FA5"}
+              />
               <Animated.View
                 style={[
                   styles.illustration,
@@ -676,7 +684,12 @@ export default function SignIn() {
 
         {/* Text */}
         <View style={styles.textContainer}>
-          <Animated.Text style={[styles.slideText, { color: currentTheme === 'light' ? '#000000' : '#FAFAFA' }]}>
+          <Animated.Text
+            style={[
+              styles.slideText,
+              { color: currentTheme === "light" ? "#000000" : "#FAFAFA" },
+            ]}
+          >
             {slides[active].title}
           </Animated.Text>
         </View>
@@ -693,14 +706,38 @@ export default function SignIn() {
 
         {/* Sign In Options */}
         <View style={styles.signInContainer}>
-          <TouchableOpacity style={[styles.button, { backgroundColor: currentTheme === 'light' ? '#E0E0E0' : '#1E201E' }]}>
+          <TouchableOpacity
+            onPress={() => router.push("/sign-in-email")}
+            style={[
+              styles.button,
+              {
+                backgroundColor:
+                  currentTheme === "light" ? "#E0E0E0" : "#1E201E",
+              },
+            ]}
+          >
             <View style={styles.iconContainer}>
               <FontAwesome6 name="user-large" size={17} color="#4772FA" />
             </View>
-            <Text style={[styles.buttonText, { color: currentTheme === 'light' ? '#000000' : '#FAFAFA' }]}>Sign in with Email</Text>
+            <Text
+              style={[
+                styles.buttonText,
+                { color: currentTheme === "light" ? "#000000" : "#FAFAFA" },
+              ]}
+            >
+              Sign in with Email
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.button, { backgroundColor: currentTheme === 'light' ? '#E0E0E0' : '#1E201E' }]}>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor:
+                  currentTheme === "light" ? "#E0E0E0" : "#1E201E",
+              },
+            ]}
+          >
             <View style={styles.iconContainer}>
               <Svg width={20} height={20} viewBox="0 0 20 20">
                 <Path
@@ -721,7 +758,14 @@ export default function SignIn() {
                 />
               </Svg>
             </View>
-            <Text style={[styles.buttonText, { color: currentTheme === 'light' ? '#000000' : '#FAFAFA' }]}>Continue with Google</Text>
+            <Text
+              style={[
+                styles.buttonText,
+                { color: currentTheme === "light" ? "#000000" : "#FAFAFA" },
+              ]}
+            >
+              Continue with Google
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
