@@ -296,8 +296,8 @@ const Blob1 = ({ color = "#E3E9FB" }) => (
       fill={color}
       opacity="0.6"
     />
-    <Circle cx="90" cy="340" r="15" fill={color} opacity="0.4" />
-    <Circle cx="480" cy="700" r="22" fill={color} opacity="0.3" />
+    <Circle cx="90" cy="340" r="15" fill={color} opacity="0.6" />
+    <Circle cx="480" cy="700" r="22" fill={color} opacity="0.6" />
   </Svg>
 );
 
@@ -321,7 +321,7 @@ const Blob2 = ({ color = "#E3E9FB" }) => (
       fill={color}
       opacity="0.6"
     />
-    <Circle cx="95" cy="305" r="12" fill={color} opacity="0.35" />
+    <Circle cx="95" cy="305" r="12" fill={color} opacity="0.6" />
   </Svg>
 );
 
@@ -344,8 +344,8 @@ const Blob3 = ({ color = "#E3E9FB" }) => (
       fill={color}
       opacity="0.6"
     />
-    <Circle cx="110" cy="310" r="12" fill={color} opacity="0.35" />
-    <Circle cx="290" cy="330" r="16" fill={color} opacity="0.4" />
+    <Circle cx="70" cy="310" r="12" fill={color} opacity="0.6" />
+    <Circle cx="290" cy="330" r="16" fill={color} opacity="0.6" />
   </Svg>
 );
 
@@ -368,8 +368,8 @@ const Blob4 = ({ color = "#E3E9FB" }) => (
       fill={color}
       opacity="0.6"
     />
-    <Circle cx="85" cy="325" r="13" fill={color} opacity="0.42" />
-    <Circle cx="320" cy="340" r="15" fill={color} opacity="0.37" />
+    <Circle cx="85" cy="325" r="13" fill={color} opacity="0.6" />
+    <Circle cx="320" cy="340" r="15" fill={color} opacity="0.6" />
   </Svg>
 );
 
@@ -393,7 +393,7 @@ const Blob5 = ({ color = "#E3E9FB" }) => (
       fill={color}
       opacity="0.6"
     />
-    <Circle cx="95" cy="55" r="13" fill={color} opacity="0.42" />
+    <Circle cx="95" cy="55" r="13" fill={color} opacity="0.6" />
   </Svg>
 );
 
