@@ -4,6 +4,9 @@ import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Feather from '@expo/vector-icons/Feather';
+import { checkEmailExists, registerOrLoginUser, registerUser } from "@/services/authService";
+import Toast from "react-native-toast-message";
 
 const SignInEmail = () => {
 
@@ -17,6 +20,41 @@ const SignInEmail = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [securityTextEnable, setSecurityTextEnable] = useState<boolean>(true);
+
+  async function handleNext() {
+    if (!isDisabledB1) {
+      setTab('password');
+    }
+  }
+
+  async function handleSignIn() {
+    if (!isDisabledB2) {
+      try {
+        const res = await registerOrLoginUser(email, password);
+        console.log(res);
+        if (res.success) {
+          router.replace('/(tabs)');
+        }
+        else {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: res.message,
+          });
+        }
+      }
+      catch (e) {
+        console.log(e);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Unable to sign in, please try again later!',
+        });
+      }
+    }
+  }
 
   return (
     <SafeAreaView
@@ -77,12 +115,7 @@ const SignInEmail = () => {
           {/* Continue Button */}
           <View className="px-6 mb-6">
             <TouchableOpacity
-              onPress={() => {
-                if (!isDisabledB1) {
-                  setTab('password');
-                  console.log("Next pressed with email:", email);
-                }
-              }}
+              onPress={handleNext}
               activeOpacity={isDisabledB1 ? 1 : 0.7}
               style={{ opacity: isDisabledB1 ? 0.5 : 1 }}
               className="bg-blue-500 py-3 rounded-lg items-center"
@@ -114,8 +147,9 @@ const SignInEmail = () => {
           </View>
 
           {/* Email Input */}
-          <View className="px-6 mb-6">
+          <View className="px-6 mb-6 relative">
             <TextInput
+              secureTextEntry={securityTextEnable}
               placeholder="Password: 6-64 characters"
               placeholderTextColor={currentTheme === "light" ? "#999" : "#666"}
               value={password}
@@ -123,25 +157,33 @@ const SignInEmail = () => {
                 setPassword(text);
                 setIsDisabledB2(text.trim().length < 6);
               }}
-              className={`px-4 py-4 rounded-lg text-[15px] ${currentTheme === "light" ? "bg-[#EEEEEE] text-black" : "bg-gray-900 text-white"}`}
+              className={`px-4 py-4 rounded-lg text-[15px] relative ${currentTheme === "light" ? "bg-[#EEEEEE] text-black" : "bg-gray-900 text-white"}`}
             />
+            {securityTextEnable
+              ? <Feather onPress={() => setSecurityTextEnable(false)} name="eye-off" size={19} color="gray" className="absolute right-10 top-4 opacity-80" />
+              : <Feather onPress={() => setSecurityTextEnable(true)} name="eye" size={19} color="gray" className="absolute right-10 top-4 opacity-80" />
+            }
           </View>
 
           {/* Continue Button */}
           <View className="px-6 mb-6">
             <TouchableOpacity
-              onPress={() => {
-                if (!isDisabledB2) {
-                  // Handle next button press
-                  console.log("Next pressed with email:", email);
-                }
-              }}
+              onPress={handleSignIn}
               activeOpacity={isDisabledB2 ? 1 : 0.7}
               style={{ opacity: isDisabledB2 ? 0.5 : 1 }}
               className="bg-blue-500 py-3 rounded-lg items-center"
             >
               <Text className="text-white text-base font-semibold">Sign In</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Forgot password */}
+          <View className="px-6 mb-6">
+            <Text
+              className={`text-[15px] text-center font-normal tracking-wide opacity-65 ${currentTheme === "light" ? "text-[#666666]" : "text-gray-500"}`}
+            >
+              Forgot Password
+            </Text>
           </View>
         </View>
         : ''}
