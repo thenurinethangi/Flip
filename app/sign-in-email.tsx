@@ -70,8 +70,6 @@ const SignInEmail = () => {
           <Text className="text-white text-base font-semibold">Next</Text>
         </TouchableOpacity>
       </View>
-
-      <StatusBar style={currentTheme === "light" ? "dark" : "light"} />
     </SafeAreaView>
   );
 };

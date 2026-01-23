@@ -512,7 +512,7 @@ export default function SignIn() {
       <SafeAreaView
         style={[
           styles.container,
-          { backgroundColor: currentTheme === "light" ? "#FAFBFC" : "#0F1419" },
+          { backgroundColor: currentTheme === "light" ? "#FAFBFC" : "#000000" },
         ]}
       >
         <ScrollView
@@ -637,8 +637,6 @@ export default function SignIn() {
 
         </ScrollView>
       </SafeAreaView>
-
-      <StatusBar style={currentTheme === "light" ? "dark" : "light"} />
     </>
   );
 }

@@ -78,8 +78,6 @@ const SignInPassword = () => {
                     <Text className="text-white text-base font-semibold">Sign In</Text>
                 </TouchableOpacity>
             </View>
-
-            <StatusBar style={currentTheme === "light" ? "dark" : "light"} />
         </SafeAreaView>
     );
 };
