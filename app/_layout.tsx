@@ -21,7 +21,12 @@ function RootLayoutContent() {
         <Stack.Screen name="sign-in-password" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
-      <StatusBar style={currentTheme === "light" ? "light" : "dark"} />
+
+      <StatusBar
+        barStyle={currentTheme === "light" ? "dark-content" : "light-content"}
+        backgroundColor={currentTheme === "light" ? "#FAFBFC" : "#000000"}
+        translucent={false}
+      />
     </>
   );
 }

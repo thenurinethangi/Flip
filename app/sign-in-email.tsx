@@ -1,16 +1,22 @@
 import { ThemeContext } from "@/context/themeContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import React, { useContext, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const SignInEmail = () => {
+
   const { currentTheme } = useContext(ThemeContext);
   const router = useRouter();
-  const [isDisabled, setIsDisabled] = useState(true);
+
+  const [tab, setTab] = useState('email');
+
+  const [isDisabledB1, setIsDisabledB1] = useState(true);
+  const [isDisabledB2, setIsDisabledB2] = useState(true);
+
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   return (
     <SafeAreaView
@@ -19,7 +25,14 @@ const SignInEmail = () => {
       {/* Header */}
       <View className="px-4 py-2">
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => {
+            if (tab === 'password') {
+              setTab('email');
+            }
+            else {
+              router.back();
+            }
+          }}
           className="w-10 h-10 justify-center"
         >
           <MaterialCommunityIcons
@@ -30,46 +43,109 @@ const SignInEmail = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Title */}
-      <View className="px-6 mt-12 mb-8">
-        <Text
-          className={`text-2xl font-normal tracking-wide ${currentTheme === "light" ? "#222" : "text-white"}`}
-        >
-          Sign in / Sign up
-        </Text>
-      </View>
+      {tab === 'email'
+        ? <View>
+          {/* Title */}
+          <View className="px-6 mt-12 mb-8">
+            <Text
+              className={`text-2xl font-normal tracking-wide ${currentTheme === "light" ? "#222" : "text-white"}`}
+            >
+              Sign in / Sign up
+            </Text>
+          </View>
 
-      {/* Email Input */}
-      <View className="px-6 mb-6">
-        <TextInput
-          placeholder="Email"
-          placeholderTextColor={currentTheme === "light" ? "#999" : "#666"}
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            setIsDisabled(text.trim().length === 0);
-          }}
-          className={`px-4 py-4 rounded-lg text-[15px] ${currentTheme === "light" ? "bg-[#EEEEEE] text-black" : "bg-gray-900 text-white"}`}
-        />
-      </View>
+          {/* Email Input */}
+          <View className="px-6 mb-6">
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor={currentTheme === "light" ? "#999" : "#666"}
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+                if (emailRegex.test(text) && text.trim().length > 0) {
+                  setIsDisabledB1(false);
+                }
+                else {
+                  setIsDisabledB1(true);
+                }
+              }}
+              className={`px-4 py-4 rounded-lg text-[15px] ${currentTheme === "light" ? "bg-[#EEEEEE] text-black" : "bg-gray-900 text-white"}`}
+            />
+          </View>
 
-      {/* Continue Button */}
-      <View className="px-6 mb-6">
-        <TouchableOpacity
-          onPress={() => {
-            if (!isDisabled) {
-              // Handle next button press
-              router.push('/sign-in-password');
-              console.log("Next pressed with email:", email);
-            }
-          }}
-          activeOpacity={isDisabled ? 1 : 0.7}
-          style={{ opacity: isDisabled ? 0.5 : 1 }}
-          className="bg-blue-500 py-3 rounded-lg items-center"
-        >
-          <Text className="text-white text-base font-semibold">Next</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Continue Button */}
+          <View className="px-6 mb-6">
+            <TouchableOpacity
+              onPress={() => {
+                if (!isDisabledB1) {
+                  setTab('password');
+                  console.log("Next pressed with email:", email);
+                }
+              }}
+              activeOpacity={isDisabledB1 ? 1 : 0.7}
+              style={{ opacity: isDisabledB1 ? 0.5 : 1 }}
+              className="bg-blue-500 py-3 rounded-lg items-center"
+            >
+              <Text className="text-white text-base font-semibold">Next</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        : ''}
+
+      {tab === 'password'
+        ? <View>
+          {/* Title */}
+          <View className="px-6 mt-12 mb-3">
+            <Text
+              className={`text-2xl font-normal tracking-wide ${currentTheme === "light" ? "text-gray-900" : "text-white"}`}
+            >
+              Enter a Password
+            </Text>
+          </View>
+
+          {/* Sub Title */}
+          <View className="px-6 mb-6">
+            <Text
+              className={`text-[15px] font-normal tracking-wide ${currentTheme === "light" ? "text-[#666666]" : "text-gray-500"}`}
+            >
+              Sign in with {email}
+            </Text>
+          </View>
+
+          {/* Email Input */}
+          <View className="px-6 mb-6">
+            <TextInput
+              placeholder="Password: 6-64 characters"
+              placeholderTextColor={currentTheme === "light" ? "#999" : "#666"}
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                setIsDisabledB2(text.trim().length < 6);
+              }}
+              className={`px-4 py-4 rounded-lg text-[15px] ${currentTheme === "light" ? "bg-[#EEEEEE] text-black" : "bg-gray-900 text-white"}`}
+            />
+          </View>
+
+          {/* Continue Button */}
+          <View className="px-6 mb-6">
+            <TouchableOpacity
+              onPress={() => {
+                if (!isDisabledB2) {
+                  // Handle next button press
+                  console.log("Next pressed with email:", email);
+                }
+              }}
+              activeOpacity={isDisabledB2 ? 1 : 0.7}
+              style={{ opacity: isDisabledB2 ? 0.5 : 1 }}
+              className="bg-blue-500 py-3 rounded-lg items-center"
+            >
+              <Text className="text-white text-base font-semibold">Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        : ''}
+
     </SafeAreaView>
   );
 };
