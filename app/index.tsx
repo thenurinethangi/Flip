@@ -226,62 +226,69 @@ const HabitIllustration = () => (
 );
 
 const PomodoroIllustration = () => (
-  <Svg width={300} height={300} viewBox="0 0 300 300">
+  <Svg width={280} height={280} viewBox="0 0 280 280">
     <Defs>
-      <RadialGradient id="clockFace" cx="50%" cy="50%" r="50%">
-        <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#EBF8FF" stopOpacity="1" />
+      <RadialGradient id="clockGrad" cx="50%" cy="50%" r="50%">
+        <Stop offset="0%" stopColor="#4A90E2" stopOpacity="0.15" />
+        <Stop offset="100%" stopColor="#4A90E2" stopOpacity="0.6" />
       </RadialGradient>
       <LinearGradient id="tomatoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#FF6B6B" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#EE5A6F" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#FF5252" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#E63946" stopOpacity="1" />
       </LinearGradient>
       <LinearGradient id="stemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#51CF66" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#37B24D" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#4CAF50" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#388E3C" stopOpacity="1" />
       </LinearGradient>
-      <RadialGradient id="tomatoShine" cx="35%" cy="35%" r="50%">
-        <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.4" />
-        <Stop offset="100%" stopColor="#FF6B6B" stopOpacity="0" />
-      </RadialGradient>
     </Defs>
-
-    <Ellipse cx="150" cy="270" rx="95" ry="15" fill="#000" opacity="0.1" />
-
-    <Circle cx="100" cy="130" r="68" fill="url(#clockFace)" stroke="#667EEA" strokeWidth="4" />
-    <Circle cx="100" cy="130" r="60" fill="#EBF8FF" opacity="0.3" />
-
-    <Circle cx="100" cy="70" r="4" fill="#667EEA" />
-    <Circle cx="160" cy="130" r="4" fill="#667EEA" />
-    <Circle cx="100" cy="190" r="4" fill="#667EEA" />
-    <Circle cx="40" cy="130" r="4" fill="#667EEA" />
-
-    <Circle cx="100" cy="130" r="7" fill="#667EEA" />
-
-    <Path d="M 100 130 L 100 90" stroke="#667EEA" strokeWidth="4" strokeLinecap="round" />
-
-    <Path d="M 100 130 L 145 130" stroke="#667EEA" strokeWidth="4" strokeLinecap="round" />
-
-    <Ellipse cx="200" cy="170" rx="38" ry="40" fill="url(#tomatoGrad)" />
-    <Ellipse cx="195" cy="165" rx="36" ry="38" fill="url(#tomatoShine)" />
-
-    <Path d="M 190 135 Q 200 128 210 135" stroke="url(#stemGrad)" strokeWidth="4.5"
-      fill="none" strokeLinecap="round" />
-    <Path d="M 195 133 Q 198 125 202 133" fill="url(#stemGrad)" opacity="0.8" />
-
-    <Ellipse cx="188" cy="175" rx="10" ry="7" fill="#FF8787" opacity="0.5" />
-    <Ellipse cx="208" cy="168" rx="8" ry="8" fill="#FF8787" opacity="0.4" />
-    <Circle cx="198" cy="185" r="5" fill="#FF8787" opacity="0.3" />
+    <Ellipse cx="140" cy="250" rx="85" ry="12" fill="#000" opacity="0.08" />
+    <Circle
+      cx="90"
+      cy="115"
+      r="62"
+      fill="none"
+      stroke="#4A90E2"
+      strokeWidth="3.5"
+    />
+    <Circle cx="90" cy="115" r="56" fill="url(#clockGrad)" />
+    <Circle cx="90" cy="115" r="6" fill="#4A90E2" />
+    <Path
+      d="M 90 115 L 90 58"
+      stroke="#4A90E2"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+    <Path
+      d="M 90 115 L 137 115"
+      stroke="#4A90E2"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+    <Circle cx="125" cy="115" r="3.5" fill="#4A90E2" />
+    <Circle cx="90" cy="63" r="3.5" fill="#4A90E2" />
+    <Circle cx="220" cy="160" r="32" fill="url(#tomatoGrad)" />
+    <Ellipse cx="218" cy="158" rx="30" ry="32" fill="url(#tomatoGrad)" />
+    <Path
+      d="M 210 132 Q 220 128 230 132"
+      stroke="url(#stemGrad)"
+      strokeWidth="3.5"
+      fill="none"
+      strokeLinecap="round"
+    />
+    <Path d="M 215 130 Q 218 123 222 130" fill="url(#stemGrad)" opacity="0.7" />
+    <Ellipse cx="212" cy="168" rx="8" ry="5" fill="#FF7070" opacity="0.6" />
+    <Ellipse cx="226" cy="158" rx="7" ry="6" fill="#FF7070" opacity="0.5" />
   </Svg>
 );
 
 // Blob 1 - Tall Vertical Blob (Original)
+// Blob 1 - Soft Organic Blob (SLIGHTLY SMALLER)
+// Blob 1 - Soft Organic Blob (MICRO REDUCTION)
 const Blob1 = ({ color = "#E3E9FB" }) => (
   <Svg
     width={410}
     height={410}
     viewBox="0 0 400 400"
-    style={{ position: "absolute" }}
   >
     <Path
       d="M 190 70
@@ -295,9 +302,9 @@ const Blob1 = ({ color = "#E3E9FB" }) => (
          C 165 69, 175 70, 190 70 Z"
       fill={color}
       opacity="0.6"
+      transform="translate(200 200) scale(0.97) translate(-200 -200)"
     />
     <Circle cx="90" cy="340" r="15" fill={color} opacity="0.6" />
-    <Circle cx="480" cy="700" r="22" fill={color} opacity="0.6" />
   </Svg>
 );
 
@@ -307,7 +314,6 @@ const Blob2 = ({ color = "#E3E9FB" }) => (
     width={430}
     height={490}
     viewBox="0 0 400 400"
-    style={{ position: "absolute" }}
   >
     <Path
       d="
@@ -331,7 +337,6 @@ const Blob3 = ({ color = "#E3E9FB" }) => (
     width={395}
     height={395}
     viewBox="0 0 400 400"
-    style={{ position: "absolute" }}
   >
     <Path
       d="M 200 55
@@ -355,7 +360,6 @@ const Blob4 = ({ color = "#E3E9FB" }) => (
     width={410}
     height={410}
     viewBox="0 0 400 400"
-    style={{ position: "absolute" }}
   >
     <Path
       d="M 205 50
@@ -379,7 +383,6 @@ const Blob5 = ({ color = "#E3E9FB" }) => (
     width={400}
     height={400}
     viewBox="0 0 400 400"
-    style={{ position: "absolute" }}
   >
     <Path
       d="M 190 75
@@ -655,6 +658,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     justifyContent: "center",
     alignItems: "center",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
   illustration: {
     justifyContent: "center",
