@@ -27,391 +27,251 @@ import Svg, {
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// Illustration Components
+// Enhanced Illustration Components
 const ReminderIllustration = () => (
-  <Svg width={280} height={280} viewBox="0 0 280 280">
+  <Svg width={300} height={300} viewBox="0 0 300 300">
     <Defs>
       <LinearGradient id="taskGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#4A90E2" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#357ABD" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#667EEA" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#764BA2" stopOpacity="1" />
       </LinearGradient>
       <LinearGradient id="clipGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#2E7D9B" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#1E5A7A" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#4A5568" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#2D3748" stopOpacity="1" />
+      </LinearGradient>
+      <LinearGradient id="paperShine" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
+        <Stop offset="100%" stopColor="#F7FAFC" stopOpacity="1" />
       </LinearGradient>
     </Defs>
-    <Ellipse cx="140" cy="250" rx="85" ry="12" fill="#000" opacity="0.08" />
-    <Rect
-      x="50"
-      y="65"
-      width="120"
-      height="155"
-      rx="12"
-      fill="#F8FBFF"
-      opacity="0.5"
-    />
-    <Rect
-      x="48"
-      y="63"
-      width="120"
-      height="155"
-      rx="12"
-      fill="white"
-      stroke="url(#taskGrad)"
-      strokeWidth="3"
-    />
-    <Rect x="75" y="48" width="70" height="20" rx="5" fill="url(#clipGrad)" />
-    <Circle cx="85" cy="58" r="3" fill="white" />
-    <Circle cx="105" cy="58" r="3" fill="white" />
-    <Circle cx="125" cy="58" r="3" fill="white" />
-    <Rect
-      x="62"
-      y="88"
-      width="12"
-      height="12"
-      rx="3"
-      stroke="#FF6B6B"
-      strokeWidth="2.5"
-      fill="none"
-    />
-    <Path
-      d="M 66 94 L 70 98 L 77 88"
-      stroke="#FF6B6B"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Rect x="80" y="88" width="65" height="7" rx="3.5" fill="#FFE0E6" />
-    <Rect
-      x="62"
-      y="112"
-      width="12"
-      height="12"
-      rx="3"
-      stroke="#FFA500"
-      strokeWidth="2.5"
-      fill="none"
-    />
-    <Rect x="80" y="112" width="62" height="7" rx="3.5" fill="#FFF4E6" />
-    <Rect
-      x="62"
-      y="136"
-      width="12"
-      height="12"
-      rx="3"
-      stroke="#4A90E2"
-      strokeWidth="2.5"
-      fill="none"
-    />
-    <Path
-      d="M 66 142 L 70 146 L 77 136"
-      stroke="#4A90E2"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Rect x="80" y="136" width="57" height="7" rx="3.5" fill="#E6F2FF" />
-    <Rect
-      x="62"
-      y="160"
-      width="12"
-      height="12"
-      rx="3"
-      stroke="#66BB6A"
-      strokeWidth="2.5"
-      fill="none"
-    />
-    <Rect x="80" y="160" width="52" height="7" rx="3.5" fill="#E8F5E9" />
+
+    <Ellipse cx="150" cy="270" rx="90" ry="15" fill="#000" opacity="0.1" />
+
+    <Rect x="70" y="75" width="140" height="180" rx="15" fill="#E2E8F0" opacity="0.3" />
+
+    <Rect x="68" y="72" width="140" height="180" rx="15" fill="url(#paperShine)"
+      stroke="url(#taskGrad)" strokeWidth="3.5" />
+
+    <Rect x="95" y="55" width="86" height="25" rx="8" fill="url(#clipGrad)" />
+    <Circle cx="108" cy="67.5" r="4" fill="#CBD5E0" />
+    <Circle cx="130" cy="67.5" r="4" fill="#CBD5E0" />
+    <Circle cx="168" cy="67.5" r="4" fill="#CBD5E0" />
+
+    <Rect x="85" y="100" width="16" height="16" rx="4" fill="#FFF5F7" stroke="#F687B3" strokeWidth="2.5" />
+    <Path d="M 89 108 L 93 112 L 101 102" stroke="#F687B3" strokeWidth="2.5"
+      fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <Rect x="108" y="100" width="80" height="10" rx="5" fill="#FED7E2" />
+
+    <Rect x="85" y="130" width="16" height="16" rx="4" fill="#FFFAF0" stroke="#F6AD55" strokeWidth="2.5" />
+    <Rect x="108" y="130" width="75" height="10" rx="5" fill="#FEEBC8" />
+
+    <Rect x="85" y="160" width="16" height="16" rx="4" fill="#EBF8FF" stroke="#667EEA" strokeWidth="2.5" />
+    <Path d="M 89 168 L 93 172 L 101 162" stroke="#667EEA" strokeWidth="2.5"
+      fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <Rect x="108" y="160" width="70" height="10" rx="5" fill="#BEE3F8" />
+
+    <Rect x="85" y="190" width="16" height="16" rx="4" fill="#F0FFF4" stroke="#68D391" strokeWidth="2.5" />
+    <Rect x="108" y="190" width="65" height="10" rx="5" fill="#C6F6D5" />
+
+    <Rect x="85" y="220" width="16" height="16" rx="4" fill="#FAF5FF" stroke="#B794F4" strokeWidth="2.5" />
+    <Rect x="108" y="220" width="60" height="10" rx="5" fill="#E9D8FD" />
   </Svg>
 );
 
 const EisenhowerIllustration = () => (
-  <Svg width={280} height={280} viewBox="0 0 280 280">
+  <Svg width={300} height={300} viewBox="0 0 300 300">
     <Defs>
       <LinearGradient id="urgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#FF6B9D" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#E85A8B" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#F093FB" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#F5576C" stopOpacity="1" />
       </LinearGradient>
       <LinearGradient id="impGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#FFA500" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#FF8C00" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#FCCF31" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#F55555" stopOpacity="1" />
       </LinearGradient>
-      <LinearGradient id="lowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#4A90E2" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#357ABD" stopOpacity="1" />
+      <LinearGradient id="schedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#4FACFE" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#00F2FE" stopOpacity="1" />
+      </LinearGradient>
+      <LinearGradient id="delegGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#A8EDEA" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#FED6E3" stopOpacity="1" />
       </LinearGradient>
     </Defs>
-    <Ellipse cx="140" cy="250" rx="85" ry="12" fill="#000" opacity="0.08" />
-    <Line
-      x1="140"
-      y1="50"
-      x2="140"
-      y2="230"
-      stroke="#D5D5D5"
-      strokeWidth="2.5"
-    />
-    <Line
-      x1="50"
-      y1="140"
-      x2="230"
-      y2="140"
-      stroke="#D5D5D5"
-      strokeWidth="2.5"
-    />
-    <Rect
-      x="55"
-      y="60"
-      width="75"
-      height="70"
-      rx="12"
-      fill="#FFF5F8"
-      stroke="url(#urgGrad)"
-      strokeWidth="3"
-    />
-    <Circle cx="140" cy="100" r="7" fill="url(#urgGrad)" />
-    <Path
-      d="M 135 98 L 140 103 L 150 92"
-      stroke="white"
-      strokeWidth="1.5"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Rect
-      x="150"
-      y="60"
-      width="75"
-      height="70"
-      rx="12"
-      fill="#FFF9F0"
-      stroke="url(#impGrad)"
-      strokeWidth="3"
-    />
-    <Circle cx="235" cy="100" r="7" fill="url(#impGrad)" />
-    <Rect
-      x="55"
-      y="150"
-      width="75"
-      height="70"
-      rx="12"
-      fill="#F0F8FF"
-      stroke="url(#lowGrad)"
-      strokeWidth="3"
-    />
-    <Path
-      d="M 135 188 L 140 193 L 150 182"
-      stroke="#4A90E2"
-      strokeWidth="1.5"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Rect
-      x="150"
-      y="150"
-      width="75"
-      height="70"
-      rx="12"
-      fill="#F8F8F8"
-      stroke="#BFBFBF"
-      strokeWidth="3"
-    />
+
+    <Ellipse cx="150" cy="270" rx="95" ry="15" fill="#000" opacity="0.1" />
+
+    <Line x1="150" y1="65" x2="150" y2="245" stroke="#CBD5E0" strokeWidth="3" />
+    <Line x1="65" y1="155" x2="235" y2="155" stroke="#CBD5E0" strokeWidth="3" />
+
+    <Rect x="72" y="72" width="70" height="75" rx="14" fill="#FFF5F7"
+      stroke="url(#urgGrad)" strokeWidth="3.5" />
+    <Circle cx="107" cy="110" r="6" fill="url(#urgGrad)" />
+    <Circle cx="107" cy="128" r="6" fill="url(#urgGrad)" opacity="0.6" />
+
+    <Rect x="158" y="72" width="70" height="75" rx="14" fill="#FFFAF0"
+      stroke="url(#impGrad)" strokeWidth="3.5" />
+    <Circle cx="193" cy="110" r="6" fill="url(#impGrad)" />
+    <Circle cx="193" cy="128" r="6" fill="url(#impGrad)" opacity="0.6" />
+
+    <Rect x="72" y="163" width="70" height="75" rx="14" fill="#EBF8FF"
+      stroke="url(#schedGrad)" strokeWidth="3.5" />
+    <Circle cx="107" cy="200" r="6" fill="url(#schedGrad)" />
+
+    <Rect x="158" y="163" width="70" height="75" rx="14" fill="#F7FAFC"
+      stroke="url(#delegGrad)" strokeWidth="3.5" />
+    <Circle cx="193" cy="200" r="6" fill="url(#delegGrad)" opacity="0.5" />
   </Svg>
 );
 
 const CalendarIllustration = () => (
-  <Svg width={280} height={280} viewBox="0 0 280 280">
+  <Svg width={300} height={300} viewBox="0 0 300 300">
     <Defs>
       <LinearGradient id="calGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#4A90E2" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#2E5C8A" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#667EEA" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#764BA2" stopOpacity="1" />
+      </LinearGradient>
+      <LinearGradient id="calShine" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#F7FAFC" stopOpacity="1" />
       </LinearGradient>
     </Defs>
-    <Ellipse cx="140" cy="250" rx="85" ry="12" fill="#000" opacity="0.08" />
-    <Rect
-      x="48"
-      y="73"
-      width="145"
-      height="155"
-      rx="12"
-      fill="#000"
-      opacity="0.05"
-    />
-    <Rect
-      x="46"
-      y="70"
-      width="145"
-      height="155"
-      rx="12"
-      fill="white"
-      stroke="#D0D0D0"
-      strokeWidth="2.5"
-    />
-    <Rect x="46" y="70" width="145" height="42" rx="12" fill="url(#calGrad)" />
-    <Circle cx="63" cy="80" r="4" fill="white" />
-    <Circle cx="100" cy="80" r="4" fill="white" />
-    <Circle cx="137" cy="80" r="4" fill="white" />
-    <Line x1="56" y1="125" x2="181" y2="125" stroke="#E8E8E8" strokeWidth="1" />
-    <Line x1="56" y1="152" x2="181" y2="152" stroke="#E8E8E8" strokeWidth="1" />
-    <Line x1="56" y1="179" x2="181" y2="179" stroke="#E8E8E8" strokeWidth="1" />
-    <Line
-      x1="98"
-      y1="125"
-      x2="98"
-      y2="215"
-      stroke="#E8E8E8"
-      strokeWidth="0.7"
-    />
-    <Line
-      x1="140"
-      y1="125"
-      x2="140"
-      y2="215"
-      stroke="#E8E8E8"
-      strokeWidth="0.7"
-    />
-    <Circle cx="160" cy="165" r="12" fill="#66BB6A" opacity="0.9" />
-    <Path
-      d="M 156 163 L 160 167 L 168 157"
-      stroke="white"
-      strokeWidth="2.5"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+
+    <Ellipse cx="150" cy="270" rx="95" ry="15" fill="#000" opacity="0.1" />
+
+    <Rect x="68" y="88" width="165" height="175" rx="16" fill="#000" opacity="0.05" />
+
+    <Rect x="65" y="85" width="165" height="175" rx="16" fill="url(#calShine)"
+      stroke="#E2E8F0" strokeWidth="2.5" />
+
+    <Rect x="65" y="85" width="165" height="48" rx="16" fill="url(#calGrad)" />
+    <Path d="M 65 120 Q 147.5 125 230 120" fill="url(#calGrad)" />
+
+    <Circle cx="85" cy="95" r="5" fill="#FFFFFF" opacity="0.9" />
+    <Circle cx="147.5" cy="95" r="5" fill="#FFFFFF" opacity="0.9" />
+    <Circle cx="210" cy="95" r="5" fill="#FFFFFF" opacity="0.9" />
+
+    <Rect x="110" y="105" width="75" height="12" rx="6" fill="#FFFFFF" opacity="0.3" />
+
+    <Line x1="75" y1="145" x2="220" y2="145" stroke="#E2E8F0" strokeWidth="1.5" />
+    <Line x1="75" y1="175" x2="220" y2="175" stroke="#E2E8F0" strokeWidth="1.5" />
+    <Line x1="75" y1="205" x2="220" y2="205" stroke="#E2E8F0" strokeWidth="1.5" />
+    <Line x1="75" y1="235" x2="220" y2="235" stroke="#E2E8F0" strokeWidth="1.5" />
+
+    <Line x1="110" y1="145" x2="110" y2="250" stroke="#E2E8F0" strokeWidth="1" />
+    <Line x1="147.5" y1="145" x2="147.5" y2="250" stroke="#E2E8F0" strokeWidth="1" />
+    <Line x1="185" y1="145" x2="185" y2="250" stroke="#E2E8F0" strokeWidth="1" />
+
+    <Circle cx="92.5" cy="160" r="4" fill="#F687B3" opacity="0.8" />
+    <Circle cx="165" cy="190" r="14" fill="#68D391" opacity="0.9" />
+    <Path d="M 161 188 L 165 192 L 173 182" stroke="white" strokeWidth="2.5"
+      fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <Circle cx="202.5" cy="220" r="4" fill="#F6AD55" opacity="0.8" />
   </Svg>
 );
 
 const HabitIllustration = () => (
-  <Svg width={280} height={280} viewBox="0 0 280 280">
+  <Svg width={300} height={300} viewBox="0 0 300 300">
     <Defs>
       <LinearGradient id="habitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#4A90E2" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#357ABD" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#667EEA" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#764BA2" stopOpacity="1" />
+      </LinearGradient>
+      <LinearGradient id="streak1" x1="0%" y1="0%" x2="100%" y2="0%">
+        <Stop offset="0%" stopColor="#667EEA" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#667EEA" stopOpacity="0.3" />
+      </LinearGradient>
+      <LinearGradient id="streak2" x1="0%" y1="0%" x2="100%" y2="0%">
+        <Stop offset="0%" stopColor="#F6AD55" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#F6AD55" stopOpacity="0.3" />
+      </LinearGradient>
+      <LinearGradient id="streak3" x1="0%" y1="0%" x2="100%" y2="0%">
+        <Stop offset="0%" stopColor="#B794F4" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#B794F4" stopOpacity="0.3" />
       </LinearGradient>
     </Defs>
-    <Ellipse cx="140" cy="250" rx="85" ry="12" fill="#000" opacity="0.08" />
-    <Rect
-      x="48"
-      y="73"
-      width="145"
-      height="155"
-      rx="12"
-      fill="#000"
-      opacity="0.04"
-    />
-    <Rect
-      x="46"
-      y="70"
-      width="145"
-      height="155"
-      rx="12"
-      fill="white"
-      stroke="url(#habitGrad)"
-      strokeWidth="3"
-    />
-    <Line
-      x1="55"
-      y1="108"
-      x2="185"
-      y2="108"
-      stroke="#D5D5D5"
-      strokeWidth="1.5"
-    />
-    <Circle cx="68" cy="130" r="11" fill="#4A90E2" />
-    <Path
-      d="M 64 128 L 68 132 L 74 122"
-      stroke="white"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Circle cx="100" cy="130" r="11" fill="#4A90E2" opacity="0.65" />
-    <Circle cx="132" cy="130" r="11" fill="#4A90E2" opacity="0.35" />
-    <Circle cx="164" cy="130" r="11" fill="#4A90E2" opacity="0.15" />
-    <Circle cx="68" cy="162" r="11" fill="#FFA500" />
-    <Path
-      d="M 64 160 L 68 164 L 74 154"
-      stroke="white"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Circle cx="100" cy="162" r="11" fill="#FFA500" opacity="0.65" />
-    <Circle cx="132" cy="162" r="11" fill="#FFA500" opacity="0.35" />
-    <Circle cx="164" cy="162" r="11" fill="#FFA500" opacity="0.15" />
-    <Circle cx="68" cy="194" r="11" fill="#9C27B0" />
-    <Path
-      d="M 64 192 L 68 196 L 74 186"
-      stroke="white"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Circle cx="100" cy="194" r="11" fill="#9C27B0" opacity="0.65" />
-    <Circle cx="132" cy="194" r="11" fill="#9C27B0" opacity="0.35" />
-    <Circle cx="164" cy="194" r="11" fill="#9C27B0" opacity="0.15" />
+
+    <Ellipse cx="150" cy="270" rx="95" ry="15" fill="#000" opacity="0.1" />
+
+    <Rect x="63" y="88" width="165" height="175" rx="16" fill="#000" opacity="0.04" />
+
+    <Rect x="60" y="85" width="165" height="175" rx="16" fill="white"
+      stroke="url(#habitGrad)" strokeWidth="3.5" />
+
+    <Rect x="60" y="85" width="165" height="35" rx="16" fill="url(#habitGrad)" opacity="0.1" />
+
+    <Line x1="70" y1="125" x2="215" y2="125" stroke="#E2E8F0" strokeWidth="2" />
+
+    <Circle cx="82" cy="150" r="13" fill="#667EEA" />
+    <Path d="M 78 148 L 82 152 L 88 142" stroke="white" strokeWidth="2.5"
+      fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <Circle cx="117" cy="150" r="13" fill="url(#streak1)" opacity="0.85" />
+    <Circle cx="152" cy="150" r="13" fill="url(#streak1)" opacity="0.5" />
+    <Circle cx="187" cy="150" r="13" fill="url(#streak1)" opacity="0.25" />
+
+    <Circle cx="82" cy="190" r="13" fill="#F6AD55" />
+    <Path d="M 78 188 L 82 192 L 88 182" stroke="white" strokeWidth="2.5"
+      fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <Circle cx="117" cy="190" r="13" fill="url(#streak2)" opacity="0.85" />
+    <Circle cx="152" cy="190" r="13" fill="url(#streak2)" opacity="0.5" />
+    <Circle cx="187" cy="190" r="13" fill="url(#streak2)" opacity="0.25" />
+
+    <Circle cx="82" cy="230" r="13" fill="#B794F4" />
+    <Path d="M 78 228 L 82 232 L 88 222" stroke="white" strokeWidth="2.5"
+      fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <Circle cx="117" cy="230" r="13" fill="url(#streak3)" opacity="0.85" />
+    <Circle cx="152" cy="230" r="13" fill="url(#streak3)" opacity="0.5" />
+    <Circle cx="187" cy="230" r="13" fill="url(#streak3)" opacity="0.25" />
   </Svg>
 );
 
 const PomodoroIllustration = () => (
-  <Svg width={280} height={280} viewBox="0 0 280 280">
+  <Svg width={300} height={300} viewBox="0 0 300 300">
     <Defs>
-      <RadialGradient id="clockGrad" cx="50%" cy="50%" r="50%">
-        <Stop offset="0%" stopColor="#4A90E2" stopOpacity="0.15" />
-        <Stop offset="100%" stopColor="#4A90E2" stopOpacity="0.6" />
+      <RadialGradient id="clockFace" cx="50%" cy="50%" r="50%">
+        <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#EBF8FF" stopOpacity="1" />
       </RadialGradient>
       <LinearGradient id="tomatoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#FF5252" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#E63946" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#FF6B6B" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#EE5A6F" stopOpacity="1" />
       </LinearGradient>
       <LinearGradient id="stemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#4CAF50" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#388E3C" stopOpacity="1" />
+        <Stop offset="0%" stopColor="#51CF66" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#37B24D" stopOpacity="1" />
       </LinearGradient>
+      <RadialGradient id="tomatoShine" cx="35%" cy="35%" r="50%">
+        <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.4" />
+        <Stop offset="100%" stopColor="#FF6B6B" stopOpacity="0" />
+      </RadialGradient>
     </Defs>
-    <Ellipse cx="140" cy="250" rx="85" ry="12" fill="#000" opacity="0.08" />
-    <Circle
-      cx="90"
-      cy="115"
-      r="62"
-      fill="none"
-      stroke="#4A90E2"
-      strokeWidth="3.5"
-    />
-    <Circle cx="90" cy="115" r="56" fill="url(#clockGrad)" />
-    <Circle cx="90" cy="115" r="6" fill="#4A90E2" />
-    <Path
-      d="M 90 115 L 90 58"
-      stroke="#4A90E2"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
-    <Path
-      d="M 90 115 L 137 115"
-      stroke="#4A90E2"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
-    <Circle cx="125" cy="115" r="3.5" fill="#4A90E2" />
-    <Circle cx="90" cy="63" r="3.5" fill="#4A90E2" />
-    <Circle cx="220" cy="160" r="32" fill="url(#tomatoGrad)" />
-    <Ellipse cx="218" cy="158" rx="30" ry="32" fill="url(#tomatoGrad)" />
-    <Path
-      d="M 210 132 Q 220 128 230 132"
-      stroke="url(#stemGrad)"
-      strokeWidth="3.5"
-      fill="none"
-      strokeLinecap="round"
-    />
-    <Path d="M 215 130 Q 218 123 222 130" fill="url(#stemGrad)" opacity="0.7" />
-    <Ellipse cx="212" cy="168" rx="8" ry="5" fill="#FF7070" opacity="0.6" />
-    <Ellipse cx="226" cy="158" rx="7" ry="6" fill="#FF7070" opacity="0.5" />
+
+    <Ellipse cx="150" cy="270" rx="95" ry="15" fill="#000" opacity="0.1" />
+
+    <Circle cx="100" cy="130" r="68" fill="url(#clockFace)" stroke="#667EEA" strokeWidth="4" />
+    <Circle cx="100" cy="130" r="60" fill="#EBF8FF" opacity="0.3" />
+
+    <Circle cx="100" cy="70" r="4" fill="#667EEA" />
+    <Circle cx="160" cy="130" r="4" fill="#667EEA" />
+    <Circle cx="100" cy="190" r="4" fill="#667EEA" />
+    <Circle cx="40" cy="130" r="4" fill="#667EEA" />
+
+    <Circle cx="100" cy="130" r="7" fill="#667EEA" />
+
+    <Path d="M 100 130 L 100 90" stroke="#667EEA" strokeWidth="4" strokeLinecap="round" />
+
+    <Path d="M 100 130 L 145 130" stroke="#667EEA" strokeWidth="4" strokeLinecap="round" />
+
+    <Ellipse cx="200" cy="170" rx="38" ry="40" fill="url(#tomatoGrad)" />
+    <Ellipse cx="195" cy="165" rx="36" ry="38" fill="url(#tomatoShine)" />
+
+    <Path d="M 190 135 Q 200 128 210 135" stroke="url(#stemGrad)" strokeWidth="4.5"
+      fill="none" strokeLinecap="round" />
+    <Path d="M 195 133 Q 198 125 202 133" fill="url(#stemGrad)" opacity="0.8" />
+
+    <Ellipse cx="188" cy="175" rx="10" ry="7" fill="#FF8787" opacity="0.5" />
+    <Ellipse cx="208" cy="168" rx="8" ry="8" fill="#FF8787" opacity="0.4" />
+    <Circle cx="198" cy="185" r="5" fill="#FF8787" opacity="0.3" />
   </Svg>
 );
 
@@ -468,25 +328,24 @@ const Blob2 = ({ color = "#E3E9FB" }) => (
 // Blob 3 - Rounded Square Blob
 const Blob3 = ({ color = "#E3E9FB" }) => (
   <Svg
-    width={400}
-    height={400}
+    width={395}
+    height={395}
     viewBox="0 0 400 400"
     style={{ position: "absolute" }}
   >
     <Path
-      d="M 190 80
-         C 245 75, 285 90, 305 130
-         C 320 165, 318 200, 305 235
-         C 292 270, 265 295, 220 305
-         C 180 313, 140 310, 105 290
-         C 70 270, 55 240, 55 200
-         C 55 160, 68 125, 95 100
-         C 125 75, 155 80, 190 80 Z"
+      d="M 200 55
+         C 255 60, 305 85, 325 135
+         C 345 185, 335 240, 305 280
+         C 275 320, 225 345, 175 335
+         C 125 325, 85 295, 70 250
+         C 55 205, 65 150, 95 115
+         C 125 80, 160 50, 200 55 Z"
       fill={color}
       opacity="0.6"
     />
-    {/* <Circle cx="110" cy="330" r="28" fill={color} opacity="0.4" /> */}
-    <Circle cx="290" cy="315" r="14" fill={color} opacity="0.38" />
+    <Circle cx="110" cy="310" r="12" fill={color} opacity="0.35" />
+    <Circle cx="290" cy="330" r="16" fill={color} opacity="0.4" />
   </Svg>
 );
 
@@ -499,20 +358,18 @@ const Blob4 = ({ color = "#E3E9FB" }) => (
     style={{ position: "absolute" }}
   >
     <Path
-      d="M 190 55
-         C 240 55, 275 70, 300 100
-         C 325 130, 338 170, 335 210
-         C 332 250, 315 290, 280 315
-         C 245 340, 200 350, 155 335
-         C 110 320, 75 285, 60 240
-         C 45 195, 52 150, 75 115
-         C 98 80, 135 60, 175 56
-         C 183 55, 192 55, 190 55 Z"
+      d="M 205 50
+         C 260 45, 315 75, 335 120
+         C 355 165, 345 225, 310 270
+         C 275 315, 220 350, 170 335
+         C 120 320, 80 285, 65 235
+         C 50 185, 70 130, 105 100
+         C 140 70, 170 50, 205 50 Z"
       fill={color}
       opacity="0.6"
     />
-    <Circle cx="75" cy="330" r="12" fill={color} opacity="0.42" />
-    <Circle cx="315" cy="345" r="15" fill={color} opacity="0.37" />
+    <Circle cx="85" cy="325" r="13" fill={color} opacity="0.42" />
+    <Circle cx="320" cy="340" r="15" fill={color} opacity="0.37" />
   </Svg>
 );
 
@@ -541,8 +398,6 @@ const Blob5 = ({ color = "#E3E9FB" }) => (
 );
 
 export const BlobShapes = [Blob1, Blob2, Blob3, Blob4, Blob5];
-
-export { Blob1, Blob2, Blob3, Blob4, Blob5 };
 
 const slides = [
   {
@@ -573,20 +428,20 @@ const slides = [
 ];
 
 export default function SignIn() {
+
   const { currentTheme } = useContext(ThemeContext);
   const router = useRouter();
 
   const [active, setActive] = useState(0);
-
   const prevActive = useRef(active);
 
-  const translateX = useRef(new Animated.Value(0.7)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(1)).current;
   const blobScale = useRef(new Animated.Value(1)).current;
   const blobOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const intervels = setInterval(() => {
+    const interval = setInterval(() => {
       prevActive.current = active;
 
       Animated.parallel([
@@ -625,7 +480,7 @@ export default function SignIn() {
             useNativeDriver: true,
           }),
           Animated.timing(translateX, {
-            toValue: 1,
+            toValue: 0,
             duration: 500,
             useNativeDriver: true,
           }),
@@ -641,9 +496,9 @@ export default function SignIn() {
           }),
         ]).start();
       });
-    }, 2000);
+    }, 3000);
 
-    return () => clearInterval(intervels);
+    return () => clearInterval(interval);
   }, [active]);
 
   const BlobComponent = BlobShapes[active];
@@ -654,123 +509,129 @@ export default function SignIn() {
       <SafeAreaView
         style={[
           styles.container,
-          { backgroundColor: currentTheme === "light" ? "#F5F5F5" : "#000000" },
+          { backgroundColor: currentTheme === "light" ? "#FAFBFC" : "#0F1419" },
         ]}
       >
         <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          // onScroll={handleScroll}
-          scrollEventThrottle={16}
-          style={styles.mainScrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
         >
-          <View style={styles.slideContainer}>
-            <View style={styles.illustrationContainer}>
+          {/* Illustration Section */}
+          <View style={styles.illustrationSection}>
+            <Animated.View
+              style={[
+                styles.blobContainer,
+                {
+                  opacity: blobOpacity,
+                  transform: [{ scale: blobScale }],
+                },
+              ]}
+            >
               <BlobComponent
-                color={currentTheme === "light" ? "#BBDEFB" : "#4A6FA5"}
+                color={currentTheme === "light" ? "#D6E4FF" : "#1E3A5F"}
               />
-              <Animated.View
+            </Animated.View>
+            <Animated.View
+              style={[
+                styles.illustration,
+                { opacity, transform: [{ translateX }] },
+              ]}
+            >
+              <Illustration />
+            </Animated.View>
+          </View>
+
+          {/* Text */}
+          <View style={styles.textContainer}>
+            <Animated.Text
+              style={[
+                styles.slideText,
+                { color: currentTheme === "light" ? "#000000" : "#FAFAFA" },
+              ]}
+            >
+              {slides[active].title}
+            </Animated.Text>
+          </View>
+
+          {/* Pagination Dots */}
+          <View style={styles.pagination}>
+            {slides.map((_, index) => (
+              <View
+                key={index}
+                style={[styles.dot, index === active && styles.activeDot]}
+              />
+            ))}
+          </View>
+
+          {/* Sign In Options */}
+          <View style={styles.signInContainer}>
+            <TouchableOpacity
+              onPress={() => router.push("/sign-in-email")}
+              style={[
+                styles.button,
+                {
+                  backgroundColor:
+                    currentTheme === "light" ? "#E0E0E0" : "#1E201E",
+                },
+              ]}
+            >
+              <View style={styles.iconContainer}>
+                <FontAwesome6 name="user-large" size={17} color="#4772FA" />
+              </View>
+              <Text
                 style={[
-                  styles.illustration,
-                  { opacity, transform: [{ translateX }] },
+                  styles.buttonText,
+                  { color: currentTheme === "light" ? "#000000" : "#FAFAFA" },
                 ]}
               >
-                <Illustration />
-              </Animated.View>
-            </View>
+                Sign in with Email
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.button,
+                {
+                  backgroundColor:
+                    currentTheme === "light" ? "#E0E0E0" : "#1E201E",
+                },
+              ]}
+            >
+              <View style={styles.iconContainer}>
+                <Svg width={20} height={20} viewBox="0 0 20 20">
+                  <Path
+                    d="M19.6 10.2c0-.7-.1-1.4-.2-2H10v3.8h5.4c-.2 1.2-1 2.2-2 2.9v2.5h3.2c1.9-1.7 3-4.3 3-7.2z"
+                    fill="#4285F4"
+                  />
+                  <Path
+                    d="M10 20c2.7 0 4.9-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H1.1v2.6C2.8 17.8 6.1 20 10 20z"
+                    fill="#34A853"
+                  />
+                  <Path
+                    d="M4.4 12c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V5.4H1.1C.4 6.8 0 8.4 0 10s.4 3.2 1.1 4.6l3.3-2.6z"
+                    fill="#FBBC05"
+                  />
+                  <Path
+                    d="M10 4c1.5 0 2.8.5 3.8 1.5l2.9-2.9C15 .9 12.7 0 10 0 6.1 0 2.8 2.2 1.1 5.4l3.3 2.6C5.2 5.8 7.4 4 10 4z"
+                    fill="#EA4335"
+                  />
+                </Svg>
+              </View>
+              <Text
+                style={[
+                  styles.buttonText,
+                  { color: currentTheme === "light" ? "#000000" : "#FAFAFA" },
+                ]}
+              >
+                Continue with Google
+              </Text>
+            </TouchableOpacity>
           </View>
+
         </ScrollView>
-
-        {/* Text */}
-        <View style={styles.textContainer}>
-          <Animated.Text
-            style={[
-              styles.slideText,
-              { color: currentTheme === "light" ? "#000000" : "#FAFAFA" },
-            ]}
-          >
-            {slides[active].title}
-          </Animated.Text>
-        </View>
-
-        {/* Pagination Dots */}
-        <View style={styles.pagination}>
-          {slides.map((_, index) => (
-            <View
-              key={index}
-              style={[styles.dot, index === active && styles.activeDot]}
-            />
-          ))}
-        </View>
-
-        {/* Sign In Options */}
-        <View style={styles.signInContainer}>
-          <TouchableOpacity
-            onPress={() => router.push("/sign-in-email")}
-            style={[
-              styles.button,
-              {
-                backgroundColor:
-                  currentTheme === "light" ? "#E0E0E0" : "#1E201E",
-              },
-            ]}
-          >
-            <View style={styles.iconContainer}>
-              <FontAwesome6 name="user-large" size={17} color="#4772FA" />
-            </View>
-            <Text
-              style={[
-                styles.buttonText,
-                { color: currentTheme === "light" ? "#000000" : "#FAFAFA" },
-              ]}
-            >
-              Sign in with Email
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.button,
-              {
-                backgroundColor:
-                  currentTheme === "light" ? "#E0E0E0" : "#1E201E",
-              },
-            ]}
-          >
-            <View style={styles.iconContainer}>
-              <Svg width={20} height={20} viewBox="0 0 20 20">
-                <Path
-                  d="M19.6 10.2c0-.7-.1-1.4-.2-2H10v3.8h5.4c-.2 1.2-1 2.2-2 2.9v2.5h3.2c1.9-1.7 3-4.3 3-7.2z"
-                  fill="#4285F4"
-                />
-                <Path
-                  d="M10 20c2.7 0 4.9-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H1.1v2.6C2.8 17.8 6.1 20 10 20z"
-                  fill="#34A853"
-                />
-                <Path
-                  d="M4.4 12c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V5.4H1.1C.4 6.8 0 8.4 0 10s.4 3.2 1.1 4.6l3.3-2.6z"
-                  fill="#FBBC05"
-                />
-                <Path
-                  d="M10 4c1.5 0 2.8.5 3.8 1.5l2.9-2.9C15 .9 12.7 0 10 0 6.1 0 2.8 2.2 1.1 5.4l3.3 2.6C5.2 5.8 7.4 4 10 4z"
-                  fill="#EA4335"
-                />
-              </Svg>
-            </View>
-            <Text
-              style={[
-                styles.buttonText,
-                { color: currentTheme === "light" ? "#000000" : "#FAFAFA" },
-              ]}
-            >
-              Continue with Google
-            </Text>
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
 
-      <StatusBar style={currentTheme === "light" ? "light" : "dark"} />
+      <StatusBar style={currentTheme === "light" ? "dark" : "light"} />
     </>
   );
 }
@@ -778,40 +639,22 @@ export default function SignIn() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 10,
-    zIndex: 100,
+  scrollContent: {
+    flexGrow: 1,
+    paddingTop: 40,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-  },
-  backIcon: {
-    fontSize: 24,
-    color: "#333",
-  },
-  mainScrollView: {
-    flexGrow: 0,
-    marginTop: 70,
-  },
-  slideContainer: {
-    width: SCREEN_WIDTH,
-  },
-  illustrationContainer: {
-    height: 330,
+  illustrationSection: {
+    height: 380,
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
+    marginBottom: 20,
   },
-  blob: {
+  blobContainer: {
     position: "absolute",
-    width: 240,
-    height: 220,
+    justifyContent: "center",
+    alignItems: "center",
   },
   illustration: {
     justifyContent: "center",
@@ -901,4 +744,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-});
+}); 
