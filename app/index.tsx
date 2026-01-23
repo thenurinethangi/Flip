@@ -574,7 +574,7 @@ export default function SignIn() {
                 styles.button,
                 {
                   backgroundColor:
-                    currentTheme === "light" ? "#E0E0E0" : "#1E201E",
+                    currentTheme === "light" ? "#E0E0E0" : "#191919",
                 },
               ]}
             >
@@ -596,7 +596,11 @@ export default function SignIn() {
                 styles.button,
                 {
                   backgroundColor:
-                    currentTheme === "light" ? "#E0E0E0" : "#1E201E",
+                    currentTheme === "light" ? "#E0E0E0" : "#191919",
+                },
+                {
+                  borderColor:
+                    currentTheme === "light" ? "none" : "gray",
                 },
               ]}
             >
@@ -645,14 +649,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingTop: 40,
+    paddingTop: 60,
   },
   illustrationSection: {
     height: 380,
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
-    marginBottom: 20,
   },
   blobContainer: {
     position: "absolute",
@@ -669,11 +672,11 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   textContainer: {
-    marginTop: 10,
-    height: 80,
+    marginTop: 5,
     paddingHorizontal: 30,
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 12
   },
   slideText: {
     fontSize: 14.5,
@@ -703,7 +706,7 @@ const styles = StyleSheet.create({
   },
   signInContainer: {
     paddingHorizontal: 35,
-    marginTop: 60,
+    marginTop: 70,
   },
   button: {
     flexDirection: "row",
