@@ -14,6 +14,7 @@ import {
   Menu,
   EllipsisVertical,
   ChevronDown,
+  Plus,
 } from "lucide-react-native";
 
 type LucideIcon = React.ComponentType<{
@@ -37,7 +38,8 @@ const ICONS = {
   Calendar: Calendar,
   Disc: Disc,
   Menu: Menu,
-  EllipsisVertical: EllipsisVertical
+  EllipsisVertical: EllipsisVertical,
+  Plus: Plus
 };
 
 export type IconName = keyof typeof ICONS;
