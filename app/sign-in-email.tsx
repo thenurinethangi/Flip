@@ -5,7 +5,7 @@ import React, { useContext, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from '@expo/vector-icons/Feather';
-import { checkEmailExists, registerOrLoginUser, registerUser } from "@/services/authService";
+import { registerOrLoginUser } from "@/services/authService";
 import Toast from "react-native-toast-message";
 
 const SignInEmail = () => {
@@ -55,6 +55,7 @@ const SignInEmail = () => {
       }
     }
   }
+
 
   return (
     <SafeAreaView

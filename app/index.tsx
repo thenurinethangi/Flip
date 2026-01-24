@@ -25,6 +25,13 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import { getAuth, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
+import * as AuthSession from "expo-auth-session";
+
+WebBrowser.maybeCompleteAuthSession();
+
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // Enhanced Illustration Components
@@ -281,9 +288,7 @@ const PomodoroIllustration = () => (
   </Svg>
 );
 
-// Blob 1 - Tall Vertical Blob (Original)
-// Blob 1 - Soft Organic Blob (SLIGHTLY SMALLER)
-// Blob 1 - Soft Organic Blob (MICRO REDUCTION)
+// Blob 1 - Tall Vertical Blob
 const Blob1 = ({ color = "#E3E9FB" }) => (
   <Svg
     width={410}
@@ -504,6 +509,42 @@ export default function SignIn() {
     return () => clearInterval(interval);
   }, [active]);
 
+  const auth = getAuth();
+
+  const redirectUri = AuthSession.makeRedirectUri({
+    path: 'https://auth.expo.io',
+  })
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: "831824482548-9ua3le2q822r37k50kf0pn5r7lu5com8.apps.googleusercontent.com",
+    webClientId: "831824482548-larinube6no9iab9mu1ehm7m6pk58vq8.apps.googleusercontent.com",
+    redirectUri,
+  });
+
+  const handleGoogleSignIn = () => {
+    // 2. You MUST pass the redirectUri here as well
+    promptAsync({
+      useProxy: true,
+      windowFeatures: { width: 400, height: 500 }
+    });
+  };
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.authentication;
+
+      const credential = GoogleAuthProvider.credential(id_token);
+
+      signInWithCredential(auth, credential)
+        .then((userCredential) => {
+          console.log("Firebase user:", userCredential.user);
+        })
+        .catch((error) => {
+          console.log("Firebase sign-in error:", error);
+        });
+    }
+  }, [response]);
+
   const BlobComponent = BlobShapes[active];
   const Illustration = slides[active].Illustration;
 
@@ -574,7 +615,7 @@ export default function SignIn() {
                 styles.button,
                 {
                   backgroundColor:
-                    currentTheme === "light" ? "#E0E0E0" : "#191919",
+                    currentTheme === "light" ? "#ECECEC" : "#1a1a1a",
                 },
               ]}
             >
@@ -592,11 +633,13 @@ export default function SignIn() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              disabled={!request}
+              onPress={handleGoogleSignIn}
               style={[
                 styles.button,
                 {
                   backgroundColor:
-                    currentTheme === "light" ? "#E0E0E0" : "#191919",
+                    currentTheme === "light" ? "#ECECEC" : "#1a1a1a",
                 },
                 {
                   borderColor:
@@ -635,6 +678,17 @@ export default function SignIn() {
             </TouchableOpacity>
           </View>
 
+          {/* Text */}
+          <View>
+            <Text className="text-center"
+              style={[
+                { color: currentTheme === "light" ? "gray" : "gray" },
+              ]}
+            >
+              Others
+            </Text>
+          </View>
+
         </ScrollView>
       </SafeAreaView>
     </>
@@ -647,7 +701,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingTop: 60,
+    paddingTop: 70,
   },
   illustrationSection: {
     height: 380,
@@ -670,7 +724,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   textContainer: {
-    marginTop: 5,
+    marginTop: 0,
     paddingHorizontal: 30,
     justifyContent: "center",
     alignItems: "center",
@@ -704,14 +758,14 @@ const styles = StyleSheet.create({
   },
   signInContainer: {
     paddingHorizontal: 35,
-    marginTop: 70,
+    marginTop: 75,
   },
   button: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#E0E0E0",
-    paddingVertical: 13,
+    backgroundColor: "#ECECEC",
+    paddingVertical: 12.5,
     paddingHorizontal: 20,
     borderRadius: 15,
     marginBottom: 16,
