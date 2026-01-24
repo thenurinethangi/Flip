@@ -22,9 +22,9 @@ export default function TabLayout() {
         tabBarActiveTintColor: "#4772FA",
         tabBarInactiveTintColor: inactiveColor,
         tabBarStyle: {
-          backgroundColor: isLight ? "#FFFFFF" : "#000000",
+          backgroundColor: isLight ? "#F5F6F8" : "#000000",
           borderTopWidth: 0,
-          borderTopColor: isLight ? "#FFFFFF" : "#000000",
+          borderTopColor: isLight ? "#F5F6F8" : "#000000",
         },
       }}
     >

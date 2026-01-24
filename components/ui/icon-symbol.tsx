@@ -11,6 +11,9 @@ import {
   Layers2,
   Calendar,
   Disc,
+  Menu,
+  EllipsisVertical,
+  ChevronDown,
 } from "lucide-react-native";
 
 type LucideIcon = React.ComponentType<{
@@ -26,12 +29,15 @@ const ICONS = {
   send: Send,
   code: Code,
   chevronRight: ChevronRight,
+  ChevronDown: ChevronDown,
   bell: Bell,
   user: User,
   search: Search,
   layers: Layers2,
   Calendar: Calendar,
-  Disc: Disc
+  Disc: Disc,
+  Menu: Menu,
+  EllipsisVertical: EllipsisVertical
 };
 
 export type IconName = keyof typeof ICONS;
