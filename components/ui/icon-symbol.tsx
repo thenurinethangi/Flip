@@ -1,41 +1,56 @@
-// Fallback for using MaterialIcons on Android and web.
+import React from "react";
+import { OpaqueColorValue } from "react-native";
+import {
+  House,
+  Send,
+  Code,
+  ChevronRight,
+  Bell,
+  User,
+  Search,
+  Layers2,
+  Calendar,
+  Disc,
+} from "lucide-react-native";
 
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
-import { ComponentProps } from 'react';
-import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
-
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
-type IconSymbolName = keyof typeof MAPPING;
-
-/**
- * Add your SF Symbols to Material Icons mappings here.
- * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
- * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
- */
-const MAPPING = {
-  'house.fill': 'home',
-  'paperplane.fill': 'send',
-  'chevron.left.forwardslash.chevron.right': 'code',
-  'chevron.right': 'chevron-right',
-} as IconMapping;
+type LucideIcon = React.ComponentType<{
+  size?: number;
+  color?: string | OpaqueColorValue;
+}>;
 
 /**
- * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
- * This ensures a consistent look across platforms, and optimal resource usage.
- * Icon `name`s are based on SF Symbols and require manual mapping to Material Icons.
+ * Define your app icon names here (no platform mapping needed)
  */
-export function IconSymbol({
+const ICONS = {
+  home: House,
+  send: Send,
+  code: Code,
+  chevronRight: ChevronRight,
+  bell: Bell,
+  user: User,
+  search: Search,
+  layers: Layers2,
+  Calendar: Calendar,
+  Disc: Disc
+};
+
+export type IconName = keyof typeof ICONS;
+
+type IconProps = {
+  name: IconName;
+  size?: number;
+  color?: string | OpaqueColorValue;
+};
+
+/**
+ * Unified Icon component using Lucide icons
+ * Works on iOS, Android, Web (Expo)
+ */
+export function AppIcon({
   name,
   size = 24,
-  color,
-  style,
-}: {
-  name: IconSymbolName;
-  size?: number;
-  color: string | OpaqueColorValue;
-  style?: StyleProp<TextStyle>;
-  weight?: SymbolWeight;
-}) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  color = "#4772FA",
+}: IconProps) {
+  const IconComponent: LucideIcon = ICONS[name];
+  return <IconComponent size={size} color={color} />;
 }

@@ -29,6 +29,8 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { getAuth, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 import * as AuthSession from "expo-auth-session";
+import { useAuth } from "@/context/authContext";
+import Spinner from "@/components/spinner";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -450,6 +452,7 @@ const slides = [
 
 export default function SignIn() {
 
+  const { user, loading } = useAuth();
   const { currentTheme } = useContext(ThemeContext);
   const router = useRouter();
 
@@ -460,6 +463,12 @@ export default function SignIn() {
   const opacity = useRef(new Animated.Value(1)).current;
   const blobScale = useRef(new Animated.Value(1)).current;
   const blobOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace("/(tabs)"); 
+    }
+  }, [user, loading]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -559,6 +568,10 @@ export default function SignIn() {
 
   const BlobComponent = BlobShapes[active];
   const Illustration = slides[active].Illustration;
+
+  if (loading || user) {
+    return <Spinner />;
+  }
 
   return (
     <>

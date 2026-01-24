@@ -7,6 +7,7 @@ import { useContext } from "react";
 import { StatusBar } from "react-native";
 import Toast, { ToastConfig } from "react-native-toast-message";
 import { CustomToast } from "@/components/custom-toast";
+import { AuthProvider } from "@/context/authContext";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -51,8 +52,10 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <RootLayoutContent />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <RootLayoutContent />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

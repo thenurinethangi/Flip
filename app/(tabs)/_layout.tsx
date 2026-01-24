@@ -1,33 +1,71 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs } from "expo-router";
+import React, { useContext } from "react";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { HapticTab } from "@/components/haptic-tab";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { AppIcon } from "@/components/ui/icon-symbol";
+import { ThemeContext } from "@/context/themeContext";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+
+  const { currentTheme } = useContext(ThemeContext);
+
+  const isLight = currentTheme === "light";
+
+  const inactiveColor = isLight ? "#6A7282" : "#4B4B4B";
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
-      }}>
+        tabBarActiveTintColor: "#4772FA",
+        tabBarInactiveTintColor: inactiveColor,
+        tabBarStyle: {
+          backgroundColor: isLight ? "#FFFFFF" : "#000000",
+          borderTopWidth: 0,
+          borderTopColor: isLight ? "#FFFFFF" : "#000000",
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarShowLabel: false,
+          title: "Home",
+          tabBarIcon: ({ color }) => <AppIcon name="home" color={color} />,
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarShowLabel: false,
+          title: "Explore",
+          tabBarIcon: ({ color }) => <AppIcon name="Calendar" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="focus"
+        options={{
+          tabBarShowLabel: false,
+          title: "Focus",
+          tabBarIcon: ({ color }) => <AppIcon name="Disc" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="habit"
+        options={{
+          tabBarShowLabel: false,
+          title: "Habit",
+          tabBarIcon: ({ color }) => <AppIcon name="layers" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          tabBarShowLabel: false,
+          title: "Profile",
+          tabBarIcon: ({ color }) => <AppIcon name="user" color={color} />,
         }}
       />
     </Tabs>
