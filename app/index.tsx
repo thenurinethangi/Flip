@@ -512,7 +512,7 @@ export default function SignIn() {
   const auth = getAuth();
 
   const redirectUri = AuthSession.makeRedirectUri({
-    path: 'https://auth.expo.io',
+    useProxy: false,
   })
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -524,8 +524,7 @@ export default function SignIn() {
   const handleGoogleSignIn = () => {
     // 2. You MUST pass the redirectUri here as well
     promptAsync({
-      useProxy: true,
-      windowFeatures: { width: 400, height: 500 }
+      useProxy: false,
     });
   };
 
