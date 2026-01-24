@@ -38,50 +38,63 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const ReminderIllustration = () => (
   <Svg width={300} height={300} viewBox="0 0 300 300">
     <Defs>
-      <LinearGradient id="taskGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <LinearGradient id="clipGrad" x1="0%" y1="0%" x2="0%" y2="100%">
         <Stop offset="0%" stopColor="#667EEA" stopOpacity="1" />
         <Stop offset="100%" stopColor="#764BA2" stopOpacity="1" />
       </LinearGradient>
-      <LinearGradient id="clipGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <Stop offset="0%" stopColor="#4A5568" stopOpacity="1" />
-        <Stop offset="100%" stopColor="#2D3748" stopOpacity="1" />
-      </LinearGradient>
       <LinearGradient id="paperShine" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
+        <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
         <Stop offset="100%" stopColor="#F7FAFC" stopOpacity="1" />
+      </LinearGradient>
+      <LinearGradient id="checkGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#F687B3" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#F472B6" stopOpacity="1" />
+      </LinearGradient>
+      <LinearGradient id="checkGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#F6AD55" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#F59E0B" stopOpacity="1" />
+      </LinearGradient>
+      <LinearGradient id="checkGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#667EEA" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#5B21B6" stopOpacity="1" />
+      </LinearGradient>
+      <LinearGradient id="checkGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#68D391" stopOpacity="1" />
+        <Stop offset="100%" stopColor="#10B981" stopOpacity="1" />
       </LinearGradient>
     </Defs>
 
     <Ellipse cx="150" cy="270" rx="90" ry="15" fill="#000" opacity="0.1" />
 
-    <Rect x="70" y="75" width="140" height="180" rx="15" fill="#E2E8F0" opacity="0.3" />
+    <Rect x="72" y="77" width="140" height="180" rx="15" fill="#000" opacity="0.05" />
 
-    <Rect x="68" y="72" width="140" height="180" rx="15" fill="url(#paperShine)"
-      stroke="url(#taskGrad)" strokeWidth="3.5" />
+    <Rect x="70" y="75" width="140" height="180" rx="15" fill="url(#paperShine)"
+      stroke="#E2E8F0" strokeWidth="2.5" />
 
-    <Rect x="95" y="55" width="86" height="25" rx="8" fill="url(#clipGrad)" />
-    <Circle cx="108" cy="67.5" r="4" fill="#CBD5E0" />
-    <Circle cx="130" cy="67.5" r="4" fill="#CBD5E0" />
-    <Circle cx="168" cy="67.5" r="4" fill="#CBD5E0" />
+    <Rect x="95" y="55" width="86" height="28" rx="8" fill="url(#clipGrad)" />
 
-    <Rect x="85" y="100" width="16" height="16" rx="4" fill="#FFF5F7" stroke="#F687B3" strokeWidth="2.5" />
-    <Path d="M 89 108 L 93 112 L 101 102" stroke="#F687B3" strokeWidth="2.5"
+    <Circle cx="108" cy="69" r="4.5" fill="#FFFFFF" opacity="0.9" />
+    <Circle cx="130" cy="69" r="4.5" fill="#FFFFFF" opacity="0.9" />
+    <Circle cx="168" cy="69" r="4.5" fill="#FFFFFF" opacity="0.9" />
+
+    <Rect x="85" y="100" width="16" height="16" rx="4" fill="#FFF5F7" stroke="url(#checkGrad1)" strokeWidth="2.5" />
+    <Path d="M 89 108 L 93 112 L 101 102" stroke="#F472B6" strokeWidth="2.5"
       fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    <Rect x="108" y="100" width="80" height="10" rx="5" fill="#FED7E2" />
+    <Rect x="108" y="100" width="80" height="10" rx="5" fill="#FED7E2" opacity="0.9" />
 
-    <Rect x="85" y="130" width="16" height="16" rx="4" fill="#FFFAF0" stroke="#F6AD55" strokeWidth="2.5" />
-    <Rect x="108" y="130" width="75" height="10" rx="5" fill="#FEEBC8" />
+    <Rect x="85" y="130" width="16" height="16" rx="4" fill="#FFFAF0" stroke="url(#checkGrad2)" strokeWidth="2.5" />
+    <Rect x="108" y="130" width="75" height="10" rx="5" fill="#FEEBC8" opacity="0.9" />
 
-    <Rect x="85" y="160" width="16" height="16" rx="4" fill="#EBF8FF" stroke="#667EEA" strokeWidth="2.5" />
+    <Rect x="85" y="160" width="16" height="16" rx="4" fill="#EBF8FF" stroke="url(#checkGrad3)" strokeWidth="2.5" />
     <Path d="M 89 168 L 93 172 L 101 162" stroke="#667EEA" strokeWidth="2.5"
       fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    <Rect x="108" y="160" width="70" height="10" rx="5" fill="#BEE3F8" />
+    <Rect x="108" y="160" width="70" height="10" rx="5" fill="#BEE3F8" opacity="0.9" />
 
-    <Rect x="85" y="190" width="16" height="16" rx="4" fill="#F0FFF4" stroke="#68D391" strokeWidth="2.5" />
-    <Rect x="108" y="190" width="65" height="10" rx="5" fill="#C6F6D5" />
+    <Rect x="85" y="190" width="16" height="16" rx="4" fill="#F0FFF4" stroke="url(#checkGrad4)" strokeWidth="2.5" />
+    <Rect x="108" y="190" width="65" height="10" rx="5" fill="#C6F6D5" opacity="0.9" />
 
     <Rect x="85" y="220" width="16" height="16" rx="4" fill="#FAF5FF" stroke="#B794F4" strokeWidth="2.5" />
-    <Rect x="108" y="220" width="60" height="10" rx="5" fill="#E9D8FD" />
+    <Rect x="108" y="220" width="60" height="10" rx="5" fill="#E9D8FD" opacity="0.9" />
   </Svg>
 );
 
