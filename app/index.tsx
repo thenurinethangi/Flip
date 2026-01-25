@@ -466,7 +466,7 @@ export default function SignIn() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.replace("/(tabs)"); 
+      router.replace("/(tabs)");
     }
   }, [user, loading]);
 
