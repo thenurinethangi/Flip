@@ -1,5 +1,5 @@
 import { Check, Flag } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export type PriorityId = "high" | "medium" | "low" | "none";
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         justifyContent: "flex-end",
         alignItems: "center",
-        paddingBottom: 160,
+        paddingBottom: 85,
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,

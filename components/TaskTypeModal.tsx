@@ -3,11 +3,10 @@ import {
     Briefcase,
     Check,
     FileText,
-    Hand,
     Home,
-    Inbox,
+    Inbox
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export type TaskTypeId = "none" | "work" | "personal" | "note" | "welcome" | "study";
@@ -80,7 +79,7 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         justifyContent: "flex-end",
         alignItems: "center",
-        paddingBottom: 170,
+        paddingBottom: 95,
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,

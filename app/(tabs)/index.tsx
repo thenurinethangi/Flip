@@ -31,6 +31,7 @@ export default function HomeScreen() {
     taskType: string;
     tags: string;
   }) {
+
     console.log("NEW TASK", payload);
   }
 
