@@ -1,6 +1,10 @@
 import {
+    BookOpen,
+    Briefcase,
     Calendar,
+    FileText,
     Flag,
+    Home,
     MoreHorizontal,
     MoveRight,
     SendHorizontal,
@@ -143,7 +147,11 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                                 </TouchableOpacity>
 
                                 <TouchableOpacity onPress={() => setTaskTypeVisible(true)}>
-                                    <MoveRight size={22} color="#9BA2AB" />
+                                    {selectedTaskType === 'none' && <MoveRight size={22} color="#9BA2AB" />}
+                                    {selectedTaskType === 'work' && <Briefcase size={22} color="#8B5E3C" />}
+                                    {selectedTaskType === 'personal' && <Home size={22} color="#D47C2C" />}
+                                    {selectedTaskType === 'note' && <FileText size={22} color="#66BB6A" />}
+                                    {selectedTaskType === 'study' && <BookOpen size={22} color="#B55CC5" />}
                                 </TouchableOpacity>
 
                                 {/* <TouchableOpacity>
@@ -182,6 +190,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
 
                     <TaskTypeModal
                         visible={taskTypeVisible}
+                        selectedTaskType={selectedTaskType}
                         onClose={() => setTaskTypeVisible(false)}
                         onSelect={setSelectedTaskType}
                     />

@@ -18,7 +18,7 @@ export default function HomeScreen() {
   const [selectedReminder, setSelectedReminder] = useState("None");
   const [selectedRepeat, setSelectedRepeat] = useState("None");
   const [selectedPriority, setSelectedPriority] = useState("none");
-  const [selectedTaskType, setSelectedTaskType] = useState("None");
+  const [selectedTaskType, setSelectedTaskType] = useState("none");
   const [tags, setTags] = useState("");
 
   function addNewTask(payload: {

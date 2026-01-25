@@ -14,6 +14,7 @@ export type TaskTypeId = "none" | "work" | "personal" | "note" | "welcome" | "st
 
 interface TaskTypeModalProps {
     visible: boolean;
+    selectedTaskType: string;
     onClose: () => void;
     onSelect?: (type: TaskTypeId) => void;
 }
@@ -27,26 +28,18 @@ const taskTypeOptions: {
         { id: "none", label: "None", color: "#2F6BFF", Icon: Inbox },
         { id: "work", label: "Work", color: "#8B5E3C", Icon: Briefcase },
         { id: "personal", label: "Personal", color: "#D47C2C", Icon: Home },
-        { id: "note", label: "Note", color: "#8A8A8A", Icon: FileText },
-        { id: "welcome", label: "Welcome", color: "#F2B233", Icon: Hand },
+        { id: "note", label: "Note", color: "#66BB6A", Icon: FileText },
         { id: "study", label: "Study", color: "#B55CC5", Icon: BookOpen },
     ];
 
 const TaskTypeModal: React.FC<TaskTypeModalProps> = ({
     visible,
+    selectedTaskType,
     onClose,
     onSelect,
 }) => {
-    const [selected, setSelected] = useState<TaskTypeId>("none");
-
-    useEffect(() => {
-        if (visible) {
-            setSelected("none");
-        }
-    }, [visible]);
 
     const handleSelect = (type: TaskTypeId) => {
-        setSelected(type);
         onSelect?.(type);
         onClose();
     };
@@ -70,7 +63,7 @@ const TaskTypeModal: React.FC<TaskTypeModalProps> = ({
                     >
                         <option.Icon size={20} color={option.color} />
                         <Text style={styles.text}>{option.label}</Text>
-                        {selected === option.id && (
+                        {selectedTaskType === option.id && (
                             <Check size={18} color="#2F6BFF" style={styles.check} />
                         )}
                     </TouchableOpacity>
