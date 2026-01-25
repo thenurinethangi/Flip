@@ -11,21 +11,60 @@ import {
     KeyboardAvoidingView,
     Platform,
     StyleSheet,
+    Text,
     TextInput,
     TouchableOpacity,
     View
 } from "react-native";
 import Modal from "react-native-modal";
-import PriorityModal from "./../components/PriorityModal";
-import TaskTypeModal from "./../components/TaskTypeModal";
+import PriorityModal, { type PriorityId } from "./../components/PriorityModal";
+import TaskTypeModal, { type TaskTypeId } from "./../components/TaskTypeModal";
 
 interface AddTaskModalProps {
     visible: boolean;
     onClose: () => void;
     onOpenCalendar: () => void;
+    selectedDate: string;
+    selectedTime: string;
+    selectedReminder: string;
+    selectedRepeat: string;
+    selectedPriority: string;
+    selectedTaskType: string;
+    tags: string;
+    setSelectedDate: (value: string) => void;
+    setSelectedTime: (value: string) => void;
+    setSelectedReminder: (value: string) => void;
+    setSelectedRepeat: (value: string) => void;
+    setSelectedPriority: (value: string) => void;
+    setSelectedTaskType: (value: string) => void;
+    setTags: (value: string) => void;
+    onAddTask: (payload: {
+        title: string;
+        date: string;
+        time: string;
+        reminder: string;
+        repeat: string;
+        priority: string;
+        taskType: string;
+        tags: string;
+    }) => void;
 }
 
-const AddTaskModal: React.FC<AddTaskModalProps> = ({ visible, onClose, onOpenCalendar }) => {
+const AddTaskModal: React.FC<AddTaskModalProps> = ({
+    visible,
+    onClose,
+    onOpenCalendar,
+    selectedDate,
+    selectedTime,
+    selectedReminder,
+    selectedRepeat,
+    selectedPriority,
+    selectedTaskType,
+    tags,
+    setSelectedPriority,
+    setSelectedTaskType,
+    onAddTask,
+}) => {
 
     const [text, setText] = useState<string>("");
     const [height, setHeight] = useState<number>(70);
@@ -35,6 +74,25 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ visible, onClose, onOpenCal
 
     const handleModalShow = () => {
         inputRef.current?.focus();
+    };
+
+    const formatTaskDate = (dateStr: string) => {
+        const input = new Date(dateStr);
+        const today = new Date();
+
+        input.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+
+        const diffDays =
+            (input.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+
+        if (diffDays === 0) return "Today";
+        if (diffDays === 1) return "Tomorrow";
+
+        return input.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+        });
     };
 
 
@@ -71,8 +129,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ visible, onClose, onOpenCal
                         {/* Bottom Row */}
                         <View style={styles.bottomRow}>
                             <View style={styles.iconRow}>
-                                <TouchableOpacity onPress={onOpenCalendar}>
-                                    <Calendar size={22} color="#9BA2AB" />
+                                <TouchableOpacity onPress={onOpenCalendar} className="flex-row items-center">
+                                    <Calendar size={22} color="#4772FA" />
+                                    <Text className="text-primary ml-2">{formatTaskDate(selectedDate)}</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity onPress={() => setPriorityVisible(true)}>
@@ -92,7 +151,23 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ visible, onClose, onOpenCal
                                 </TouchableOpacity>
                             </View>
 
-                            <TouchableOpacity style={styles.addBtn}>
+                            <TouchableOpacity
+                                style={styles.addBtn}
+                                onPress={() => {
+                                    onAddTask({
+                                        title: text,
+                                        date: selectedDate,
+                                        time: selectedTime,
+                                        reminder: selectedReminder,
+                                        repeat: selectedRepeat,
+                                        priority: selectedPriority,
+                                        taskType: selectedTaskType,
+                                        tags,
+                                    });
+                                    setText("");
+                                    onClose();
+                                }}
+                            >
                                 <SendHorizontal color="#fff" fill="#fff" size={21} />
                             </TouchableOpacity>
                         </View>
@@ -101,11 +176,13 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ visible, onClose, onOpenCal
                     <PriorityModal
                         visible={priorityVisible}
                         onClose={() => setPriorityVisible(false)}
+                        onSelect={setSelectedPriority}
                     />
 
                     <TaskTypeModal
                         visible={taskTypeVisible}
                         onClose={() => setTaskTypeVisible(false)}
+                        onSelect={setSelectedTaskType}
                     />
                 </KeyboardAvoidingView>
             </Modal>

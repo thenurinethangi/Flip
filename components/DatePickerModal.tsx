@@ -8,24 +8,22 @@ import SelectionModal from "./SelectionModal";
 
 interface Props {
     visible: boolean;
+    choooseDate: (date: string) => void;
     onClose: () => void;
 }
 
-const CustomCalendarModal: React.FC<Props> = ({ visible, onClose }) => {
+const CustomCalendarModal: React.FC<Props> = ({ visible, choooseDate, onClose }) => {
 
     const today = new Date();
     const todayStr = today.toISOString().split("T")[0];
     const [selectedDate, setSelectedDate] = useState(todayStr);
 
-    // 1. Add these states inside CustomCalendarModal
     const [activeSubModal, setActiveSubModal] = useState<"time" | "reminder" | "repeat" | null>(null);
 
-    // Values to display in the rows
     const [selectedTime, setSelectedTime] = useState("None");
     const [selectedReminder, setSelectedReminder] = useState("None");
     const [selectedRepeat, setSelectedRepeat] = useState("None");
 
-    // 2. Data for the lists (matching your screenshots)
     const reminderOptions = [
         { id: "1", label: "None", isAvailable: true },
         { id: "2", label: "At time of task", isAvailable: selectedTime !== 'None' },

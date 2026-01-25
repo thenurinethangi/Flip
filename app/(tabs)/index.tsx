@@ -1,11 +1,10 @@
+import AddTaskModal from '@/components/AddTaskModal';
+import CustomCalendarModal from '@/components/DatePickerModal';
 import { AppIcon } from '@/components/ui/icon-symbol';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Checkbox from "expo-checkbox";
 import { useState } from 'react';
-import AddTaskModal from '@/components/AddTaskModal';
-import DatePickerModal from '@/components/DatePickerModal';
-import CustomCalendarModal from '@/components/DatePickerModal';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
 
@@ -23,8 +22,17 @@ export default function HomeScreen() {
   const [selectedTaskType, setSelectedTaskType] = useState("None");
   const [tags, setTags] = useState("");
 
-  function addNewTask() {
-
+  function addNewTask(payload: {
+    title: string;
+    date: string;
+    time: string;
+    reminder: string;
+    repeat: string;
+    priority: string;
+    taskType: string;
+    tags: string;
+  }) {
+    console.log("NEW TASK", payload);
   }
 
   return (
@@ -239,10 +247,26 @@ export default function HomeScreen() {
         visible={showAdd}
         onClose={() => setShowAdd(false)}
         onOpenCalendar={() => setShowDate(true)}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
+        selectedReminder={selectedReminder}
+        selectedRepeat={selectedRepeat}
+        selectedPriority={selectedPriority}
+        selectedTaskType={selectedTaskType}
+        tags={tags}
+        setSelectedDate={setSelectedDate}
+        setSelectedTime={setSelectedTime}
+        setSelectedReminder={setSelectedReminder}
+        setSelectedRepeat={setSelectedRepeat}
+        setSelectedPriority={setSelectedPriority}
+        setSelectedTaskType={setSelectedTaskType}
+        setTags={setTags}
+        onAddTask={addNewTask}
       />
 
       <CustomCalendarModal
         visible={showDate}
+        choooseDate={setSelectedDate}
         onClose={() => setShowDate(false)}
       />
     </>
