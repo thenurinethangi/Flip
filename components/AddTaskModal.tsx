@@ -5,10 +5,9 @@ import {
     FileText,
     Flag,
     Home,
-    MoreHorizontal,
     MoveRight,
     SendHorizontal,
-    Tag,
+    Tag
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import {
@@ -21,8 +20,8 @@ import {
     View
 } from "react-native";
 import Modal from "react-native-modal";
-import PriorityModal, { type PriorityId } from "./../components/PriorityModal";
-import TaskTypeModal, { type TaskTypeId } from "./../components/TaskTypeModal";
+import PriorityModal from "./../components/PriorityModal";
+import TaskTypeModal from "./../components/TaskTypeModal";
 
 interface AddTaskModalProps {
     visible: boolean;
@@ -67,6 +66,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
     tags,
     setSelectedPriority,
     setSelectedTaskType,
+    setTags,
     onAddTask,
 }) => {
 
@@ -78,6 +78,21 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
 
     const handleModalShow = () => {
         inputRef.current?.focus();
+    };
+
+    const extractTagsAndTitle = (value: string) => {
+        const tagMatches = value.match(/(^|\s)#([\w-]+)/g) || [];
+        const extractedTags = tagMatches
+            .map((tag) => tag.trim().replace(/^#/, ""))
+            .filter(Boolean);
+        const cleanedTitle = value
+            .replace(/(^|\s)#([\w-]+)/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+        return {
+            extractedTags: extractedTags.join(","),
+            cleanedTitle,
+        };
     };
 
     const formatTaskDate = (dateStr: string) => {
@@ -98,6 +113,23 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
             day: "numeric",
         });
     };
+
+    function handleAddTask() {
+        const { extractedTags, cleanedTitle } = extractTagsAndTitle(text);
+
+        onAddTask({
+            title: cleanedTitle,
+            date: selectedDate,
+            time: selectedTime,
+            reminder: selectedReminder,
+            repeat: selectedRepeat,
+            priority: selectedPriority,
+            taskType: selectedTaskType,
+            tags: extractedTags || tags,
+        });
+        setText("");
+        onClose();
+    }
 
 
     return (
@@ -142,7 +174,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                                     <Flag size={22} color={selectedPriority === 'none' ? '#9BA2AB' : selectedPriority === 'high' ? '#E24A4A' : selectedPriority === 'medium' ? '#F2B233' : '#2F6BFF'} />
                                 </TouchableOpacity>
 
-                                <TouchableOpacity>
+                                <TouchableOpacity onPress={() => setText((prev) => prev + ' #')}>
                                     <Tag size={22} color="#9BA2AB" />
                                 </TouchableOpacity>
 
@@ -158,23 +190,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                                     <MoreHorizontal size={22} color="#9BA2AB" />
                                 </TouchableOpacity> */}
                             </View>
-
                             <TouchableOpacity
                                 style={styles.addBtn}
-                                onPress={() => {
-                                    onAddTask({
-                                        title: text,
-                                        date: selectedDate,
-                                        time: selectedTime,
-                                        reminder: selectedReminder,
-                                        repeat: selectedRepeat,
-                                        priority: selectedPriority,
-                                        taskType: selectedTaskType,
-                                        tags,
-                                    });
-                                    setText("");
-                                    onClose();
-                                }}
+                                onPress={handleAddTask}
                             >
                                 <SendHorizontal color="#fff" fill="#fff" size={21} />
                             </TouchableOpacity>
