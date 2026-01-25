@@ -88,7 +88,7 @@ export default function HomeScreen() {
         </View>
 
         {/* overdue */}
-        <View className='bg-white py-4 shadow-lg shadow-black/0.05 mb-5 rounded-[10px] mt-3'>
+        <View className='bg-white py-4 shadow-lg shadow-black/0.05 mb-4 rounded-[10px] mt-2'>
           <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
             <View className='flex-row items-center gap-x-3'>
               <Text className='text-[16px] font-medium text-[#222]'>Overdue</Text>
@@ -169,12 +169,12 @@ export default function HomeScreen() {
                 />
               </View>
               <View>
-                <Text className='text-[15.5px]'>Learn React Native</Text>
+                <Text className='text-[15.5px] text-gray-400 line-through'>Learn React Native</Text>
               </View>
             </View>
             <View>
               <View>
-                <Text className='text-primary text-[13px]'>Today</Text>
+                <Text className='text-primary text-[13px] opacity-80'>Today</Text>
               </View>
               <View></View>
             </View>
@@ -191,12 +191,12 @@ export default function HomeScreen() {
                 />
               </View>
               <View>
-                <Text className='text-[15.5px]'>Learn React Native</Text>
+                <Text className='text-[15.5px] text-gray-400 line-through'>Learn React Native</Text>
               </View>
             </View>
             <View>
               <View>
-                <Text className='text-primary text-[13px]'>Today</Text>
+                <Text className='text-primary text-[13px] opacity-80'>Today</Text>
               </View>
               <View></View>
             </View>
