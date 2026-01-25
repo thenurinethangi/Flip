@@ -42,12 +42,12 @@ interface AddTaskModalProps {
     setSelectedTaskType: (value: string) => void;
     setTags: (value: string) => void;
     onAddTask: (payload: {
-        title: string;
+        taskname: string;
         date: string;
         time: string;
         reminder: string;
         repeat: string;
-        priority: string;
+        priorityLevel: string;
         taskType: string;
         tags: string;
     }) => void;
@@ -118,12 +118,12 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         const { extractedTags, cleanedTitle } = extractTagsAndTitle(text);
 
         onAddTask({
-            title: cleanedTitle,
+            taskname: cleanedTitle,
             date: selectedDate,
             time: selectedTime,
             reminder: selectedReminder,
             repeat: selectedRepeat,
-            priority: selectedPriority,
+            priorityLevel: selectedPriority,
             taskType: selectedTaskType,
             tags: extractedTags || tags,
         });

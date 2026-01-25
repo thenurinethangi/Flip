@@ -1,6 +1,7 @@
 import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
 import { AppIcon } from '@/components/ui/icon-symbol';
+import { add } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -21,18 +22,26 @@ export default function HomeScreen() {
   const [selectedTaskType, setSelectedTaskType] = useState("none");
   const [tags, setTags] = useState("");
 
-  function addNewTask(payload: {
-    title: string;
+  async function addNewTask(payload: {
+    taskname: string;
     date: string;
     time: string;
     reminder: string;
     repeat: string;
-    priority: string;
+    priorityLevel: string;
     taskType: string;
     tags: string;
   }) {
 
     console.log("NEW TASK", payload);
+
+    try {
+      const id = await add(payload);
+      console.log('-------------', id);
+    }
+    catch (e) {
+      console.log(e);
+    }
   }
 
   return (
