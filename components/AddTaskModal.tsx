@@ -131,11 +131,11 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                             <View style={styles.iconRow}>
                                 <TouchableOpacity onPress={onOpenCalendar} className="flex-row items-center">
                                     <Calendar size={22} color="#4772FA" />
-                                    <Text className="text-primary ml-2">{formatTaskDate(selectedDate)}</Text>
+                                    <Text className="text-primary ml-2">{formatTaskDate(selectedDate)}{selectedTime !== 'None' ? ',' : ''} {selectedTime !== 'None' ? selectedTime : ''}</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity onPress={() => setPriorityVisible(true)}>
-                                    <Flag size={22} color="#9BA2AB" />
+                                    <Flag size={22} color={selectedPriority === 'none' ? '#9BA2AB' : selectedPriority === 'high' ? '#E24A4A' : selectedPriority === 'medium' ? '#F2B233' : '#2F6BFF'} />
                                 </TouchableOpacity>
 
                                 <TouchableOpacity>
@@ -146,9 +146,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                                     <MoveRight size={22} color="#9BA2AB" />
                                 </TouchableOpacity>
 
-                                <TouchableOpacity>
+                                {/* <TouchableOpacity>
                                     <MoreHorizontal size={22} color="#9BA2AB" />
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </View>
 
                             <TouchableOpacity
@@ -175,6 +175,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
 
                     <PriorityModal
                         visible={priorityVisible}
+                        selectedPriority={selectedPriority}
                         onClose={() => setPriorityVisible(false)}
                         onSelect={setSelectedPriority}
                     />

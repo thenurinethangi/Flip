@@ -6,6 +6,7 @@ export type PriorityId = "high" | "medium" | "low" | "none";
 
 interface PriorityModalProps {
     visible: boolean;
+    selectedPriority: string;
     onClose: () => void;
     onSelect?: (priority: PriorityId) => void;
 }
@@ -19,19 +20,12 @@ const priorityOptions: { id: PriorityId; label: string; color: string }[] = [
 
 const PriorityModal: React.FC<PriorityModalProps> = ({
     visible,
+    selectedPriority,
     onClose,
     onSelect,
 }) => {
-    const [selected, setSelected] = useState<PriorityId>("none");
-
-    useEffect(() => {
-        if (visible) {
-            setSelected("none");
-        }
-    }, [visible]);
 
     const handleSelect = (priority: PriorityId) => {
-        setSelected(priority);
         onSelect?.(priority);
         onClose();
     };
@@ -55,7 +49,7 @@ const PriorityModal: React.FC<PriorityModalProps> = ({
                     >
                         <Flag size={20} color={option.color} />
                         <Text style={styles.text}>{option.label}</Text>
-                        {selected === option.id && (
+                        {selectedPriority === option.id && (
                             <Check size={18} color="#2F6BFF" style={styles.check} />
                         )}
                     </TouchableOpacity>
@@ -79,7 +73,7 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(0,0,0,0.12)",
     },
     card: {
-        width: 192,
+        width: 200,
         backgroundColor: "#fff",
         borderRadius: 16,
         paddingVertical: 10,

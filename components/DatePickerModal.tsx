@@ -1,38 +1,48 @@
+import { Bell, Check, Clock, Repeat, X } from "lucide-react-native";
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import Modal from "react-native-modal";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { X, Check, Clock, Bell, Repeat } from "lucide-react-native";
-import TimePickerModal from "./TimePickerModal";
+import Modal from "react-native-modal";
 import SelectionModal from "./SelectionModal";
+import TimePickerModal from "./TimePickerModal";
 
 interface Props {
     visible: boolean;
+    date: string;
     choooseDate: (date: string) => void;
     onClose: () => void;
+    selectedTime: string;
+    setSelectedTime: (value: string) => void;
+    selectedReminder: string;
+    setSelectedReminder: (value: string) => void;
+    selectedRepeat: string;
+    setSelectedRepeat: (value: string) => void;
 }
 
-const CustomCalendarModal: React.FC<Props> = ({ visible, choooseDate, onClose }) => {
-
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
-    const [selectedDate, setSelectedDate] = useState(todayStr);
+const CustomCalendarModal: React.FC<Props> = ({
+    visible,
+    date,
+    choooseDate,
+    onClose,
+    selectedTime,
+    setSelectedTime,
+    selectedReminder,
+    setSelectedReminder,
+    selectedRepeat,
+    setSelectedRepeat,
+}) => {
+    const todayStr = new Date().toLocaleDateString("en-CA");
 
     const [activeSubModal, setActiveSubModal] = useState<"time" | "reminder" | "repeat" | null>(null);
 
-    const [selectedTime, setSelectedTime] = useState("None");
-    const [selectedReminder, setSelectedReminder] = useState("None");
-    const [selectedRepeat, setSelectedRepeat] = useState("None");
-
     const reminderOptions = [
         { id: "1", label: "None", isAvailable: true },
-        { id: "2", label: "At time of task", isAvailable: selectedTime !== 'None' },
-        { id: "3", label: "5 minutes before", isAvailable: selectedTime !== 'None' },
-        { id: "4", label: "30 minutes before", isAvailable: selectedTime !== 'None' },
-        { id: "5", label: "1 hour before", isAvailable: selectedTime !== 'None' },
+        { id: "2", label: "At time of task", isAvailable: selectedTime !== "None" },
+        { id: "3", label: "5 minutes before", isAvailable: selectedTime !== "None" },
+        { id: "4", label: "30 minutes before", isAvailable: selectedTime !== "None" },
+        { id: "5", label: "1 hour before", isAvailable: selectedTime !== "None" },
         { id: "6", label: "On the day", isAvailable: true },
         { id: "7", label: "1 day early", isAvailable: true },
-
     ];
 
     const repeatOptions = [
@@ -41,13 +51,6 @@ const CustomCalendarModal: React.FC<Props> = ({ visible, choooseDate, onClose })
         { id: "3", label: "Weekly", isAvailable: true },
         { id: "4", label: "Monthly", isAvailable: true },
     ];
-
-    function done() {
-        console.log(selectedTime)
-        console.log(selectedReminder)
-        console.log(selectedRepeat)
-        console.log(selectedDate);
-    }
 
     return (
         <Modal
@@ -67,17 +70,17 @@ const CustomCalendarModal: React.FC<Props> = ({ visible, choooseDate, onClose })
                         <Text style={styles.activeTab}>Date</Text>
                     </View>
 
-                    <Check onPress={done} size={22} color="#4772FA" />
+                    <Check onPress={onClose} size={22} color="#4772FA" />
                 </View>
 
                 {/* Calendar */}
                 <Calendar
                     current={todayStr}
                     onDayPress={(day) => {
-                        setSelectedDate(day.dateString);
+                        choooseDate(day.dateString);
                     }}
                     markedDates={{
-                        [selectedDate]: {
+                        [date]: {
                             selected: true,
                             selectedColor: "#4772FA",
                         },
@@ -93,7 +96,6 @@ const CustomCalendarModal: React.FC<Props> = ({ visible, choooseDate, onClose })
                 />
 
                 {/* Options */}
-                {/* Time Option */}
                 <TouchableOpacity
                     className="mt-2"
                     style={styles.option}
@@ -101,37 +103,35 @@ const CustomCalendarModal: React.FC<Props> = ({ visible, choooseDate, onClose })
                 >
                     <Clock size={20} color="#666" />
                     <Text style={styles.optionText}>Time</Text>
-                    <Text style={[styles.optionValue, selectedTime !== "None" && { color: '#4772FA' }]}>
+                    <Text style={[styles.optionValue, selectedTime !== "None" && { color: "#4772FA" }]}>
                         {selectedTime}
                     </Text>
                 </TouchableOpacity>
 
-                {/* Reminder Option */}
                 <TouchableOpacity
                     style={styles.option}
                     onPress={() => setActiveSubModal("reminder")}
                 >
                     <Bell size={20} color="#666" />
                     <Text style={styles.optionText}>Reminder</Text>
-                    <Text style={[styles.optionValue, selectedReminder !== "None" && { color: '#4772FA' }]}>
+                    <Text style={[styles.optionValue, selectedReminder !== "None" && { color: "#4772FA" }]}>
                         {selectedReminder}
                     </Text>
                 </TouchableOpacity>
 
-                {/* Repeat Option */}
                 <TouchableOpacity
                     style={styles.option}
                     onPress={() => setActiveSubModal("repeat")}
                 >
                     <Repeat size={20} color="#666" />
                     <Text style={styles.optionText}>Repeat</Text>
-                    <Text style={[styles.optionValue, selectedRepeat !== "None" && { color: '#4772FA' }]}>
+                    <Text style={[styles.optionValue, selectedRepeat !== "None" && { color: "#4772FA" }]}>
                         {selectedRepeat}
                     </Text>
                 </TouchableOpacity>
 
                 {/* Clear */}
-                <TouchableOpacity onPress={() => setSelectedDate(todayStr)}>
+                <TouchableOpacity onPress={() => choooseDate(todayStr)}>
                     <Text style={styles.clear}>Clear</Text>
                 </TouchableOpacity>
             </View>
@@ -173,7 +173,6 @@ const CustomCalendarModal: React.FC<Props> = ({ visible, choooseDate, onClose })
 };
 
 export default CustomCalendarModal;
-
 
 const styles = StyleSheet.create({
     container: {

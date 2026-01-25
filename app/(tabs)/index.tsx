@@ -11,14 +11,13 @@ export default function HomeScreen() {
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const [showDate, setShowDate] = useState<boolean>(false);
 
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = new Date().toLocaleDateString("en-CA");
 
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedTime, setSelectedTime] = useState("None");
   const [selectedReminder, setSelectedReminder] = useState("None");
   const [selectedRepeat, setSelectedRepeat] = useState("None");
-  const [selectedPriority, setSelectedPriority] = useState("No Priority");
+  const [selectedPriority, setSelectedPriority] = useState("none");
   const [selectedTaskType, setSelectedTaskType] = useState("None");
   const [tags, setTags] = useState("");
 
@@ -266,8 +265,15 @@ export default function HomeScreen() {
 
       <CustomCalendarModal
         visible={showDate}
+        date={selectedDate}
         choooseDate={setSelectedDate}
         onClose={() => setShowDate(false)}
+        selectedTime={selectedTime}
+        setSelectedTime={setSelectedTime}
+        selectedReminder={selectedReminder}
+        setSelectedReminder={setSelectedReminder}
+        selectedRepeat={selectedRepeat}
+        setSelectedRepeat={setSelectedRepeat}
       />
     </>
   );
