@@ -1,7 +1,7 @@
 import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
 import { AppIcon } from '@/components/ui/icon-symbol';
-import { add, getPendingTasksByDate } from '@/services/taskService';
+import { add, subscribeCompleteTasksByDate, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
 import { useEffect, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -22,21 +22,28 @@ export default function HomeScreen() {
   const [selectedTaskType, setSelectedTaskType] = useState("none");
   const [tags, setTags] = useState("");
 
-  const [todayIncomletedTasks, setTodayIncomletedTasks] = useState<any[]>([]);
+  const [todayIncompleteTasks, setTodayIncompleteTasks] = useState<any[]>([]);
+  const [todayCompleteTasks, setTodayCompleteTasks] = useState<any[]>([]);
 
   useEffect(() => {
-    const getTodayIncomletedTasks = async () => {
-      try {
-        const tasks = await getPendingTasksByDate(todayStr);
-        console.log(tasks);
-        setTodayIncomletedTasks(tasks);
-      }
-      catch (e) {
-        console.log(e);
-      }
-    }
-    getTodayIncomletedTasks();
-  }, []);
+    const unsubscribe = subscribePendingTasksByDate(
+      todayStr,
+      (tasks) => setTodayIncompleteTasks(tasks),
+      (error) => console.log(error)
+    );
+
+    return unsubscribe;
+  }, [todayStr]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeCompleteTasksByDate(
+      todayStr,
+      (tasks) => setTodayCompleteTasks(tasks),
+      (error) => console.log(error)
+    );
+
+    return unsubscribe;
+  }, [todayStr]);
 
   async function addNewTask(payload: {
     taskname: string;
@@ -87,10 +94,16 @@ export default function HomeScreen() {
     });
   };
 
-  function handleChecked(taskId: string, checked: boolean) {
+  async function handleChecked(taskId: string, checked: boolean) {
     console.log("taskId", taskId, "checked", checked);
+    console.log(checked ? 'complete' : 'pending');
 
-
+    try {
+      await updateTaskStatusByTaskId(taskId, checked ? 'complete' : 'pending');
+    }
+    catch (e) {
+      console.log(e);
+    }
   }
 
   return (
@@ -137,7 +150,7 @@ export default function HomeScreen() {
           {/* today incomplete tasks */}
           <FlatList
             scrollEnabled={false}
-            data={todayIncomletedTasks}
+            data={todayIncompleteTasks}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'>
