@@ -1,16 +1,20 @@
 import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
 import { AppIcon } from '@/components/ui/icon-symbol';
-import { add, subscribeCompleteTasksByDate, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
+import { add, subscribeCompleteTasksByDate, subscribeOverdueTasks, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
 import { useEffect, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
 
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const [showDate, setShowDate] = useState<boolean>(false);
+
+  const [showCompleteTasks, setShowCompleteTasks] = useState<boolean>(false);
+  const [showOverdueTasks, setShowOverdueTasks] = useState<boolean>(false);
 
   const todayStr = new Date().toLocaleDateString("en-CA");
 
@@ -24,6 +28,7 @@ export default function HomeScreen() {
 
   const [todayIncompleteTasks, setTodayIncompleteTasks] = useState<any[]>([]);
   const [todayCompleteTasks, setTodayCompleteTasks] = useState<any[]>([]);
+  const [overdueTasks, setOverdueTasks] = useState<any[]>([]);
 
   useEffect(() => {
     const unsubscribe = subscribePendingTasksByDate(
@@ -39,6 +44,16 @@ export default function HomeScreen() {
     const unsubscribe = subscribeCompleteTasksByDate(
       todayStr,
       (tasks) => setTodayCompleteTasks(tasks),
+      (error) => console.log(error)
+    );
+
+    return unsubscribe;
+  }, [todayStr]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeOverdueTasks(
+      todayStr,
+      (tasks) => setOverdueTasks(tasks),
       (error) => console.log(error)
     );
 
@@ -125,7 +140,6 @@ export default function HomeScreen() {
             alignItems: 'center',
             justifyContent: 'center',
             shadowColor: '#4772FA',
-            shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.3,
             shadowRadius: 16,
             zIndex: 999,
@@ -148,12 +162,18 @@ export default function HomeScreen() {
         <ScrollView className='mt-5 px-0.5 mb-5'>
 
           {/* today incomplete tasks */}
-          <FlatList
+          <Animated.FlatList
             scrollEnabled={false}
+            itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
             data={todayIncompleteTasks}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'>
+              <Animated.View
+                layout={Layout.springify().damping(18).stiffness(180)}
+                entering={FadeInDown.duration(200)}
+                exiting={FadeOutUp.duration(150)}
+                className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'
+              >
                 <View className='flex-row items-center gap-x-3'>
                   <View>
                     <Checkbox
@@ -173,131 +193,149 @@ export default function HomeScreen() {
                   </View>
                   <View></View>
                 </View>
-              </View>
+              </Animated.View>
             )}
           >
-          </FlatList>
+          </Animated.FlatList>
 
           {/* overdue */}
-          <View className='bg-white py-4 shadow-lg shadow-black/0.05 mb-4 rounded-[10px] mt-2'>
-            <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
-              <View className='flex-row items-center gap-x-3'>
-                <Text className='text-[16px] font-medium text-[#222]'>Overdue</Text>
-                <Text className='text-[14px] text-gray-400'>3</Text>
+          {overdueTasks.length > 0 && (
+            <Animated.View
+              layout={Layout.springify().damping(18).stiffness(180)}
+              entering={FadeIn.duration(200)}
+              exiting={FadeOut.duration(150)}
+              className='bg-white py-[12px] shadow-lg shadow-black/0.05 rounded-[10px] mb-2'
+            >
+              <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
+                <View className='flex-row items-center gap-x-3'>
+                  <Text className='text-[16px] font-medium text-[#222]'>Overdue</Text>
+                  <Text className='text-[14px] text-gray-400'>{overdueTasks.length}</Text>
+                </View>
+                <View className='flex-row items-center gap-x-1'>
+                  <TouchableOpacity onPress={() => setShowOverdueTasks((prev) => !prev)}>
+                    {showOverdueTasks
+                      ? <AppIcon name="ChevronDown" color='#9ca3af' size={17} />
+                      : <AppIcon name="chevronRight" color='#9ca3af' size={17} />
+                    }
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View className='flex-row items-center gap-x-1'>
-                <Text className='text-red-500 text-[13.5px]'>Postpone</Text>
-                <AppIcon name="chevronRight" color='#9ca3af' size={17} />
-              </View>
-            </View>
 
-            <View className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'>
-              <View className='flex-row items-center gap-x-3'>
-                <View>
-                  <Checkbox
-                    value={false}
-                    // onValueChange={setChecked}
-                    color={false ? "#4772FA" : "#B8BFC8"}
-                    style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                  />
-                </View>
-                <View>
-                  <Text className='text-[15.5px]'>Learn React Native</Text>
-                </View>
-              </View>
-              <View>
-                <View>
-                  <Text className='text-primary text-[13px]'>Today</Text>
-                </View>
-                <View></View>
-              </View>
-            </View>
+              {showOverdueTasks
+                ? (
+                  <Animated.FlatList
+                    scrollEnabled={false}
+                    itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
+                    data={overdueTasks}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                      <Animated.View
+                        layout={Layout.springify().damping(18).stiffness(180)}
+                        entering={FadeInDown.duration(200)}
+                        exiting={FadeOutUp.duration(150)}
+                        className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
+                      >
+                        <View className='flex-row items-center gap-x-3'>
+                          <View>
+                            <Checkbox
+                              value={item.status !== 'pending'}
+                              onValueChange={(checked) => handleChecked(item.id, checked)}
+                              color={item.status !== 'pending' ? "#4772FA" : "#B8BFC8"}
+                              style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                            />
+                          </View>
+                          <View>
+                            <Text className='text-[15.5px]'>{item.taskname}</Text>
+                          </View>
+                        </View>
+                        <View>
+                          <View>
+                            <Text className='text-primary text-[13px]'>{formatTaskDate(item.date)}</Text>
+                          </View>
+                          <View></View>
+                        </View>
+                      </Animated.View>
+                    )}
+                  >
+                  </Animated.FlatList>
+                )
+                : ''
+              }
+            </Animated.View>
+          )}
 
-            <View className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'>
-              <View className='flex-row items-center gap-x-3'>
-                <View>
-                  <Checkbox
-                    value={false}
-                    // onValueChange={setChecked}
-                    color={false ? "#4772FA" : "#B8BFC8"}
-                    style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                  />
-                </View>
-                <View>
-                  <Text className='text-[15.5px]'>Learn React Native</Text>
-                </View>
-              </View>
-              <View>
-                <View>
-                  <Text className='text-primary text-[13px]'>Today</Text>
-                </View>
-                <View></View>
-              </View>
-            </View>
 
-          </View>
+          {/* today complete task container */}
+          {todayCompleteTasks.length > 0
+            ?
+            <Animated.View
+              layout={Layout.springify().damping(18).stiffness(180)}
+              entering={FadeIn.duration(200)}
+              exiting={FadeOut.duration(150)}
+              className={`bg-white py-[12.5px] shadow-lg shadow-black/0.05 mb-2 rounded-[10px] ${todayCompleteTasks.length > 0 ? 'visible' : 'invisible'}`}
+            >
+              <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
+                <View className='flex-row items-center gap-x-3'>
+                  <Text className='text-[16px] font-medium text-gray-400'>Completed</Text>
+                  <Text className='text-[14px] text-gray-400'>{todayCompleteTasks.length}</Text>
+                </View>
+                <View className='flex-row items-center gap-x-1'>
+                  <TouchableOpacity onPress={() => setShowCompleteTasks((prev) => !prev)}>
+                    {showCompleteTasks
+                      ? <AppIcon name="ChevronDown" color='#9ca3af' size={17} />
+                      : <AppIcon name="chevronRight" color='#9ca3af' size={17} />
+                    }
+                  </TouchableOpacity>
+                </View>
+              </View>
 
-          {/* completed */}
-          <View className='bg-white py-4 shadow-lg shadow-black/0.05 mb-5 rounded-[10px]'>
-            <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
-              <View className='flex-row items-center gap-x-3'>
-                <Text className='text-[16px] font-medium text-gray-400'>Completed</Text>
-                <Text className='text-[14px] text-gray-400'>3</Text>
-              </View>
-              <View className='flex-row items-center gap-x-1'>
-                <AppIcon name="chevronRight" color='#9ca3af' size={17} />
-              </View>
-            </View>
-
-            <View className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'>
-              <View className='flex-row items-center gap-x-3'>
-                <View>
-                  <Checkbox
-                    value={true}
-                    // onValueChange={setChecked}
-                    color={true ? "#B8BFC8" : "#B8BFC8"}
-                    style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                  />
-                </View>
-                <View>
-                  <Text className='text-[15.5px] text-gray-400 line-through'>Learn React Native</Text>
-                </View>
-              </View>
-              <View>
-                <View>
-                  <Text className='text-gray-400 text-[13px] opacity-90'>Today</Text>
-                </View>
-                <View></View>
-              </View>
-            </View>
-
-            <View className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'>
-              <View className='flex-row items-center gap-x-3'>
-                <View>
-                  <Checkbox
-                    value={true}
-                    // onValueChange={setChecked}
-                    color={true ? "#B8BFC8" : "#B8BFC8"}
-                    style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                  />
-                </View>
-                <View>
-                  <Text className='text-[15.5px] text-gray-400 line-through'>Learn React Native</Text>
-                </View>
-              </View>
-              <View>
-                <View>
-                  <Text className='text-gray-400 text-[13px] opacity-90'>Today</Text>
-                </View>
-                <View></View>
-              </View>
-            </View>
-
-          </View>
+              {/* today complete tasks */}
+              {showCompleteTasks
+                ?
+                <Animated.FlatList
+                  scrollEnabled={false}
+                  itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
+                  data={todayCompleteTasks}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <Animated.View
+                      layout={Layout.springify().damping(18).stiffness(180)}
+                      entering={FadeInDown.duration(200)}
+                      exiting={FadeOutUp.duration(150)}
+                      className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
+                    >
+                      <View className='flex-row items-center gap-x-3'>
+                        <View>
+                          <Checkbox
+                            value={item.status !== 'pending'}
+                            onValueChange={(checked) => handleChecked(item.id, checked)}
+                            color={item.status !== 'pending' ? "#B8BFC8" : "#4772FA"}
+                            style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                          />
+                        </View>
+                        <View>
+                          <Text className='text-[15.5px] text-gray-400 line-through'>{item.taskname}</Text>
+                        </View>
+                      </View>
+                      <View>
+                        <View>
+                          <Text className='text-gray-400 text-[13px] opacity-90'>{formatTaskDate(item.date)}</Text>
+                        </View>
+                        <View></View>
+                      </View>
+                    </Animated.View>
+                  )}
+                >
+                </Animated.FlatList>
+                : ''
+              }
+            </Animated.View>
+            : ''
+          }
 
         </ScrollView>
 
-      </SafeAreaView>
+      </SafeAreaView >
 
       <AddTaskModal
         visible={showAdd}

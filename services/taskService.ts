@@ -78,6 +78,36 @@ export const subscribePendingTasksByDate = (
 };
 
 
+export const subscribeOverdueTasks = (
+  date: string,
+  onTasks: (tasks: Array<{ id: string } & Record<string, any>>) => void,
+  onError?: (error: Error) => void,
+) => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  const tasksRef = collection(db, "tasks");
+  const q = query(
+    tasksRef,
+    where("userId", "==", user.uid),
+    where("date", "<", date),
+    where("status", "==", "pending"),
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onTasks(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    },
+    (error) => {
+      if (onError) onError(error);
+    },
+  );
+};
+
+
 export const subscribeCompleteTasksByDate = (
   date: string,
   onTasks: (tasks: Array<{ id: string } & Record<string, any>>) => void,
