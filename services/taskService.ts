@@ -1,4 +1,11 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+    addDoc,
+    collection,
+    getDocs,
+    query,
+    serverTimestamp,
+    where,
+} from "firebase/firestore";
 import { auth, db } from "./firebase";
 
 export interface AddTaskInput {
@@ -27,7 +34,7 @@ export const add = async (input: AddTaskInput) => {
         priorityLevel: input.priorityLevel,
         taskType: input.taskType,
         tags: input.tags,
-        status: 'pending',
+        status: "pending",
         userId: user.uid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -35,4 +42,22 @@ export const add = async (input: AddTaskInput) => {
 
     const docRef = await addDoc(collection(db, "tasks"), payload);
     return docRef.id;
+};
+
+export const getPendingTasksByDate = async (date: string) => {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("User not authenticated");
+    }
+
+    const tasksRef = collection(db, "tasks");
+    const q = query(
+        tasksRef,
+        where("userId", "==", user.uid),
+        where("date", "==", date),
+        where("status", "==", "pending"),
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };

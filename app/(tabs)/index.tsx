@@ -1,10 +1,10 @@
 import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
 import { AppIcon } from '@/components/ui/icon-symbol';
-import { add } from '@/services/taskService';
+import { add, getPendingTasksByDate } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -21,6 +21,22 @@ export default function HomeScreen() {
   const [selectedPriority, setSelectedPriority] = useState("none");
   const [selectedTaskType, setSelectedTaskType] = useState("none");
   const [tags, setTags] = useState("");
+
+  const [todayIncomletedTasks, setTodayIncomletedTasks] = useState<any[]>([]);
+
+  useEffect(() => {
+    const getTodayIncomletedTasks = async () => {
+      try {
+        const tasks = await getPendingTasksByDate(todayStr);
+        console.log(tasks);
+        setTodayIncomletedTasks(tasks);
+      }
+      catch (e) {
+        console.log(e);
+      }
+    }
+    getTodayIncomletedTasks();
+  }, []);
 
   async function addNewTask(payload: {
     taskname: string;
@@ -51,6 +67,25 @@ export default function HomeScreen() {
     setSelectedTaskType('none');
     setTags('');
   }
+
+  const formatTaskDate = (dateStr: string) => {
+    const input = new Date(dateStr);
+    const today = new Date();
+
+    input.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    const diffDays =
+      (input.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Tomorrow";
+
+    return input.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   return (
     <>
@@ -93,50 +128,35 @@ export default function HomeScreen() {
 
         <ScrollView className='mt-5 px-0.5 mb-5'>
 
-          {/* today tasks */}
-          <View className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'>
-            <View className='flex-row items-center gap-x-3'>
-              <View>
-                <Checkbox
-                  value={false}
-                  // onValueChange={setChecked}
-                  color={false ? "#4772FA" : "#B8BFC8"}
-                  style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                />
+          {/* today incomplete tasks */}
+          <FlatList
+            data={todayIncomletedTasks}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'>
+                <View className='flex-row items-center gap-x-3'>
+                  <View>
+                    <Checkbox
+                      value={false}
+                      // onValueChange={setChecked}
+                      color={false ? "#4772FA" : "#B8BFC8"}
+                      style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                    />
+                  </View>
+                  <View>
+                    <Text className='text-[15.5px]'>{item.taskname}</Text>
+                  </View>
+                </View>
+                <View>
+                  <View>
+                    <Text className='text-primary text-[13px]'>{formatTaskDate(item.date)}</Text>
+                  </View>
+                  <View></View>
+                </View>
               </View>
-              <View>
-                <Text className='text-[15.5px]'>Learn React Native</Text>
-              </View>
-            </View>
-            <View>
-              <View>
-                <Text className='text-primary text-[13px]'>Today</Text>
-              </View>
-              <View></View>
-            </View>
-          </View>
-
-          <View className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'>
-            <View className='flex-row items-center gap-x-3'>
-              <View>
-                <Checkbox
-                  value={false}
-                  // onValueChange={setChecked}
-                  color={false ? "#4772FA" : "#B8BFC8"}
-                  style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                />
-              </View>
-              <View>
-                <Text className='text-[15.5px]'>Learn React Native</Text>
-              </View>
-            </View>
-            <View>
-              <View>
-                <Text className='text-primary text-[13px]'>Today</Text>
-              </View>
-              <View></View>
-            </View>
-          </View>
+            )}
+          >
+          </FlatList>
 
           {/* overdue */}
           <View className='bg-white py-4 shadow-lg shadow-black/0.05 mb-4 rounded-[10px] mt-2'>
