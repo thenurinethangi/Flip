@@ -42,6 +42,14 @@ export default function HomeScreen() {
     catch (e) {
       console.log(e);
     }
+
+    setSelectedDate(todayStr);
+    setSelectedTime('None');
+    setSelectedReminder('None');
+    setSelectedRepeat('None');
+    setSelectedPriority('none');
+    setSelectedTaskType('none');
+    setTags('');
   }
 
   return (
@@ -50,8 +58,7 @@ export default function HomeScreen() {
 
         <TouchableOpacity
           onPress={() => {
-            setShowAdd(true)
-            console.log("FAB PRESSED");
+            setShowAdd(true);
           }}
           style={{
             position: 'absolute',
