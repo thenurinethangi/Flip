@@ -20,11 +20,10 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -119,6 +118,7 @@ export default function TaskEditModal({
   }, [task]);
 
   const headerDate = useMemo(() => formatHeaderDate(task?.date), [task?.date]);
+  const taskDate = task?.date ?? "";
 
   const addBlock = (type: BlockType) => {
     setBlocks((prev) => [...prev, createBlock(type)]);
@@ -134,6 +134,18 @@ export default function TaskEditModal({
   };
 
   const taskTypeLabel = taskTypeLabelMap[(task?.taskType ?? "none").toLowerCase()] ?? "Inbox";
+
+  const isNotPastDate = (dateStr: string): boolean => {
+    const [year, month, day] = dateStr.split("-").map(Number);
+
+    const inputDate = new Date(year, month - 1, day);
+    inputDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return inputDate >= today;
+  };
 
   return (
     <Modal
@@ -167,15 +179,15 @@ export default function TaskEditModal({
               </View>
             </View>
 
-            <View className='flex-row items-center gap-x-2 mt-[25px]'>
-              <View className='flex-row items-center gap-x-2'>
+            <View className='flex-row items-center gap-x-2 mt-[23px]'>
+              <View className='flex-row items-center gap-x-3'>
                 <Checkbox
                   value={checked}
                   onValueChange={setChecked}
                   color={checked ? "#4772FA" : "#B8BFC8"}
-                  style={{ transform: [{ scale: 0.9 }], borderRadius: 5, borderWidth: 2 }}
+                  style={{ transform: [{ scale: 0.92 }], borderRadius: 5, borderWidth: 1.5, borderColor: priorityColorMap[priority] }}
                 />
-                <Text className='text-[14px] text-[#4b5563]'>{headerDate}</Text>
+                <Text className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? 'text-primary' : 'text-red-500'}`}>{headerDate}</Text>
               </View>
             </View>
           </View>
