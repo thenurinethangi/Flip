@@ -1,30 +1,32 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
 import Checkbox from "expo-checkbox";
 import {
-    ArrowLeft,
-    Bold,
-    Camera,
-    Flag,
-    Italic,
-    Link2,
-    List,
-    ListOrdered,
-    Paperclip,
-    Underline,
+  ArrowLeft,
+  Bold,
+  Camera,
+  ChevronsUpDown,
+  Flag,
+  Italic,
+  Link2,
+  List,
+  ListOrdered,
+  Paperclip,
+  Underline,
 } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type TaskEditModalProps = {
   visible: boolean;
@@ -138,30 +140,34 @@ export default function TaskEditModal({
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
+      statusBarTranslucent
       onRequestClose={onClose}
     >
-      <SafeAreaView className='flex-1 bg-white'>
+      <SafeAreaView className='flex-1 bg-white' style={{ paddingTop: 0 }}>
         <KeyboardAvoidingView
           className='flex-1'
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          <View className='px-4 pt-2 pb-3 border-b border-gray-100'>
+          <View className='px-4 pt-3 pb-3 border-b border-gray-100'>
             <View className='flex-row items-center justify-between'>
-              <View className='flex-row items-center gap-x-3'>
+              <View className='flex-row items-center gap-x-4'>
                 <TouchableOpacity onPress={onClose}>
-                  <ArrowLeft size={22} color="#222" />
+                  <ArrowLeft size={22} color="#222" strokeWidth={2} className="opacity-70" />
                 </TouchableOpacity>
                 <View className='flex-row items-center gap-x-1'>
-                  <Text className='text-[16px] font-medium text-[#222]'>{taskTypeLabel}</Text>
-                  <AppIcon name="ChevronDown" size={18} color="#9ca3af" />
+                  <Text className='text-[16.5px] font-semibold text-[#222]'>{taskTypeLabel}</Text>
+                  <ChevronsUpDown size={16} color="#6b7280" />
                 </View>
               </View>
-              <TouchableOpacity onPress={togglePriority}>
-                <Flag size={20} color={priorityColorMap[priority] ?? "#9BA2AB"} />
-              </TouchableOpacity>
+              <View className="flex-row items-center gap-x-5">
+                <TouchableOpacity onPress={togglePriority}>
+                  <Flag size={21} color={priorityColorMap[priority] ?? "#9BA2AB"} />
+                </TouchableOpacity>
+                <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
+              </View>
             </View>
 
-            <View className='flex-row items-center gap-x-2 mt-3'>
+            <View className='flex-row items-center gap-x-2 mt-[25px]'>
               <View className='flex-row items-center gap-x-2'>
                 <Checkbox
                   value={checked}

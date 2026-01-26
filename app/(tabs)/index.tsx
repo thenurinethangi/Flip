@@ -1,7 +1,6 @@
 import AddSubtaskModal from '@/components/AddSubtaskModal';
 import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
-import TaskEditModal from './../../components/TaskEditModal';
 import { AppIcon } from '@/components/ui/icon-symbol';
 import { add, postponeTasksByTaskIds, subscribeCompleteTasksByDate, subscribeOverdueTasks, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
@@ -10,6 +9,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import TaskEditModal from './../../components/TaskEditModal';
 
 export default function HomeScreen() {
 
@@ -115,6 +115,19 @@ export default function HomeScreen() {
     });
   };
 
+  const getPriorityColor = (priority?: string) => {
+    switch ((priority ?? "none").toLowerCase()) {
+      case "high":
+        return "#E24A4A";
+      case "medium":
+        return "#F2B233";
+      case "low":
+        return "#2F6BFF";
+      default:
+        return "#B8BFC8";
+    }
+  };
+
   async function handleChecked(taskId: string, checked: boolean) {
     console.log("taskId", taskId, "checked", checked);
     console.log(checked ? 'complete' : 'pending');
@@ -199,6 +212,10 @@ export default function HomeScreen() {
                 >
                   <TouchableOpacity
                     activeOpacity={0.9}
+                    onPress={() => {
+                      setActiveTask(item);
+                      setShowTaskEdit(true);
+                    }}
                     onLongPress={drag}
                     delayLongPress={150}
                     className='w-full'
@@ -207,34 +224,25 @@ export default function HomeScreen() {
                       style={{ opacity: isActive ? 0.9 : 1 }}
                       className='flex-row items-center justify-between'
                     >
-                      <TouchableOpacity
-                        activeOpacity={0.9}
-                        onPress={() => {
-                          setActiveTask(item);
-                          setShowTaskEdit(true);
-                        }}
-                        className='flex-row items-center justify-between flex-1'
-                      >
-                        <View className='flex-row items-center gap-x-3'>
-                          <View>
-                            <Checkbox
-                              value={item.status !== 'pending'}
-                              onValueChange={(checked) => handleChecked(item.id, checked)}
-                              color={item.status !== 'pending' ? "#4772FA" : "#B8BFC8"}
-                              style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                            />
-                          </View>
-                          <View>
-                            <Text className='text-[15.5px]' numberOfLines={1} ellipsizeMode="tail">{item.taskname}</Text>
-                          </View>
+                      <View className='flex-row items-center gap-x-3'>
+                        <View>
+                          <Checkbox
+                            value={item.status !== 'pending'}
+                            onValueChange={(checked) => handleChecked(item.id, checked)}
+                            color={getPriorityColor(item.priorityLevel)}
+                            style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                          />
                         </View>
                         <View>
-                          <View>
-                            <Text className='text-primary text-[13px]'>{formatTaskDate(item.date)}</Text>
-                          </View>
-                          <View></View>
+                          <Text className='text-[15.5px]' numberOfLines={1} ellipsizeMode="tail">{item.taskname}</Text>
                         </View>
-                      </TouchableOpacity>
+                      </View>
+                      <View>
+                        <View>
+                          <Text className='text-primary text-[13px]'>{formatTaskDate(item.date)}</Text>
+                        </View>
+                        <View></View>
+                      </View>
                     </Animated.View>
                   </TouchableOpacity>
                 </Animated.View>
@@ -295,7 +303,7 @@ export default function HomeScreen() {
                               <Checkbox
                                 value={item.status !== 'pending'}
                                 onValueChange={(checked) => handleChecked(item.id, checked)}
-                                color={item.status !== 'pending' ? "#4772FA" : "#B8BFC8"}
+                                color={getPriorityColor(item.priorityLevel)}
                                 style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
                               />
                             </View>
@@ -373,7 +381,7 @@ export default function HomeScreen() {
                             <Checkbox
                               value={item.status !== 'pending'}
                               onValueChange={(checked) => handleChecked(item.id, checked)}
-                              color={item.status !== 'pending' ? "#B8BFC8" : "#4772FA"}
+                              color={getPriorityColor(item.priorityLevel)}
                               style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
                             />
                           </View>
