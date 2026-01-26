@@ -87,6 +87,12 @@ export default function HomeScreen() {
     });
   };
 
+  function handleChecked(taskId: string, checked: boolean) {
+    console.log("taskId", taskId, "checked", checked);
+
+
+  }
+
   return (
     <>
       <SafeAreaView className='bg-[#F5F6F8] flex-1 px-4'>
@@ -130,6 +136,7 @@ export default function HomeScreen() {
 
           {/* today incomplete tasks */}
           <FlatList
+            scrollEnabled={false}
             data={todayIncomletedTasks}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
@@ -137,9 +144,9 @@ export default function HomeScreen() {
                 <View className='flex-row items-center gap-x-3'>
                   <View>
                     <Checkbox
-                      value={false}
-                      // onValueChange={setChecked}
-                      color={false ? "#4772FA" : "#B8BFC8"}
+                      value={item.status !== 'pending'}
+                      onValueChange={(checked) => handleChecked(item.id, checked)}
+                      color={item.status !== 'pending' ? "#4772FA" : "#B8BFC8"}
                       style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
                     />
                   </View>

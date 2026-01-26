@@ -1,9 +1,11 @@
 import {
     addDoc,
     collection,
+    doc,
     getDocs,
     query,
     serverTimestamp,
+    updateDoc,
     where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
@@ -60,4 +62,9 @@ export const getPendingTasksByDate = async (date: string) => {
 
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};
+
+export const updateTaskStatusByTaskId = async (id: string, status: string) => {
+
+    await updateDoc(doc(db, 'tasks', id), { status: 'complete', updatedAt: serverTimestamp() });
 };
