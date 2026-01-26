@@ -207,7 +207,7 @@ export default function HomeScreen() {
                           <Checkbox
                             value={item.status !== 'pending'}
                             onValueChange={(checked) => handleChecked(item.id, checked)}
-                            color={item.status !== 'pending' ? "#4772FA" : "#B8BFC8"}
+                            color={item.priorityLevel === 'none' ? "#B8BFC8" : item.priorityLevel === 'high' ? "#E55656" : item.priorityLevel === 'medium' ? "#F2B233" : "#4772FA"}
                             style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
                           />
                         </View>

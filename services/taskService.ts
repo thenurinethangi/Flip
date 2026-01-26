@@ -2,7 +2,6 @@ import {
   addDoc,
   collection,
   doc,
-  getDocs,
   onSnapshot,
   query,
   serverTimestamp,
@@ -48,7 +47,6 @@ export const add = async (input: AddTaskInput) => {
   return docRef.id;
 };
 
-
 export const subscribePendingTasksByDate = (
   date: string,
   onTasks: (tasks: Array<{ id: string } & Record<string, any>>) => void,
@@ -70,14 +68,31 @@ export const subscribePendingTasksByDate = (
   return onSnapshot(
     q,
     (snapshot) => {
-      onTasks(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      const priorityRank: Record<string, number> = {
+        high: 0,
+        medium: 1,
+        low: 2,
+        none: 3,
+      };
+
+      const tasks: Array<
+        { id: string; priorityLevel?: string } & Record<string, any>
+      > = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      tasks.sort((a, b) => {
+        const aRank =
+          priorityRank[String(a.priorityLevel ?? "none").toLowerCase()] ?? 3;
+        const bRank =
+          priorityRank[String(b.priorityLevel ?? "none").toLowerCase()] ?? 3;
+        return aRank - bRank;
+      });
+
+      onTasks(tasks);
     },
     (error) => {
       if (onError) onError(error);
     },
   );
 };
-
 
 export const subscribeOverdueTasks = (
   date: string,
@@ -108,7 +123,6 @@ export const subscribeOverdueTasks = (
   );
 };
 
-
 export const subscribeCompleteTasksByDate = (
   date: string,
   onTasks: (tasks: Array<{ id: string } & Record<string, any>>) => void,
@@ -138,14 +152,12 @@ export const subscribeCompleteTasksByDate = (
   );
 };
 
-
 export const updateTaskStatusByTaskId = async (id: string, status: string) => {
   await updateDoc(doc(db, "tasks", id), {
     status: status,
     updatedAt: serverTimestamp(),
   });
 };
-
 
 export const postponeTasksByTaskIds = async (ids: string[], date: string) => {
   const batch = writeBatch(db);
