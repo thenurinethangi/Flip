@@ -2,12 +2,13 @@ import { Stack } from "expo-router";
 import "react-native-reanimated";
 import "./../global.css";
 
+import { CustomToast } from "@/components/custom-toast";
+import { AuthProvider } from "@/context/authContext";
 import ThemeProvider, { ThemeContext } from "@/context/themeContext";
 import { useContext } from "react";
 import { StatusBar } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast, { ToastConfig } from "react-native-toast-message";
-import { CustomToast } from "@/components/custom-toast";
-import { AuthProvider } from "@/context/authContext";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -52,10 +53,12 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <RootLayoutContent />
-      </ThemeProvider>
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <ThemeProvider>
+          <RootLayoutContent />
+        </ThemeProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }

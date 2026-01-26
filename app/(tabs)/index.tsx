@@ -5,6 +5,7 @@ import { add, subscribeCompleteTasksByDate, subscribeOverdueTasks, subscribePend
 import Checkbox from "expo-checkbox";
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -162,41 +163,55 @@ export default function HomeScreen() {
         <ScrollView className='mt-5 px-0.5 mb-5'>
 
           {/* today incomplete tasks */}
-          <Animated.FlatList
+          <DraggableFlatList
             scrollEnabled={false}
-            itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
             data={todayIncompleteTasks}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <Animated.View
-                layout={Layout.springify().damping(18).stiffness(180)}
-                entering={FadeInDown.duration(200)}
-                exiting={FadeOutUp.duration(150)}
-                className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'
-              >
-                <View className='flex-row items-center gap-x-3'>
-                  <View>
-                    <Checkbox
-                      value={item.status !== 'pending'}
-                      onValueChange={(checked) => handleChecked(item.id, checked)}
-                      color={item.status !== 'pending' ? "#4772FA" : "#B8BFC8"}
-                      style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                    />
-                  </View>
-                  <View>
-                    <Text className='text-[15.5px]'>{item.taskname}</Text>
-                  </View>
-                </View>
-                <View>
-                  <View>
-                    <Text className='text-primary text-[13px]'>{formatTaskDate(item.date)}</Text>
-                  </View>
-                  <View></View>
-                </View>
-              </Animated.View>
+            activationDistance={8}
+            onDragEnd={({ data }) => setTodayIncompleteTasks(data)}
+            renderItem={({ item, drag, isActive }) => (
+              <ScaleDecorator>
+                <Animated.View
+                  layout={Layout.springify().damping(18).stiffness(180)}
+                  entering={FadeInDown.duration(200)}
+                  exiting={FadeOutUp.duration(150)}
+                  className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-4 h-[50px] shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onLongPress={drag}
+                    delayLongPress={150}
+                    className='w-full'
+                  >
+                    <Animated.View
+                      style={{ opacity: isActive ? 0.9 : 1 }}
+                      className='flex-row items-center justify-between'
+                    >
+                      <View className='flex-row items-center gap-x-3 w-[75%]'>
+                        <View>
+                          <Checkbox
+                            value={item.status !== 'pending'}
+                            onValueChange={(checked) => handleChecked(item.id, checked)}
+                            color={item.status !== 'pending' ? "#4772FA" : "#B8BFC8"}
+                            style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                          />
+                        </View>
+                        <View>
+                          <Text className='text-[15.5px]' numberOfLines={1} ellipsizeMode="tail">{item.taskname}</Text>
+                        </View>
+                      </View>
+                      <View>
+                        <View>
+                          <Text className='text-primary text-[13px]'>{formatTaskDate(item.date)}</Text>
+                        </View>
+                        <View></View>
+                      </View>
+                    </Animated.View>
+                  </TouchableOpacity>
+                </Animated.View>
+              </ScaleDecorator>
             )}
-          >
-          </Animated.FlatList>
+          />
 
           {/* overdue */}
           {overdueTasks.length > 0 && (
@@ -245,7 +260,7 @@ export default function HomeScreen() {
                             />
                           </View>
                           <View>
-                            <Text className='text-[15.5px]'>{item.taskname}</Text>
+                            <Text className='text-[15.5px]' numberOfLines={1} ellipsizeMode="tail">{item.taskname}</Text>
                           </View>
                         </View>
                         <View>
@@ -314,7 +329,7 @@ export default function HomeScreen() {
                           />
                         </View>
                         <View>
-                          <Text className='text-[15.5px] text-gray-400 line-through'>{item.taskname}</Text>
+                          <Text className='text-[15.5px] text-gray-400 line-through' numberOfLines={1} ellipsizeMode="tail">{item.taskname}</Text>
                         </View>
                       </View>
                       <View>
