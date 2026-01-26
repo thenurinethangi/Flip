@@ -181,12 +181,24 @@ export default function TaskEditModal({
 
             <View className='flex-row items-center gap-x-2 mt-[23px]'>
               <View className='flex-row items-center gap-x-3'>
-                <Checkbox
-                  value={checked}
-                  onValueChange={setChecked}
-                  color={checked ? "#4772FA" : "#B8BFC8"}
-                  style={{ transform: [{ scale: 0.92 }], borderRadius: 5, borderWidth: 1.5, borderColor: priorityColorMap[priority] }}
-                />
+                <View
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 5,
+                    borderWidth: 1.5,
+                    borderColor: checked ? "transparent" : priorityColorMap[priority],
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Checkbox
+                    value={checked}
+                    onValueChange={setChecked}
+                    color={checked ? '#4772FA' : "transparent"}
+                    style={{ width: 18, height: 18, borderRadius: 4 }}
+                  />
+                </View>
                 <Text className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? 'text-primary' : 'text-red-500'}`}>{headerDate}</Text>
               </View>
             </View>
