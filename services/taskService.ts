@@ -8,6 +8,7 @@ import {
   serverTimestamp,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
@@ -143,4 +144,16 @@ export const updateTaskStatusByTaskId = async (id: string, status: string) => {
     status: status,
     updatedAt: serverTimestamp(),
   });
+};
+
+
+export const postponeTasksByTaskIds = async (ids: string[], date: string) => {
+  const batch = writeBatch(db);
+  ids.forEach((id) => {
+    batch.update(doc(db, "tasks", id), {
+      date,
+      updatedAt: serverTimestamp(),
+    });
+  });
+  await batch.commit();
 };

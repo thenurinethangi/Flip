@@ -1,7 +1,7 @@
 import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
 import { AppIcon } from '@/components/ui/icon-symbol';
-import { add, subscribeCompleteTasksByDate, subscribeOverdueTasks, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
+import { add, postponeTasksByTaskIds, subscribeCompleteTasksByDate, subscribeOverdueTasks, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -122,6 +122,21 @@ export default function HomeScreen() {
     }
   }
 
+  async function handlePostpone() {
+
+    const ids = overdueTasks.map((task) => {
+      return task.id
+    });
+    console.log(ids);
+
+    try {
+      await postponeTasksByTaskIds(ids, todayStr);
+    }
+    catch (e) {
+      console.log(e);
+    }
+  }
+
   return (
     <>
       <SafeAreaView className='bg-[#F5F6F8] flex-1 px-4'>
@@ -226,7 +241,10 @@ export default function HomeScreen() {
                   <Text className='text-[16px] font-medium text-[#222]'>Overdue</Text>
                   <Text className='text-[14px] text-gray-400'>{overdueTasks.length}</Text>
                 </View>
-                <View className='flex-row items-center gap-x-1'>
+                <View className='flex-row items-center gap-x-3'>
+                  <TouchableOpacity onPress={handlePostpone} className='flex-row items-center gap-x-1'>
+                    <Text className='text-red-500 text-[13.5px]'>Postpone</Text>
+                  </TouchableOpacity>
                   <TouchableOpacity onPress={() => setShowOverdueTasks((prev) => !prev)}>
                     {showOverdueTasks
                       ? <AppIcon name="ChevronDown" color='#9ca3af' size={17} />
@@ -250,7 +268,7 @@ export default function HomeScreen() {
                         exiting={FadeOutUp.duration(150)}
                         className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
                       >
-                        <View className='flex-row items-center gap-x-3'>
+                        <View className='flex-row items-center gap-x-3 w-[75%]'>
                           <View>
                             <Checkbox
                               value={item.status !== 'pending'}
@@ -319,7 +337,7 @@ export default function HomeScreen() {
                       exiting={FadeOutUp.duration(150)}
                       className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
                     >
-                      <View className='flex-row items-center gap-x-3'>
+                      <View className='flex-row items-center gap-x-3 w-[75%]'>
                         <View>
                           <Checkbox
                             value={item.status !== 'pending'}
