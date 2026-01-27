@@ -10,6 +10,7 @@ import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatli
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TaskEditModal from './../../components/TaskEditModal';
+import { addNewSubTask } from '@/services/subtaskService';
 
 export default function HomeScreen() {
 
@@ -81,6 +82,36 @@ export default function HomeScreen() {
 
     try {
       const id = await add(payload);
+      console.log('-------------', id);
+    }
+    catch (e) {
+      console.log(e);
+    }
+
+    setSelectedDate(todayStr);
+    setSelectedTime('None');
+    setSelectedReminder('None');
+    setSelectedRepeat('None');
+    setSelectedPriority('none');
+    setSelectedTaskType('none');
+    setTags('');
+  }
+
+  async function addSubTask(payload: {
+    taskname: string;
+    date: string;
+    time: string;
+    reminder: string;
+    repeat: string;
+    priorityLevel: string;
+    taskType: string;
+    tags: string;
+  }, taskId: string) {
+
+    console.log("NEW SUB TASK", payload);
+
+    try {
+      const id = await addNewSubTask(payload, taskId);
       console.log('-------------', id);
     }
     catch (e) {
@@ -418,10 +449,22 @@ export default function HomeScreen() {
         <AddSubtaskModal
           visible={showSubtaskModal}
           onClose={() => setShowSubtaskModal(false)}
-          onAddSubtask={(payload) => {
-            console.log("Add subtask", payload, "for", activeTask?.id);
-            setShowSubtaskModal(false);
-          }}
+          onOpenCalendar={() => setShowDate(true)}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          selectedReminder={selectedReminder}
+          selectedRepeat={selectedRepeat}
+          selectedPriority={selectedPriority}
+          selectedTaskType={selectedTaskType}
+          tags={tags}
+          setSelectedDate={setSelectedDate}
+          setSelectedTime={setSelectedTime}
+          setSelectedReminder={setSelectedReminder}
+          setSelectedRepeat={setSelectedRepeat}
+          setSelectedPriority={setSelectedPriority}
+          setSelectedTaskType={setSelectedTaskType}
+          setTags={setTags}
+          onAddTask={(payload) => addSubTask(payload, activeTask?.id)}
         />
 
       </SafeAreaView >
