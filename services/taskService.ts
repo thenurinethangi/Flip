@@ -191,3 +191,24 @@ export const getNotesByTaskId = async (id: string) => {
     ...doc.data(),
   }));
 };
+
+
+export const update = async (task: any) => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  await updateDoc(doc(db, "tasks", task.id), {
+    taskname: task.taskname,
+    date: task.date,
+    time: task.time,
+    reminder: task.reminder,
+    repeat: task.repeat,
+    priorityLevel: task.priorityLevel,
+    taskType: task.taskType,
+    tags: task.tags,
+    status: task.status,
+    updatedAt: serverTimestamp(),
+  });
+};

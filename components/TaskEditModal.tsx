@@ -1,5 +1,5 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
-import { getNotesByTaskId } from "@/services/taskService";
+import { getNotesByTaskId, update } from "@/services/taskService";
 import Checkbox from "expo-checkbox";
 import {
   ArrowLeft,
@@ -222,9 +222,16 @@ export default function TaskEditModal({
     .filter((tag) => tag && tag !== "#");
 
 
-  function editTask() {
-    // onClose();
+  async function editTask() {
+    onClose();
     console.log(taskForm);
+
+    try {
+      await update(taskForm);
+    }
+    catch (e) {
+      console.log(e);
+    }
   }
 
   return (
