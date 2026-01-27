@@ -221,6 +221,12 @@ export default function TaskEditModal({
     .map((tag) => tag.trim())
     .filter((tag) => tag && tag !== "#");
 
+
+  function editTask() {
+    // onClose();
+    console.log(taskForm);
+  }
+
   return (
     <Modal
       visible={visible}
@@ -237,7 +243,7 @@ export default function TaskEditModal({
           <View className='px-4 pt-3 pb-3 border-b border-gray-100'>
             <View className='flex-row items-center justify-between'>
               <View className='flex-row items-center gap-x-4'>
-                <TouchableOpacity onPress={onClose}>
+                <TouchableOpacity onPress={editTask}>
                   <ArrowLeft size={22} color="#222" strokeWidth={2} className="opacity-70" />
                 </TouchableOpacity>
                 <View className='flex-row items-center gap-x-1'>
