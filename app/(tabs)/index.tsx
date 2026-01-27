@@ -313,7 +313,7 @@ export default function HomeScreen() {
                           </View>
                           <View>
                             <View>
-                              <Text className='text-primary text-[13px]'>{formatTaskDate(item.date)}</Text>
+                              <Text className='text-red-500 text-[13px]'>{formatTaskDate(item.date)}</Text>
                             </View>
                             <View></View>
                           </View>
@@ -381,7 +381,7 @@ export default function HomeScreen() {
                             <Checkbox
                               value={item.status !== 'pending'}
                               onValueChange={(checked) => handleChecked(item.id, checked)}
-                              color={getPriorityColor(item.priorityLevel)}
+                              color={'#B8BFC8'}
                               style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
                             />
                           </View>

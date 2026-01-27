@@ -2,18 +2,12 @@ import { AppIcon } from "@/components/ui/icon-symbol";
 import Checkbox from "expo-checkbox";
 import {
   ArrowLeft,
-  Bold,
   Camera,
   ChevronsUpDown,
   Flag,
-  Italic,
-  Link2,
-  List,
-  ListOrdered,
-  Paperclip,
-  Underline,
+  Paperclip
 } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -25,6 +19,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type TaskEditModalProps = {
@@ -101,20 +96,21 @@ export default function TaskEditModal({
 }: TaskEditModalProps) {
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
-  const [noteHeight, setNoteHeight] = useState(96);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [checked, setChecked] = useState(false);
   const [priority, setPriority] = useState("none");
-  const [bold, setBold] = useState(false);
-  const [italic, setItalic] = useState(false);
-  const [underline, setUnderline] = useState(false);
-  const [caseMode, setCaseMode] = useState<"none" | "upper" | "lower">("none");
+  const editorRef = useRef<RichEditor | null>(null);
 
   useEffect(() => {
-    setTitle(task?.taskname ?? "");
-    setNote(task?.note ?? "");
+    const nextTitle = task?.taskname ?? "";
+    const nextNote = task?.note ?? "";
+    setTitle(nextTitle);
+    setNote(nextNote);
     setChecked(task?.status ? task.status !== "pending" : false);
     setPriority(task?.priorityLevel ?? "none");
+    if (editorRef.current) {
+      editorRef.current.setContentHTML(nextNote);
+    }
   }, [task]);
 
   const headerDate = useMemo(() => formatHeaderDate(task?.date), [task?.date]);
@@ -204,7 +200,7 @@ export default function TaskEditModal({
             </View>
           </View>
 
-          <ScrollView className='flex-1 px-4 pt-4' contentContainerStyle={{ paddingBottom: 140 }}>
+          <ScrollView className='flex-1 px-4 pt-2' contentContainerStyle={{ paddingBottom: 140 }}>
             <TextInput
               className='text-[22px] font-semibold text-[#111]'
               placeholder='Task name'
@@ -213,30 +209,33 @@ export default function TaskEditModal({
               onChangeText={setTitle}
             />
 
-            <TextInput
-              className='mt-3 text-[16px] text-[#222]'
-              placeholder='Description'
-              placeholderTextColor='#9ca3af'
-              multiline
-              scrollEnabled={false}
-              value={note}
-              onChangeText={setNote}
-              onContentSizeChange={(e) =>
-                setNoteHeight(Math.max(96, e.nativeEvent.contentSize.height))
-              }
-              style={{
-                height: noteHeight,
-                fontWeight: bold ? "600" : "400",
-                fontStyle: italic ? "italic" : "normal",
-                textDecorationLine: underline ? "underline" : "none",
-                textTransform:
-                  caseMode === "upper"
-                    ? "uppercase"
-                    : caseMode === "lower"
-                      ? "lowercase"
-                      : "none",
-              }}
-            />
+            <View className='-translate-y-1'>
+              <RichEditor
+                ref={editorRef}
+                placeholder="Write Note ..."
+                initialContentHTML={note}
+                onChange={setNote}
+                editorStyle={{
+                  backgroundColor: "#fff",
+                  color: "#222",
+                  contentCSSText: `
+      body {
+        font-size: 16px;
+        line-height: 24px;
+      }
+      p {
+        line-height: 24px;
+        margin: 0;
+      }
+      div {
+        line-height: 24px;
+      }
+    `,
+                }}
+                style={{ minHeight: 120 }}
+              />
+
+            </View>
 
             <View className='mt-4'>
               <TouchableOpacity onPress={onAddSubtask} className='flex-row items-center gap-x-2 py-2'>
@@ -270,41 +269,60 @@ export default function TaskEditModal({
             )}
           </ScrollView>
 
-          <View className='absolute bottom-0 left-0 right-0 border-t border-gray-100 bg-white px-4 py-3'>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className='flex-row items-center gap-x-5'>
-                <Pressable onPress={() => setBold((prev) => !prev)}>
-                  <Bold size={18} color={bold ? "#222" : "#6b7280"} />
-                </Pressable>
-                <Pressable onPress={() => setItalic((prev) => !prev)}>
-                  <Italic size={18} color={italic ? "#222" : "#6b7280"} />
-                </Pressable>
-                <Pressable onPress={() => setUnderline((prev) => !prev)}>
-                  <Underline size={18} color={underline ? "#222" : "#6b7280"} />
-                </Pressable>
-                <Pressable onPress={() => setCaseMode((prev) => (prev === "upper" ? "none" : "upper"))}>
-                  <Text className='text-[14px] font-semibold text-[#6b7280]'>AA</Text>
-                </Pressable>
-                <Pressable onPress={() => setCaseMode((prev) => (prev === "lower" ? "none" : "lower"))}>
-                  <Text className='text-[14px] font-semibold text-[#6b7280]'>aa</Text>
-                </Pressable>
-                <Pressable onPress={() => addBlock("link")}>
-                  <Link2 size={18} color="#6b7280" />
-                </Pressable>
-                <Pressable onPress={() => addBlock("document")}>
-                  <Paperclip size={18} color="#6b7280" />
-                </Pressable>
-                <Pressable onPress={() => addBlock("image")}>
-                  <Camera size={18} color="#6b7280" />
-                </Pressable>
-                <Pressable onPress={() => addBlock("number")}>
-                  <ListOrdered size={18} color="#6b7280" />
-                </Pressable>
-                <Pressable onPress={() => addBlock("bullet")}>
-                  <List size={18} color="#6b7280" />
-                </Pressable>
+          <View className='absolute bottom-0 left-0 right-0 bg-white px-4 py-3'>
+            <View className='flex-row items-center gap-x-5'>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <RichToolbar
+                  editor={editorRef}
+                  actions={[
+                    actions.setBold,
+                    actions.setItalic,
+                    actions.setUnderline,
+                    actions.insertOrderedList,
+                    actions.insertBulletsList,
+                    actions.insertLink,
+                    actions.alignRight,
+                    actions.alignLeft,
+                    actions.alignCenter,
+                    actions.heading1,
+                    actions.heading2,
+                    actions.heading3,
+                    actions.heading4,
+                    actions.heading5,
+                    actions.heading6,
+                  ]}
+                  iconTint="#7E8591"
+                  selectedIconTint="#222"
+                  iconMap={{
+                    [actions.heading1]: ({ tintColor }: { tintColor?: string }) => (
+                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H1</Text>
+                    ),
+                    [actions.heading2]: ({ tintColor }: { tintColor?: string }) => (
+                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H2</Text>
+                    ),
+                    [actions.heading3]: ({ tintColor }: { tintColor?: string }) => (
+                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H3</Text>
+                    ),
+                    [actions.heading4]: ({ tintColor }: { tintColor?: string }) => (
+                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H4</Text>
+                    ),
+                    [actions.heading5]: ({ tintColor }: { tintColor?: string }) => (
+                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H5</Text>
+                    ),
+                    [actions.heading6]: ({ tintColor }: { tintColor?: string }) => (
+                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H6</Text>
+                    ),
+                  }}
+                  style={{ backgroundColor: "transparent", borderWidth: 0 }}
+                />
               </View>
-            </ScrollView>
+              <Pressable onPress={() => addBlock("document")}>
+                <Paperclip size={18} color="#7E8591" />
+              </Pressable>
+              <Pressable onPress={() => addBlock("image")}>
+                <Camera size={18} color="#7E8591" />
+              </Pressable>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
