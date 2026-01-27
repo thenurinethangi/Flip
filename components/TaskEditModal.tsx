@@ -1,11 +1,13 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
+import { getNotesByTaskId } from "@/services/taskService";
 import Checkbox from "expo-checkbox";
 import {
   ArrowLeft,
   Camera,
   ChevronsUpDown,
   Flag,
-  Paperclip
+  Paperclip,
+  Repeat
 } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -21,6 +23,9 @@ import {
 } from "react-native";
 import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor";
 import { SafeAreaView } from "react-native-safe-area-context";
+import CustomCalendarModal from "./DatePickerModal";
+import PriorityModal from "./PriorityModal";
+import TaskTypeModal from "./TaskTypeModal";
 
 type TaskEditModalProps = {
   visible: boolean;
@@ -41,6 +46,20 @@ type Block = {
   id: string;
   type: BlockType;
   text: string;
+};
+
+type TaskFormModel = {
+  id?: string;
+  taskname: string;
+  note: string;
+  date: string;
+  time: string;
+  reminder: string;
+  repeat: string;
+  priorityLevel: string;
+  taskType: string;
+  tags: string;
+  status: string;
 };
 
 const createBlock = (type: BlockType): Block => ({
@@ -94,42 +113,68 @@ export default function TaskEditModal({
   onClose,
   onAddSubtask,
 }: TaskEditModalProps) {
-  const [title, setTitle] = useState("");
-  const [note, setNote] = useState("");
+  const [taskForm, setTaskForm] = useState<TaskFormModel>({
+    taskname: "",
+    note: "",
+    date: "",
+    time: "",
+    reminder: "",
+    repeat: "",
+    priorityLevel: "none",
+    taskType: "none",
+    tags: "",
+    status: "pending",
+  });
   const [blocks, setBlocks] = useState<Block[]>([]);
-  const [checked, setChecked] = useState(false);
-  const [priority, setPriority] = useState("none");
   const editorRef = useRef<RichEditor | null>(null);
   const [linkModalVisible, setLinkModalVisible] = useState(false);
   const [linkTitle, setLinkTitle] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
 
+  const [priorityVisible, setPriorityVisible] = useState(false);
+  const [taskTypeVisible, setTaskTypeVisible] = useState(false);
+  const [showDate, setShowDate] = useState(false);
+
   useEffect(() => {
-    const nextTitle = task?.taskname ?? "";
-    const nextNote = task?.note ?? "";
-    setTitle(nextTitle);
-    setNote(nextNote);
-    setChecked(task?.status ? task.status !== "pending" : false);
-    setPriority(task?.priorityLevel ?? "none");
+    const nextForm: TaskFormModel = {
+      id: task?.id,
+      taskname: task?.taskname ?? "",
+      note: task?.note ?? "",
+      date: task?.date ?? "",
+      time: task?.time ?? "",
+      reminder: task?.reminder ?? "",
+      repeat: task?.repeat ?? "",
+      priorityLevel: task?.priorityLevel ?? "none",
+      taskType: task?.taskType ?? "none",
+      tags: task?.tags ?? "",
+      status: task?.status ?? "pending",
+    };
+    setTaskForm(nextForm);
     if (editorRef.current) {
-      editorRef.current.setContentHTML(nextNote);
+      editorRef.current.setContentHTML(nextForm.note);
     }
   }, [task]);
 
-  const headerDate = useMemo(() => formatHeaderDate(task?.date), [task?.date]);
-  const taskDate = task?.date ?? "";
+  useEffect(() => {
+    const getNotes = async () => {
+      try {
+        if (task?.id) {
+          const res = await getNotesByTaskId(task.id);
+          console.log('NOTES', res);
+        }
+      }
+      catch (e) {
+        console.log(e);
+      }
+    }
+    getNotes();
+  }, [task]);
+
+  const headerDate = useMemo(() => formatHeaderDate(taskForm.date), [taskForm.date]);
+  const taskDate = taskForm.date ?? "";
 
   const addBlock = (type: BlockType) => {
     setBlocks((prev) => [...prev, createBlock(type)]);
-  };
-
-  const togglePriority = () => {
-    setPriority((prev) => {
-      if (prev === "none") return "low";
-      if (prev === "low") return "medium";
-      if (prev === "medium") return "high";
-      return "none";
-    });
   };
 
   const disableSpellcheck = () => {
@@ -157,7 +202,7 @@ export default function TaskEditModal({
     closeLinkModal();
   };
 
-  const taskTypeLabel = taskTypeLabelMap[(task?.taskType ?? "none").toLowerCase()] ?? "Inbox";
+  const taskTypeLabel = taskTypeLabelMap[(taskForm.taskType ?? "none").toLowerCase()] ?? "Inbox";
 
   const isNotPastDate = (dateStr: string): boolean => {
     const [year, month, day] = dateStr.split("-").map(Number);
@@ -170,6 +215,11 @@ export default function TaskEditModal({
 
     return inputDate >= today;
   };
+
+  const editableTags = taskForm.tags
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag && tag !== "#");
 
   return (
     <Modal
@@ -191,39 +241,54 @@ export default function TaskEditModal({
                   <ArrowLeft size={22} color="#222" strokeWidth={2} className="opacity-70" />
                 </TouchableOpacity>
                 <View className='flex-row items-center gap-x-1'>
-                  <Text className='text-[16.5px] font-semibold text-[#222]'>{taskTypeLabel}</Text>
+                  <Text onPress={() => setTaskTypeVisible(true)} className='text-[16.5px] font-semibold text-[#222]'>{taskTypeLabel}</Text>
                   <ChevronsUpDown size={16} color="#6b7280" />
                 </View>
               </View>
               <View className="flex-row items-center gap-x-5">
-                <TouchableOpacity onPress={togglePriority}>
-                  <Flag size={21} color={priorityColorMap[priority] ?? "#9BA2AB"} />
+                <TouchableOpacity onPress={() => setPriorityVisible(true)}>
+                  <Flag size={21} color={priorityColorMap[taskForm.priorityLevel] ?? "#9BA2AB"} />
                 </TouchableOpacity>
                 <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
               </View>
             </View>
 
             <View className='flex-row items-center gap-x-2 mt-[23px]'>
-              <View className='flex-row items-center gap-x-3'>
+              <View className='flex-row items-center gap-x-[14px]'>
                 <View
+                  className="-translate-y-2"
                   style={{
                     width: 20,
                     height: 20,
                     borderRadius: 5,
                     borderWidth: 1.5,
-                    borderColor: checked ? "transparent" : priorityColorMap[priority],
+                    borderColor: taskForm.status !== "pending" ? "transparent" : priorityColorMap[taskForm.priorityLevel],
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
                   <Checkbox
-                    value={checked}
-                    onValueChange={setChecked}
-                    color={checked ? '#4772FA' : "transparent"}
+                    value={taskForm.status !== "pending"}
+                    onValueChange={(value) =>
+                      setTaskForm((prev) => ({
+                        ...prev,
+                        status: value ? "complete" : "pending",
+                      }))
+                    }
+                    color={taskForm.status !== "pending" ? '#4772FA' : "transparent"}
                     style={{ width: 18, height: 18, borderRadius: 4 }}
                   />
                 </View>
-                <Text className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? 'text-primary' : 'text-red-500'}`}>{headerDate}</Text>
+                <View className="gap-y-[3px]">
+                  <Text onPress={() => setShowDate(true)} className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? 'text-primary' : 'text-red-500'}`}>{headerDate}{taskForm.time != 'None' ? ',' : ''} {taskForm.time != 'None' ? taskForm.time : ''}</Text>
+                  {taskForm.reminder != 'None' ? (
+                    <View className="flex-row items-center gap-x-1">
+                      <Text className="text-gray-500 text-[11px]">{taskForm.repeat}</Text>
+                      <Repeat size={11} color="#9E9E9E" />
+                    </View>
+                  ) : null}
+
+                </View>
               </View>
             </View>
           </View>
@@ -233,16 +298,20 @@ export default function TaskEditModal({
               className='text-[22px] font-semibold text-[#111]'
               placeholder='Task name'
               placeholderTextColor='#9ca3af'
-              value={title}
-              onChangeText={setTitle}
+              value={taskForm.taskname}
+              onChangeText={(value) =>
+                setTaskForm((prev) => ({ ...prev, taskname: value }))
+              }
             />
 
             <View className='-translate-y-1'>
               <RichEditor
                 ref={editorRef}
                 placeholder="Write Note ..."
-                initialContentHTML={note}
-                onChange={setNote}
+                initialContentHTML={taskForm.note}
+                onChange={(value) =>
+                  setTaskForm((prev) => ({ ...prev, note: value }))
+                }
                 editorInitializedCallback={disableSpellcheck}
                 editorStyle={{
                   backgroundColor: "#fff",
@@ -296,6 +365,33 @@ export default function TaskEditModal({
                 ))}
               </View>
             )}
+
+            <View className="px-1 flex-row items-center gap-x-1 flex-wrap">
+              {editableTags.map((tag, index) => (
+                <TextInput
+                  key={`${tag}-${index}`}
+                  value={`#${tag}`}
+                  onChangeText={(value) => {
+                    const nextValue = value.replace(/^#/, "").trim();
+                    setTaskForm((prev) => {
+                      const nextTags = prev.tags
+                        .split(",")
+                        .map((t) => t.trim())
+                        .filter((t) => t && t !== "#");
+                      nextTags[index] = nextValue;
+                      return {
+                        ...prev,
+                        tags: nextTags.filter(Boolean).join(","),
+                      };
+                    });
+                  }}
+                  className="text-[12px] text-[#374151] bg-[#F3F4F6] px-2 py-1 rounded-full min-w-[60px]"
+                  placeholder="#tag"
+                  placeholderTextColor="#9CA3AF"
+                />
+              ))}
+            </View>
+
           </ScrollView>
 
           <View className='absolute bottom-0 left-0 right-0 bg-white px-4 py-3'>
@@ -355,6 +451,7 @@ export default function TaskEditModal({
             </View>
           </View>
 
+          {/* link model */}
           <Modal
             transparent
             animationType="fade"
@@ -395,6 +492,47 @@ export default function TaskEditModal({
               </View>
             </View>
           </Modal>
+
+          {/* priority model */}
+          <PriorityModal
+            visible={priorityVisible}
+            selectedPriority={taskForm.priorityLevel}
+            onClose={() => setPriorityVisible(false)}
+            onSelect={(p) =>
+              setTaskForm((prev) => ({ ...prev, priorityLevel: p }))
+            }
+          />
+
+          {/* task type model */}
+          <TaskTypeModal
+            visible={taskTypeVisible}
+            selectedTaskType={taskForm.taskType}
+            onClose={() => setTaskTypeVisible(false)}
+            onSelect={(t) =>
+              setTaskForm((prev) => ({ ...prev, taskType: t }))
+            }
+          />
+
+          <CustomCalendarModal
+            visible={showDate}
+            date={taskForm.date}
+            choooseDate={(d) =>
+              setTaskForm((prev) => ({ ...prev, date: d }))
+            }
+            onClose={() => setShowDate(false)}
+            selectedTime={taskForm.time}
+            setSelectedTime={(t) =>
+              setTaskForm((prev) => ({ ...prev, time: t }))
+            }
+            selectedReminder={taskForm.reminder}
+            setSelectedReminder={(r) =>
+              setTaskForm((prev) => ({ ...prev, reminder: r }))
+            }
+            selectedRepeat={taskForm.repeat}
+            setSelectedRepeat={(rt) =>
+              setTaskForm((prev) => ({ ...prev, repeat: rt }))
+            }
+          />
 
         </KeyboardAvoidingView>
       </SafeAreaView>

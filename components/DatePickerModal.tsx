@@ -75,7 +75,7 @@ const CustomCalendarModal: React.FC<Props> = ({
 
                 {/* Calendar */}
                 <Calendar
-                    current={todayStr}
+                    current={date || todayStr}
                     onDayPress={(day) => {
                         choooseDate(day.dateString);
                     }}
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     activeTab: {
-        color: "#4772FA",
+        color: "#374151",
         fontSize: 16,
         fontWeight: "600",
     },

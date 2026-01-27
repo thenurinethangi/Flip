@@ -2,6 +2,8 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
+  getDocs,
   onSnapshot,
   query,
   serverTimestamp,
@@ -21,6 +23,7 @@ export interface AddTaskInput {
   taskType: string;
   tags: string;
 }
+
 
 export const add = async (input: AddTaskInput) => {
   const user = auth.currentUser;
@@ -46,6 +49,7 @@ export const add = async (input: AddTaskInput) => {
   const docRef = await addDoc(collection(db, "tasks"), payload);
   return docRef.id;
 };
+
 
 export const subscribePendingTasksByDate = (
   date: string,
@@ -94,6 +98,7 @@ export const subscribePendingTasksByDate = (
   );
 };
 
+
 export const subscribeOverdueTasks = (
   date: string,
   onTasks: (tasks: Array<{ id: string } & Record<string, any>>) => void,
@@ -122,6 +127,7 @@ export const subscribeOverdueTasks = (
     },
   );
 };
+
 
 export const subscribeCompleteTasksByDate = (
   date: string,
@@ -152,12 +158,14 @@ export const subscribeCompleteTasksByDate = (
   );
 };
 
+
 export const updateTaskStatusByTaskId = async (id: string, status: string) => {
   await updateDoc(doc(db, "tasks", id), {
     status: status,
     updatedAt: serverTimestamp(),
   });
 };
+
 
 export const postponeTasksByTaskIds = async (ids: string[], date: string) => {
   const batch = writeBatch(db);
@@ -168,4 +176,18 @@ export const postponeTasksByTaskIds = async (ids: string[], date: string) => {
     });
   });
   await batch.commit();
+};
+
+
+export const getNotesByTaskId = async (id: string) => {
+  const notesRef = collection(db, "notes");
+
+  const q = query(notesRef, where("taskId", "==", id));
+
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 };
