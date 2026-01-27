@@ -100,6 +100,9 @@ export default function TaskEditModal({
   const [checked, setChecked] = useState(false);
   const [priority, setPriority] = useState("none");
   const editorRef = useRef<RichEditor | null>(null);
+  const [linkModalVisible, setLinkModalVisible] = useState(false);
+  const [linkTitle, setLinkTitle] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
 
   useEffect(() => {
     const nextTitle = task?.taskname ?? "";
@@ -127,6 +130,31 @@ export default function TaskEditModal({
       if (prev === "medium") return "high";
       return "none";
     });
+  };
+
+  const disableSpellcheck = () => {
+    editorRef.current?.commandDOM(
+      "document.body.setAttribute('spellcheck','false');document.documentElement.setAttribute('spellcheck','false');const editor=document.querySelector('[contenteditable=true]');if(editor){editor.setAttribute('spellcheck','false');}"
+    );
+  };
+
+  const openLinkModal = () => {
+    setLinkModalVisible(true);
+  };
+
+  const closeLinkModal = () => {
+    setLinkModalVisible(false);
+    setLinkTitle("");
+    setLinkUrl("");
+  };
+
+  const handleInsertLink = () => {
+    const rawUrl = linkUrl.trim();
+    if (!rawUrl) return;
+    const normalizedUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+    const title = linkTitle.trim() || normalizedUrl;
+    editorRef.current?.insertLink(title, normalizedUrl);
+    closeLinkModal();
   };
 
   const taskTypeLabel = taskTypeLabelMap[(task?.taskType ?? "none").toLowerCase()] ?? "Inbox";
@@ -215,6 +243,7 @@ export default function TaskEditModal({
                 placeholder="Write Note ..."
                 initialContentHTML={note}
                 onChange={setNote}
+                editorInitializedCallback={disableSpellcheck}
                 editorStyle={{
                   backgroundColor: "#fff",
                   color: "#222",
@@ -291,6 +320,7 @@ export default function TaskEditModal({
                     actions.heading5,
                     actions.heading6,
                   ]}
+                  onInsertLink={openLinkModal}
                   iconTint="#7E8591"
                   selectedIconTint="#222"
                   iconMap={{
@@ -324,6 +354,48 @@ export default function TaskEditModal({
               </Pressable>
             </View>
           </View>
+
+          <Modal
+            transparent
+            animationType="fade"
+            visible={linkModalVisible}
+            onRequestClose={closeLinkModal}
+          >
+            <View className='flex-1 items-center justify-center bg-black/40 px-6'>
+              <View className='w-full rounded-3xl bg-white px-6 pt-7 pb-6'>
+                <Text className='text-[17px] font-semibold text-[#111]'>Add URL</Text>
+                <TextInput
+                  className='mt-4 rounded-xl bg-gray-100 px-4 py-4 text-[15px] text-[#111]'
+                  placeholder='Title (optional)'
+                  placeholderTextColor='#9ca3af'
+                  value={linkTitle}
+                  onChangeText={setLinkTitle}
+                />
+                <TextInput
+                  className='mt-3 rounded-xl bg-gray-100 px-4 py-4 text-[15px] text-[#111]'
+                  placeholder='https://example.com'
+                  placeholderTextColor='#9ca3af'
+                  keyboardType='url'
+                  autoCapitalize='none'
+                  autoCorrect={false}
+                  value={linkUrl}
+                  onChangeText={setLinkUrl}
+                />
+                <View className='mt-5 flex-row items-center justify-end gap-x-1'>
+                  <Pressable onPress={closeLinkModal} className='px-3 py-2'>
+                    <Text className='text-[16px] text-gray-400'>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleInsertLink}
+                    className='px-2 py-2'
+                  >
+                    <Text className='text-[16px] font-semibold text-primary'>Insert</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
+
         </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
