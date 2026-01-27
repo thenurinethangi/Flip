@@ -266,10 +266,10 @@ export default function TaskEditModal({
 
             </View>
 
-            <View className='mt-4'>
+            <View className='mt-3'>
               <TouchableOpacity onPress={onAddSubtask} className='flex-row items-center gap-x-2 py-2'>
-                <AppIcon name="Plus" size={18} color="#6b7280" />
-                <Text className='text-[15px] text-[#6b7280]'>Add subtask</Text>
+                <AppIcon name="Plus" size={19} color="#4772FA" />
+                <Text className='text-[16px] text-primary'>Add Subtask</Text>
               </TouchableOpacity>
             </View>
 
