@@ -3,8 +3,6 @@ import { db } from "./firebase";
 
 export const addNotesForTask = async (notes: any[], taskId: string) => {
 
-    console.log(notes,taskId)
-
     const ids = notes.map((n) => n.id)
 
     const notesRef = collection(db, "notes");
@@ -13,38 +11,36 @@ export const addNotesForTask = async (notes: any[], taskId: string) => {
     );
 
     const snapshot = await getDocs(q);
+    const existingDocs = snapshot.docs;
+    const existingIdSet = new Set(existingDocs.map((docItem) => docItem.id));
 
-    const sequenceShouldUpdateNotes = snapshot.docs.filter((doc) => ids.includes(doc.id));
-
-    let no = 0;
-    for (let i = 0; i < sequenceShouldUpdateNotes.length; i++) {
-        const element = sequenceShouldUpdateNotes[i];
-        await updateDoc(doc(db, 'note', element.id), { sequenceNo: i + 1 })
-        no++;
-    }
-
-    const shouldBeDeleteNotes = snapshot.docs.filter((doc) => !ids.includes(doc.id));
-
+    const shouldBeDeleteNotes = existingDocs.filter((docItem) => !ids.includes(docItem.id));
     for (let i = 0; i < shouldBeDeleteNotes.length; i++) {
         const element = shouldBeDeleteNotes[i];
-        await deleteDoc(doc(db, 'note', element.id))
+        await deleteDoc(doc(db, "notes", element.id));
     }
 
-    const shouldBeAddNotes = notes.filter((note) => String(note.id).startsWith('note-'));
+    for (let i = 0; i < notes.length; i++) {
+        const note = notes[i];
+        const sequenceNo = i + 1;
 
-    for (let i = 0; i < shouldBeAddNotes.length; i++) {
-        no++;
-        const element = shouldBeAddNotes[i];
-        await addDoc(collection(db, 'note'), {
-            taskId: taskId,
-            subtaskId: null,
-            content: element.id,
-            contentType: element.contentType,
-            name: element.name,
-            size: element.size,
-            sequenceNo: no,
-            isUploading: false,
-            uploadError: false,
-        })
+        if (existingIdSet.has(note.id)) {
+            await updateDoc(doc(db, "notes", note.id), { sequenceNo });
+            continue;
+        }
+
+        if (String(note.id).startsWith("note-")) {
+            await addDoc(collection(db, "notes"), {
+                taskId: taskId,
+                subtaskId: note.subtaskId ?? null,
+                content: note.content,
+                contentType: note.contentType,
+                name: note.name,
+                size: note.size,
+                sequenceNo,
+                isUploading: false,
+                uploadError: false,
+            });
+        }
     }
 };
