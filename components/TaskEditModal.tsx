@@ -27,6 +27,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CustomCalendarModal from "./DatePickerModal";
 import PriorityModal from "./PriorityModal";
 import TaskTypeModal from "./TaskTypeModal";
+import SubtaskEditModal from "./SubtaskEditModel";
 
 type TaskEditModalProps = {
   visible: boolean;
@@ -135,8 +136,10 @@ export default function TaskEditModal({
   const [priorityVisible, setPriorityVisible] = useState(false);
   const [taskTypeVisible, setTaskTypeVisible] = useState(false);
   const [showDate, setShowDate] = useState(false);
+  const [showSubtaskEdit, setShowSubtaskEdit] = useState(false);
 
   const [subTasks, setSubTasks] = useState<any[]>([]);
+  const [activeSubtask, setactiveSubtask] = useState<{} | null>(null);
 
   useEffect(() => {
     const nextForm: TaskFormModel = {
@@ -413,37 +416,42 @@ export default function TaskEditModal({
                   const isComplete = item.status !== 'pending';
                   const isLate = item.date ? !isNotPastDate(item.date) : false;
                   return (
-                    <View
-                      key={item.id ?? `${item.taskname}-${index}`}
-                      className='bg-[#F4F8FF] rounded-[10px] pl-[3px] pr-4 py-3 flex-row items-center justify-between mb-1'
-                    >
-                      <View className='flex-row items-center gap-x-3'>
-                        <View>
-                          <Checkbox
-                            onValueChange={() => handleSwitchSubTaskStatus(item.id, isComplete ? 'pending' : 'complete')}
-                            value={isComplete}
-                            color={isComplete ? '#B8BFC8' : getPriorityColor(item.priorityLevel)}
-                            style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                          />
+                    <TouchableOpacity onPress={() => {
+                      setactiveSubtask(item);
+                      setShowSubtaskEdit(true);
+                    }}>
+                      <View
+                        key={item.id ?? `${item.taskname}-${index}`}
+                        className='bg-[#F4F8FF] rounded-[10px] pl-[3px] pr-4 py-3 flex-row items-center justify-between mb-1'
+                      >
+                        <View className='flex-row items-center gap-x-3'>
+                          <View>
+                            <Checkbox
+                              onValueChange={() => handleSwitchSubTaskStatus(item.id, isComplete ? 'pending' : 'complete')}
+                              value={isComplete}
+                              color={isComplete ? '#B8BFC8' : getPriorityColor(item.priorityLevel)}
+                              style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                            />
+                          </View>
+                          <View>
+                            <Text
+                              className={`text-[15.5px] ${isComplete ? 'text-gray-400 line-through' : ''}`}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {item.taskname}
+                            </Text>
+                          </View>
                         </View>
                         <View>
                           <Text
-                            className={`text-[15.5px] ${isComplete ? 'text-gray-400 line-through' : ''}`}
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
+                            className={`text-[13px] ${isComplete ? 'text-gray-400' : isLate ? 'text-red-500' : 'text-primary'}`}
                           >
-                            {item.taskname}
+                            {item.date ? formatTaskDate(item.date) : ''}
                           </Text>
                         </View>
                       </View>
-                      <View>
-                        <Text
-                          className={`text-[13px] ${isComplete ? 'text-gray-400' : isLate ? 'text-red-500' : 'text-primary'}`}
-                        >
-                          {item.date ? formatTaskDate(item.date) : ''}
-                        </Text>
-                      </View>
-                    </View>
+                    </TouchableOpacity>
                   );
                 })}
               </View>
@@ -627,6 +635,7 @@ export default function TaskEditModal({
             }
           />
 
+          {/* calender model */}
           <CustomCalendarModal
             visible={showDate}
             date={taskForm.date}
@@ -646,6 +655,13 @@ export default function TaskEditModal({
             setSelectedRepeat={(rt) =>
               setTaskForm((prev) => ({ ...prev, repeat: rt }))
             }
+          />
+
+          {/* Subtask edit model */}
+          <SubtaskEditModal
+            visible={showSubtaskEdit}
+            task={activeSubtask}
+            onClose={() => setShowSubtaskEdit(false)}
           />
 
         </KeyboardAvoidingView>
