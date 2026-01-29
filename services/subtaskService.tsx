@@ -75,3 +75,21 @@ export const updateSubTaskStatusByTaskId = async (id: string, status: string) =>
         updatedAt: serverTimestamp(),
     });
 };
+
+
+export const updateSubTask = async (subtask: any) => {
+
+    await updateDoc(doc(db, "subtasks", subtask.id), {
+        taskname: subtask.taskname,
+        date: subtask.date,
+        time: subtask.time,
+        reminder: subtask.reminder,
+        repeat: subtask.repeat,
+        priorityLevel: subtask.priorityLevel,
+        taskId: subtask.taskId,
+        taskType: subtask.taskType,
+        tags: subtask.tags,
+        status: subtask.status,
+        updatedAt: serverTimestamp(),
+    });
+};

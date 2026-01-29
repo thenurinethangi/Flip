@@ -1,5 +1,5 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
-import { subscribeSubTasksByTaskId, updateSubTaskStatusByTaskId } from "@/services/subtaskService";
+import { subscribeSubTasksByTaskId, updateSubTask, updateSubTaskStatusByTaskId } from "@/services/subtaskService";
 import { getNotesByTaskId, update } from "@/services/taskService";
 import Checkbox from "expo-checkbox";
 import {
@@ -57,6 +57,7 @@ type TaskFormModel = {
     reminder: string;
     repeat: string;
     priorityLevel: string;
+    taskId: string,
     taskType: string;
     tags: string;
     status: string;
@@ -120,6 +121,7 @@ export default function SubtaskEditModal({
         reminder: "",
         repeat: "",
         priorityLevel: "none",
+        taskId: "",
         taskType: "none",
         tags: "",
         status: "pending",
@@ -134,8 +136,6 @@ export default function SubtaskEditModal({
     const [taskTypeVisible, setTaskTypeVisible] = useState(false);
     const [showDate, setShowDate] = useState(false);
 
-    const [subTasks, setSubTasks] = useState<any[]>([]);
-
     useEffect(() => {
         const nextForm: TaskFormModel = {
             id: task?.id,
@@ -146,6 +146,7 @@ export default function SubtaskEditModal({
             reminder: task?.reminder ?? "",
             repeat: task?.repeat ?? "",
             priorityLevel: task?.priorityLevel ?? "none",
+            taskId: task?.taskId ?? "",
             taskType: task?.taskType ?? "none",
             tags: task?.tags ?? "",
             status: task?.status ?? "pending",
@@ -170,21 +171,6 @@ export default function SubtaskEditModal({
         }
         getNotes();
     }, [task]);
-
-    useEffect(() => {
-        if (!task?.id) {
-            setSubTasks([]);
-            return;
-        }
-
-        const unsubscribe = subscribeSubTasksByTaskId(
-            task.id,
-            (tasks) => setSubTasks(tasks),
-            (error) => console.log(error),
-        );
-
-        return unsubscribe;
-    }, [task?.id]);
 
     const headerDate = useMemo(() => formatHeaderDate(taskForm.date), [taskForm.date]);
     const taskDate = taskForm.date ?? "";
@@ -275,16 +261,7 @@ export default function SubtaskEditModal({
         console.log(taskForm);
 
         try {
-            await update(taskForm);
-        }
-        catch (e) {
-            console.log(e);
-        }
-    }
-
-    async function handleSwitchSubTaskStatus(taskId: string, status: string) {
-        try {
-            await updateSubTaskStatusByTaskId(taskId, status);
+            await updateSubTask(taskForm);
         }
         catch (e) {
             console.log(e);
@@ -404,48 +381,6 @@ export default function SubtaskEditModal({
                             />
 
                         </View>
-
-                        {subTasks.length > 0 && (
-                            <View className='bg-[#F4F8FF] rounded-2xl px-2 py-1 pt-[5px] mt-3'>
-                                {subTasks.map((item, index) => {
-                                    const isComplete = item.status !== 'pending';
-                                    const isLate = item.date ? !isNotPastDate(item.date) : false;
-                                    return (
-                                        <View
-                                            key={item.id ?? `${item.taskname}-${index}`}
-                                            className='bg-[#F4F8FF] rounded-[10px] pl-[3px] pr-4 py-3 flex-row items-center justify-between mb-1'
-                                        >
-                                            <View className='flex-row items-center gap-x-3'>
-                                                <View>
-                                                    <Checkbox
-                                                        onValueChange={() => handleSwitchSubTaskStatus(item.id, isComplete ? 'pending' : 'complete')}
-                                                        value={isComplete}
-                                                        color={isComplete ? '#B8BFC8' : getPriorityColor(item.priorityLevel)}
-                                                        style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                                                    />
-                                                </View>
-                                                <View>
-                                                    <Text
-                                                        className={`text-[15.5px] ${isComplete ? 'text-gray-400 line-through' : ''}`}
-                                                        numberOfLines={1}
-                                                        ellipsizeMode="tail"
-                                                    >
-                                                        {item.taskname}
-                                                    </Text>
-                                                </View>
-                                            </View>
-                                            <View>
-                                                <Text
-                                                    className={`text-[13px] ${isComplete ? 'text-gray-400' : isLate ? 'text-red-500' : 'text-primary'}`}
-                                                >
-                                                    {item.date ? formatTaskDate(item.date) : ''}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    );
-                                })}
-                            </View>
-                        )}
 
                         {blocks.length > 0 && (
                             <View className='mt-4'>
