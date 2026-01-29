@@ -2,17 +2,22 @@ import { AppIcon } from "@/components/ui/icon-symbol";
 import { subscribeSubTasksByTaskId, updateSubTaskStatusByTaskId } from "@/services/subtaskService";
 import { getNotesByTaskId, update } from "@/services/taskService";
 import Checkbox from "expo-checkbox";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import {
   ArrowLeft,
   Camera,
   ChevronsUpDown,
   Flag,
   Paperclip,
-  Repeat
+  Repeat,
+  X
 } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Image,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -20,14 +25,17 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View
 } from "react-native";
 import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomCalendarModal from "./DatePickerModal";
 import PriorityModal from "./PriorityModal";
-import TaskTypeModal from "./TaskTypeModal";
 import SubtaskEditModal from "./SubtaskEditModel";
+import TaskTypeModal from "./TaskTypeModal";
+import CameraModel from "./Camera";
+import { addNotesForTask } from "@/services/noteService";
 
 type TaskEditModalProps = {
   visible: boolean;
@@ -127,7 +135,7 @@ export default function TaskEditModal({
     tags: "",
     status: "pending",
   });
-  const [blocks, setBlocks] = useState<Block[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
   const editorRef = useRef<RichEditor | null>(null);
   const [linkModalVisible, setLinkModalVisible] = useState(false);
   const [linkTitle, setLinkTitle] = useState("");
@@ -137,9 +145,12 @@ export default function TaskEditModal({
   const [taskTypeVisible, setTaskTypeVisible] = useState(false);
   const [showDate, setShowDate] = useState(false);
   const [showSubtaskEdit, setShowSubtaskEdit] = useState(false);
+  const [showCameraModel, setShowCameraModel] = useState(false);
 
   const [subTasks, setSubTasks] = useState<any[]>([]);
   const [activeSubtask, setactiveSubtask] = useState<{} | null>(null);
+
+  const [image, setImage] = useState<string>('');
 
   useEffect(() => {
     const nextForm: TaskFormModel = {
@@ -167,6 +178,7 @@ export default function TaskEditModal({
         if (task?.id) {
           const res = await getNotesByTaskId(task.id);
           console.log('NOTES', res);
+          setNotes(res);
         }
       }
       catch (e) {
@@ -195,7 +207,7 @@ export default function TaskEditModal({
   const taskDate = taskForm.date ?? "";
 
   const addBlock = (type: BlockType) => {
-    setBlocks((prev) => [...prev, createBlock(type)]);
+    setNotes((prev) => [...prev, createBlock(type)]);
   };
 
   const disableSpellcheck = () => {
@@ -269,6 +281,18 @@ export default function TaskEditModal({
     }
   };
 
+  const formatBytes = (bytes: number) => {
+    if (!bytes || bytes <= 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB"];
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    const value = bytes / Math.pow(1024, index);
+    return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+  };
+
+  const removeNote = (noteId: string) => {
+    setNotes((prev) => prev.filter((note) => note.id !== noteId));
+  };
+
   const editableTags = taskForm.tags
     .split(",")
     .map((tag) => tag.trim())
@@ -278,9 +302,11 @@ export default function TaskEditModal({
   async function editTask() {
     onClose();
     console.log(taskForm);
+    console.log(notes);
 
     try {
       await update(taskForm);
+      await addNotesForTask(notes, taskForm.id || '');
     }
     catch (e) {
       console.log(e);
@@ -294,6 +320,167 @@ export default function TaskEditModal({
     catch (e) {
       console.log(e);
     }
+  }
+
+  const pickFile = async () => {
+
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "*/*",
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) return;
+
+      const file = result.assets[0];
+
+      console.log("File:", file);
+
+      const noteId = `note-${Date.now()}-${Math.random()}`;
+      const localNote = {
+        id: noteId,
+        taskId: task?.id ?? null,
+        subtaskId: null,
+        content: file.uri,
+        contentType: file.mimeType || "",
+        name: file.name,
+        size: typeof file.size === "number" ? file.size : 0,
+        sequenceNo: 0,
+        isUploading: true,
+        uploadError: false,
+      };
+
+      setNotes((prev) => {
+        const nextSequence = prev.length + 1;
+        return [...prev, { ...localNote, sequenceNo: nextSequence }];
+      });
+
+      uploadToCloudinary(file.uri, file.mimeType || "", file.name)
+        .then((secure_url) => {
+          setNotes((prev) =>
+            prev.map((note) =>
+              note.id === noteId
+                ? { ...note, content: secure_url, isUploading: false }
+                : note
+            )
+          );
+        })
+        .catch((err) => {
+          console.log("Upload error:", err);
+          setNotes((prev) =>
+            prev.map((note) =>
+              note.id === noteId
+                ? { ...note, isUploading: false, uploadError: true }
+                : note
+            )
+          );
+        });
+
+    } catch (err) {
+      console.log("File pick error:", err);
+    }
+  };
+
+  const uploadToCloudinary = async (fileUri: string, fileType: string, fileName: string) => {
+
+    const data: FormData = new FormData();
+    data.append("file", {
+      uri: fileUri,
+      type: fileType,
+      name: fileName,
+    } as any);
+    data.append("upload_preset", "task_uploads");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dbhdjxmh9/auto/upload",
+      {
+        method: "POST",
+        body: data,
+      }
+    );
+
+    return (await res.json()).secure_url;
+  };
+
+  const openFile = async (url: string, filename?: string, mimeType?: string) => {
+    try {
+      if (!url) return;
+
+      const isRemote = /^https?:\/\//i.test(url);
+      const isPdf = typeof mimeType === "string" && mimeType.toLowerCase() === "application/pdf";
+
+      if (isRemote && !isPdf) {
+        await Linking.openURL(url);
+        return;
+      }
+
+      const localPath = isRemote
+        ? `${FileSystem.documentDirectory}${filename || `file-${Date.now()}.pdf`}`
+        : url;
+
+      if (isRemote) {
+        await FileSystem.downloadAsync(url, localPath);
+      }
+
+      const fileInfo = await FileSystem.getInfoAsync(localPath);
+      if (!fileInfo.exists) {
+        console.log("File not found:", localPath, url, filename, mimeType);
+        return;
+      }
+
+      const localUri = Platform.OS === "android"
+        ? await FileSystem.getContentUriAsync(localPath)
+        : localPath;
+
+      await Linking.openURL(localUri);
+    } catch (error) {
+      console.log("File open error:", error);
+    }
+  };
+
+  function handleAddClickedImageToNote(url: string) {
+
+    const noteId = `note-${Date.now()}-${Math.random()}`;
+    const localNote = {
+      id: noteId,
+      taskId: task?.id ?? null,
+      subtaskId: null,
+      content: url,
+      contentType: "image/jpg",
+      name: 'Camera capture',
+      size: 0,
+      sequenceNo: 0,
+      isUploading: true,
+      uploadError: false,
+    };
+
+    setNotes((prev) => {
+      const nextSequence = prev.length + 1;
+      return [...prev, { ...localNote, sequenceNo: nextSequence }];
+    });
+
+    uploadToCloudinary(url, 'image/jpg', 'Camera capture')
+      .then((secure_url) => {
+        setNotes((prev) =>
+          prev.map((note) =>
+            note.id === noteId
+              ? { ...note, content: secure_url, isUploading: false }
+              : note
+          )
+        );
+      })
+      .catch((err) => {
+        console.log("Upload error:", err);
+        setNotes((prev) =>
+          prev.map((note) =>
+            note.id === noteId
+              ? { ...note, isUploading: false, uploadError: true }
+              : note
+          )
+        );
+      });
+
+    setImage('');
   }
 
   return (
@@ -464,27 +651,52 @@ export default function TaskEditModal({
               </TouchableOpacity>
             </View>
 
-            {blocks.length > 0 && (
+            {notes.length > 0 && (
               <View className='mt-4'>
-                {blocks.map((block) => (
-                  <View key={block.id} className='mb-4'>
-                    <Text className='text-[12px] uppercase text-gray-400 mb-1'>
-                      {block.type}
-                    </Text>
-                    <TextInput
-                      className='text-[15px] text-[#111]'
-                      placeholder={`Add ${block.type}`}
-                      placeholderTextColor='#9ca3af'
-                      multiline
-                      value={block.text}
-                      onChangeText={(text) =>
-                        setBlocks((prev) =>
-                          prev.map((b) => (b.id === block.id ? { ...b, text } : b))
-                        )
-                      }
-                    />
-                  </View>
-                ))}
+                {notes.map((note) => {
+                  const isImage = typeof note.contentType === "string" && note.contentType.startsWith("image/");
+                  const isRemote = typeof note.content === "string" && /^https?:\/\//i.test(note.content);
+                  return (
+                    <TouchableWithoutFeedback onPress={() => openFile(note.content, note.name, note.contentType)}>
+                      <View key={note.id} className='mb-4'>
+                        <View className='bg-gray-100 rounded-2xl p-3'>
+                          {isImage && note.content ? (
+                            <View className='mb-2 overflow-hidden rounded-xl'>
+                              <Image
+                                source={{ uri: note.content }}
+                                style={{ width: "100%", height: 160 }}
+                                resizeMode="cover"
+                              />
+                            </View>
+                          ) : null}
+                          <View className='flex-row items-center justify-between'>
+                            <View style={{ flex: 1, paddingRight: 8 }}>
+                              <Text className='text-[14px] text-[#111]' numberOfLines={1}>
+                                {note.name || "Attachment"}
+                              </Text>
+                              <Text className='text-[12px] text-gray-500'>
+                                {(note.contentType || "file")}
+                                {typeof note.size === "number" ? ` • ${formatBytes(note.size)}` : ""}
+                                {note.content ? ` • ${isRemote ? "cloud" : "local"}` : ""}
+                              </Text>
+                            </View>
+                            {note.isUploading ? (
+                              <Text className='text-[12px] text-primary'>Uploading...</Text>
+                            ) : null}
+                            {note.uploadError ? (
+                              <Text className='text-[12px] text-red-500'>Failed</Text>
+                            ) : null}
+                            {!note.isUploading && !note.uploadError ? (
+                              <Pressable onPress={() => removeNote(note.id)} hitSlop={8}>
+                                <X size={16} color="#9CA3AF" />
+                              </Pressable>
+                            ) : null}
+                          </View>
+                        </View>
+                      </View>
+                    </TouchableWithoutFeedback>
+                  );
+                })}
               </View>
             )}
 
@@ -564,10 +776,10 @@ export default function TaskEditModal({
                   style={{ backgroundColor: "transparent", borderWidth: 0 }}
                 />
               </View>
-              <Pressable onPress={() => addBlock("document")}>
+              <Pressable onPress={pickFile}>
                 <Paperclip size={18} color="#7E8591" />
               </Pressable>
-              <Pressable onPress={() => addBlock("image")}>
+              <Pressable onPress={() => setShowCameraModel(true)}>
                 <Camera size={18} color="#7E8591" />
               </Pressable>
             </View>
@@ -662,6 +874,19 @@ export default function TaskEditModal({
             visible={showSubtaskEdit}
             task={activeSubtask}
             onClose={() => setShowSubtaskEdit(false)}
+          />
+
+          {/* Camera */}
+          <CameraModel
+            visible={showCameraModel}
+            uploadImage={(url: string) => {
+              setImage(url);
+              handleAddClickedImageToNote(url);
+            }}
+            removeImage={() => setImage('')}
+            onClose={() => {
+              setShowCameraModel(false);
+            }}
           />
 
         </KeyboardAvoidingView>
