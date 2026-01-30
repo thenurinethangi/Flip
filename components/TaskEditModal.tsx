@@ -1,7 +1,16 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
-import { addAttachmentsForTask, getAttachmentsByTaskId } from "@/services/attachmentsService";
-import { AddOrEditNotesByTaskId, getNotesByTaskId } from "@/services/noteService";
-import { subscribeSubTasksByTaskId, updateSubTaskStatusByTaskId } from "@/services/subtaskService";
+import {
+  addAttachmentsForTask,
+  getAttachmentsByTaskId,
+} from "@/services/attachmentsService";
+import {
+  AddOrEditNotesByTaskId,
+  getNotesByTaskId,
+} from "@/services/noteService";
+import {
+  subscribeSubTasksByTaskId,
+  updateSubTaskStatusByTaskId,
+} from "@/services/subtaskService";
 import { update } from "@/services/taskService";
 import Checkbox from "expo-checkbox";
 import * as DocumentPicker from "expo-document-picker";
@@ -13,7 +22,7 @@ import {
   Flag,
   Paperclip,
   Repeat,
-  X
+  X,
 } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -28,15 +37,20 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View
+  View,
 } from "react-native";
-import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor";
+import {
+  RichEditor,
+  RichToolbar,
+  actions,
+} from "react-native-pell-rich-editor";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CameraModel from "./Camera";
 import CustomCalendarModal from "./DatePickerModal";
 import PriorityModal from "./PriorityModal";
 import SubtaskEditModal from "./SubtaskEditModel";
 import TaskTypeModal from "./TaskTypeModal";
+import Spinner from "./spinner";
 
 type TaskEditModalProps = {
   visible: boolean;
@@ -45,13 +59,7 @@ type TaskEditModalProps = {
   onAddSubtask: () => void;
 };
 
-type BlockType =
-  | "note"
-  | "bullet"
-  | "number"
-  | "link"
-  | "document"
-  | "image";
+type BlockType = "note" | "bullet" | "number" | "link" | "document" | "image";
 
 type Block = {
   id: string;
@@ -79,20 +87,13 @@ type Notes = {
   note: string;
 };
 
-const createBlock = (type: BlockType): Block => ({
-  id: `${type}-${Date.now()}-${Math.random()}`,
-  type,
-  text: "",
-});
-
 const formatHeaderDate = (dateStr?: string) => {
   if (!dateStr) return "";
   const input = new Date(dateStr);
   const today = new Date();
   input.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
-  const diffDays =
-    (input.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+  const diffDays = (input.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
 
   const datePart = input.toLocaleDateString("en-US", {
     month: "short",
@@ -130,6 +131,9 @@ export default function TaskEditModal({
   onClose,
   onAddSubtask,
 }: TaskEditModalProps) {
+
+  const [isloading, setIsloading] = useState(true);
+
   const [taskForm, setTaskForm] = useState<TaskFormModel>({
     taskname: "",
     date: "",
@@ -143,10 +147,10 @@ export default function TaskEditModal({
   });
   const [attachments, setAttachments] = useState<any[]>([]);
   const [notes, setNotes] = useState<Notes>({
-    id: '',
-    taskId: '',
-    subtaskId: '',
-    note: ''
+    id: "",
+    taskId: "",
+    subtaskId: "",
+    note: "",
   });
   const editorRef = useRef<RichEditor | null>(null);
   const [linkModalVisible, setLinkModalVisible] = useState(false);
@@ -162,9 +166,12 @@ export default function TaskEditModal({
   const [subTasks, setSubTasks] = useState<any[]>([]);
   const [activeSubtask, setactiveSubtask] = useState<{} | null>(null);
 
-  const [image, setImage] = useState<string>('');
+  const [image, setImage] = useState<string>("");
 
   useEffect(() => {
+    if (visible && task) {
+      setIsloading(true);
+    }
     const nextForm: TaskFormModel = {
       id: task?.id,
       taskname: task?.taskname ?? "",
@@ -178,42 +185,53 @@ export default function TaskEditModal({
       status: task?.status ?? "pending",
     };
     setTaskForm(nextForm);
-  }, [task]);
+  }, [task, visible])
 
   useEffect(() => {
-    const getAttachments = async () => {
+    const loadAllData = async () => {
       try {
         if (task?.id) {
-          const res = await getAttachmentsByTaskId(task.id);
-          console.log('ATTACH', res);
-          setAttachments(res);
-        }
-      }
-      catch (e) {
-        console.log(e);
-      }
-    }
-    getAttachments();
-  }, [task]);
+          // Load attachments
+          const attachmentsRes = await getAttachmentsByTaskId(task.id);
+          console.log("ATTACH", attachmentsRes);
+          setAttachments(attachmentsRes);
 
-  useEffect(() => {
-    const getNotes = async () => {
-      try {
-        if (task?.id) {
-          const res: Notes = await getNotesByTaskId(task.id);
-          console.log('NOTES', res);
-          setNotes(res);
-          if (editorRef.current) {
-            editorRef.current.setContentHTML(res.note);
+          // Load notes
+          const notesRes: Notes = await getNotesByTaskId(task.id);
+          console.log("NOTES", notesRes);
+          setNotes(notesRes);
+
+          if (editorRef.current && notesRes.note) {
+            editorRef.current.setContentHTML(notesRes.note);
+          } else if (editorRef.current) {
+            editorRef.current.setContentHTML("");
           }
+
+          // All data loaded, hide spinner
+          setIsloading(false);
+        } else {
+          setAttachments([]);
+          setNotes({ id: "", taskId: "", subtaskId: "", note: "" });
+          if (editorRef.current) {
+            editorRef.current.setContentHTML("");
+          }
+          setIsloading(false);
         }
-      }
-      catch (e) {
+      } catch (e) {
         console.log(e);
+        setAttachments([]);
+        setNotes({ id: "", taskId: "", subtaskId: "", note: "" });
+        if (editorRef.current) {
+          editorRef.current.setContentHTML("");
+        }
+        setIsloading(false);
       }
+    };
+
+    if (visible && task?.id) {
+      loadAllData();
     }
-    getNotes();
-  }, [task]);
+  }, [task?.id, visible]);
 
   useEffect(() => {
     if (!task?.id) {
@@ -227,15 +245,19 @@ export default function TaskEditModal({
       (error) => console.log(error),
     );
 
+    setIsloading(false);
     return unsubscribe;
   }, [task?.id]);
 
-  const headerDate = useMemo(() => formatHeaderDate(taskForm.date), [taskForm.date]);
+  const headerDate = useMemo(
+    () => formatHeaderDate(taskForm.date),
+    [taskForm.date],
+  );
   const taskDate = taskForm.date ?? "";
 
   const disableSpellcheck = () => {
     editorRef.current?.commandDOM(
-      "document.body.setAttribute('spellcheck','false');document.documentElement.setAttribute('spellcheck','false');const editor=document.querySelector('[contenteditable=true]');if(editor){editor.setAttribute('spellcheck','false');}"
+      "document.body.setAttribute('spellcheck','false');document.documentElement.setAttribute('spellcheck','false');const editor=document.querySelector('[contenteditable=true]');if(editor){editor.setAttribute('spellcheck','false');}",
     );
   };
 
@@ -252,13 +274,16 @@ export default function TaskEditModal({
   const handleInsertLink = () => {
     const rawUrl = linkUrl.trim();
     if (!rawUrl) return;
-    const normalizedUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+    const normalizedUrl = /^https?:\/\//i.test(rawUrl)
+      ? rawUrl
+      : `https://${rawUrl}`;
     const title = linkTitle.trim() || normalizedUrl;
     editorRef.current?.insertLink(title, normalizedUrl);
     closeLinkModal();
   };
 
-  const taskTypeLabel = taskTypeLabelMap[(taskForm.taskType ?? "none").toLowerCase()] ?? "Inbox";
+  const taskTypeLabel =
+    taskTypeLabelMap[(taskForm.taskType ?? "none").toLowerCase()] ?? "Inbox";
 
   const isNotPastDate = (dateStr: string): boolean => {
     const [year, month, day] = dateStr.split("-").map(Number);
@@ -307,7 +332,10 @@ export default function TaskEditModal({
   const formatBytes = (bytes: number) => {
     if (!bytes || bytes <= 0) return "0 B";
     const units = ["B", "KB", "MB", "GB"];
-    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    const index = Math.min(
+      Math.floor(Math.log(bytes) / Math.log(1024)),
+      units.length - 1,
+    );
     const value = bytes / Math.pow(1024, index);
     return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
   };
@@ -321,7 +349,6 @@ export default function TaskEditModal({
     .map((tag) => tag.trim())
     .filter((tag) => tag && tag !== "#");
 
-
   async function editTask() {
     onClose();
     console.log(taskForm);
@@ -330,10 +357,9 @@ export default function TaskEditModal({
 
     try {
       await update(taskForm);
-      await addAttachmentsForTask(attachments, taskForm.id || '');
-      await AddOrEditNotesByTaskId(notes, taskForm.id || '');
-    }
-    catch (e) {
+      await addAttachmentsForTask(attachments, taskForm.id || "");
+      await AddOrEditNotesByTaskId(notes, taskForm.id || "");
+    } catch (e) {
       console.log(e);
     }
   }
@@ -341,14 +367,12 @@ export default function TaskEditModal({
   async function handleSwitchSubTaskStatus(taskId: string, status: string) {
     try {
       await updateSubTaskStatusByTaskId(taskId, status);
-    }
-    catch (e) {
+    } catch (e) {
       console.log(e);
     }
   }
 
   const pickFile = async () => {
-
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "*/*",
@@ -386,8 +410,8 @@ export default function TaskEditModal({
             prev.map((note) =>
               note.id === noteId
                 ? { ...note, content: secure_url, isUploading: false }
-                : note
-            )
+                : note,
+            ),
           );
         })
         .catch((err) => {
@@ -396,18 +420,20 @@ export default function TaskEditModal({
             prev.map((note) =>
               note.id === noteId
                 ? { ...note, isUploading: false, uploadError: true }
-                : note
-            )
+                : note,
+            ),
           );
         });
-
     } catch (err) {
       console.log("File pick error:", err);
     }
   };
 
-  const uploadToCloudinary = async (fileUri: string, fileType: string, fileName: string) => {
-
+  const uploadToCloudinary = async (
+    fileUri: string,
+    fileType: string,
+    fileName: string,
+  ) => {
     const data: FormData = new FormData();
     data.append("file", {
       uri: fileUri,
@@ -421,18 +447,24 @@ export default function TaskEditModal({
       {
         method: "POST",
         body: data,
-      }
+      },
     );
 
     return (await res.json()).secure_url;
   };
 
-  const openFile = async (url: string, filename?: string, mimeType?: string) => {
+  const openFile = async (
+    url: string,
+    filename?: string,
+    mimeType?: string,
+  ) => {
     try {
       if (!url) return;
 
       const isRemote = /^https?:\/\//i.test(url);
-      const isPdf = typeof mimeType === "string" && mimeType.toLowerCase() === "application/pdf";
+      const isPdf =
+        typeof mimeType === "string" &&
+        mimeType.toLowerCase() === "application/pdf";
 
       if (isRemote && !isPdf) {
         await Linking.openURL(url);
@@ -453,9 +485,10 @@ export default function TaskEditModal({
         return;
       }
 
-      const localUri = Platform.OS === "android"
-        ? await FileSystem.getContentUriAsync(localPath)
-        : localPath;
+      const localUri =
+        Platform.OS === "android"
+          ? await FileSystem.getContentUriAsync(localPath)
+          : localPath;
 
       await Linking.openURL(localUri);
     } catch (error) {
@@ -464,7 +497,6 @@ export default function TaskEditModal({
   };
 
   function handleAddClickedImageToNote(url: string) {
-
     const noteId = `note-${Date.now()}-${Math.random()}`;
     const localNote = {
       id: noteId,
@@ -472,7 +504,7 @@ export default function TaskEditModal({
       subtaskId: null,
       content: url,
       contentType: "image/jpg",
-      name: 'Camera capture',
+      name: "Camera capture",
       size: 0,
       sequenceNo: 0,
       isUploading: true,
@@ -484,14 +516,14 @@ export default function TaskEditModal({
       return [...prev, { ...localNote, sequenceNo: nextSequence }];
     });
 
-    uploadToCloudinary(url, 'image/jpg', 'Camera capture')
+    uploadToCloudinary(url, "image/jpg", "Camera capture")
       .then((secure_url) => {
         setAttachments((prev) =>
           prev.map((note) =>
             note.id === noteId
               ? { ...note, content: secure_url, isUploading: false }
-              : note
-          )
+              : note,
+          ),
         );
       })
       .catch((err) => {
@@ -500,12 +532,12 @@ export default function TaskEditModal({
           prev.map((note) =>
             note.id === noteId
               ? { ...note, isUploading: false, uploadError: true }
-              : note
-          )
+              : note,
+          ),
         );
       });
 
-    setImage('');
+    setImage("");
   }
 
   return (
@@ -516,94 +548,127 @@ export default function TaskEditModal({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <SafeAreaView className='flex-1 bg-white' style={{ paddingTop: 0 }}>
-        <KeyboardAvoidingView
-          className='flex-1'
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
-          <View className='px-4 pt-3 pb-3 border-b border-gray-100'>
-            <View className='flex-row items-center justify-between'>
-              <View className='flex-row items-center gap-x-4'>
-                <TouchableOpacity onPress={editTask}>
-                  <ArrowLeft size={22} color="#222" strokeWidth={2} className="opacity-70" />
-                </TouchableOpacity>
-                <View className='flex-row items-center gap-x-1'>
-                  <Text onPress={() => setTaskTypeVisible(true)} className='text-[16.5px] font-semibold text-[#222]'>{taskTypeLabel}</Text>
-                  <ChevronsUpDown size={16} color="#6b7280" />
+      <SafeAreaView className="flex-1 bg-white" style={{ paddingTop: 0 }}>
+        {isloading
+          ? <Spinner />
+          : <KeyboardAvoidingView
+            className="flex-1"
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
+            <View className="px-4 pt-3 pb-3 border-b border-gray-100">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-x-4">
+                  <TouchableOpacity onPress={editTask}>
+                    <ArrowLeft
+                      size={22}
+                      color="#222"
+                      strokeWidth={2}
+                      className="opacity-70"
+                    />
+                  </TouchableOpacity>
+                  <View className="flex-row items-center gap-x-1">
+                    <Text
+                      onPress={() => setTaskTypeVisible(true)}
+                      className="text-[16.5px] font-semibold text-[#222]"
+                    >
+                      {taskTypeLabel}
+                    </Text>
+                    <ChevronsUpDown size={16} color="#6b7280" />
+                  </View>
+                </View>
+                <View className="flex-row items-center gap-x-5">
+                  <TouchableOpacity onPress={() => setPriorityVisible(true)}>
+                    <Flag
+                      size={21}
+                      color={
+                        priorityColorMap[taskForm.priorityLevel] ?? "#9BA2AB"
+                      }
+                    />
+                  </TouchableOpacity>
+                  <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
                 </View>
               </View>
-              <View className="flex-row items-center gap-x-5">
-                <TouchableOpacity onPress={() => setPriorityVisible(true)}>
-                  <Flag size={21} color={priorityColorMap[taskForm.priorityLevel] ?? "#9BA2AB"} />
-                </TouchableOpacity>
-                <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
+
+              <View className="flex-row items-center gap-x-2 mt-[23px]">
+                <View className="flex-row items-center gap-x-[14px]">
+                  <View
+                    className="-translate-y-2"
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 5,
+                      borderWidth: 1.5,
+                      borderColor:
+                        taskForm.status !== "pending"
+                          ? "transparent"
+                          : priorityColorMap[taskForm.priorityLevel],
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Checkbox
+                      value={taskForm.status !== "pending"}
+                      onValueChange={(value) =>
+                        setTaskForm((prev) => ({
+                          ...prev,
+                          status: value ? "complete" : "pending",
+                        }))
+                      }
+                      color={
+                        taskForm.status !== "pending" ? "#4772FA" : "transparent"
+                      }
+                      style={{ width: 18, height: 18, borderRadius: 4 }}
+                    />
+                  </View>
+                  <View className="gap-y-[3px]">
+                    <Text
+                      onPress={() => setShowDate(true)}
+                      className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? "text-primary" : "text-red-500"}`}
+                    >
+                      {headerDate}
+                      {taskForm.time != "None" ? "," : ""}{" "}
+                      {taskForm.time != "None" ? taskForm.time : ""}
+                    </Text>
+                    {taskForm.reminder != "None" ? (
+                      <View className="flex-row items-center gap-x-1">
+                        <Text className="text-gray-500 text-[11px]">
+                          {taskForm.repeat}
+                        </Text>
+                        <Repeat size={11} color="#9E9E9E" />
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
               </View>
             </View>
 
-            <View className='flex-row items-center gap-x-2 mt-[23px]'>
-              <View className='flex-row items-center gap-x-[14px]'>
-                <View
-                  className="-translate-y-2"
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 5,
-                    borderWidth: 1.5,
-                    borderColor: taskForm.status !== "pending" ? "transparent" : priorityColorMap[taskForm.priorityLevel],
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Checkbox
-                    value={taskForm.status !== "pending"}
-                    onValueChange={(value) =>
-                      setTaskForm((prev) => ({
-                        ...prev,
-                        status: value ? "complete" : "pending",
-                      }))
-                    }
-                    color={taskForm.status !== "pending" ? '#4772FA' : "transparent"}
-                    style={{ width: 18, height: 18, borderRadius: 4 }}
-                  />
-                </View>
-                <View className="gap-y-[3px]">
-                  <Text onPress={() => setShowDate(true)} className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? 'text-primary' : 'text-red-500'}`}>{headerDate}{taskForm.time != 'None' ? ',' : ''} {taskForm.time != 'None' ? taskForm.time : ''}</Text>
-                  {taskForm.reminder != 'None' ? (
-                    <View className="flex-row items-center gap-x-1">
-                      <Text className="text-gray-500 text-[11px]">{taskForm.repeat}</Text>
-                      <Repeat size={11} color="#9E9E9E" />
-                    </View>
-                  ) : null}
-
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <ScrollView className='flex-1 px-4 pt-2' contentContainerStyle={{ paddingBottom: 140 }}>
-            <TextInput
-              className='text-[22px] font-semibold text-[#111]'
-              placeholder='Task name'
-              placeholderTextColor='#9ca3af'
-              value={taskForm.taskname}
-              onChangeText={(value) =>
-                setTaskForm((prev) => ({ ...prev, taskname: value }))
-              }
-            />
-
-            <View className='-translate-y-1'>
-              <RichEditor
-                ref={editorRef}
-                placeholder="Write Note ..."
-                initialContentHTML={notes.note}
-                onChange={(value) =>
-                  setNotes((prev) => ({ ...prev, note: value }))
+            <ScrollView
+              className="flex-1 px-4 pt-2"
+              contentContainerStyle={{ paddingBottom: 140 }}
+            >
+              <TextInput
+                className="text-[22px] font-semibold text-[#111]"
+                placeholder="Task name"
+                placeholderTextColor="#9ca3af"
+                value={taskForm.taskname}
+                onChangeText={(value) =>
+                  setTaskForm((prev) => ({ ...prev, taskname: value }))
                 }
-                editorInitializedCallback={disableSpellcheck}
-                editorStyle={{
-                  backgroundColor: "#fff",
-                  color: "#222",
-                  contentCSSText: `
+              />
+
+              <View className="-translate-y-1">
+                <RichEditor
+                  ref={editorRef}
+                  placeholder="Write Note ..."
+                  initialContentHTML={notes.note}
+                  onChange={(value) =>
+                    setNotes((prev) => ({ ...prev, note: value }))
+                  }
+                  editorInitializedCallback={disableSpellcheck}
+                  editorStyle={{
+                    backgroundColor: "#fff",
+                    color: "#222",
+                    contentCSSText: `
       body {
         font-size: 16px;
         line-height: 24px;
@@ -616,305 +681,412 @@ export default function TaskEditModal({
         line-height: 24px;
       }
     `,
-                }}
-                style={{ minHeight: 120 }}
-              />
+                  }}
+                  style={{ minHeight: 120 }}
+                />
+              </View>
 
-            </View>
-
-            {subTasks.length > 0 && (
-              <View className='bg-[#F4F8FF] rounded-2xl px-2 py-1 pt-[5px] mt-3'>
-                {subTasks.map((item, index) => {
-                  const isComplete = item.status !== 'pending';
-                  const isLate = item.date ? !isNotPastDate(item.date) : false;
-                  return (
-                    <TouchableOpacity onPress={() => {
-                      setactiveSubtask(item);
-                      setShowSubtaskEdit(true);
-                    }}>
-                      <View
-                        key={item.id ?? `${item.taskname}-${index}`}
-                        className='bg-[#F4F8FF] rounded-[10px] pl-[3px] pr-4 py-3 flex-row items-center justify-between mb-1'
+              {subTasks.length > 0 && (
+                <View className="bg-[#F4F8FF] rounded-2xl px-2 py-1 pt-[5px] mt-3">
+                  {subTasks.map((item, index) => {
+                    const isComplete = item.status !== "pending";
+                    const isLate = item.date ? !isNotPastDate(item.date) : false;
+                    return (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setactiveSubtask(item);
+                          setShowSubtaskEdit(true);
+                        }}
                       >
-                        <View className='flex-row items-center gap-x-3'>
-                          <View>
-                            <Checkbox
-                              onValueChange={() => handleSwitchSubTaskStatus(item.id, isComplete ? 'pending' : 'complete')}
-                              value={isComplete}
-                              color={isComplete ? '#B8BFC8' : getPriorityColor(item.priorityLevel)}
-                              style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                            />
+                        <View
+                          key={item.id ?? `${item.taskname}-${index}`}
+                          className="bg-[#F4F8FF] rounded-[10px] pl-[3px] pr-4 py-3 flex-row items-center justify-between mb-1"
+                        >
+                          <View className="flex-row items-center gap-x-3">
+                            <View>
+                              <Checkbox
+                                onValueChange={() =>
+                                  handleSwitchSubTaskStatus(
+                                    item.id,
+                                    isComplete ? "pending" : "complete",
+                                  )
+                                }
+                                value={isComplete}
+                                color={
+                                  isComplete
+                                    ? "#B8BFC8"
+                                    : getPriorityColor(item.priorityLevel)
+                                }
+                                style={{
+                                  transform: [{ scale: 0.87 }],
+                                  borderRadius: 5,
+                                  borderWidth: 2,
+                                }}
+                              />
+                            </View>
+                            <View>
+                              <Text
+                                className={`text-[15.5px] ${isComplete ? "text-gray-400 line-through" : ""}`}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                              >
+                                {item.taskname}
+                              </Text>
+                            </View>
                           </View>
                           <View>
                             <Text
-                              className={`text-[15.5px] ${isComplete ? 'text-gray-400 line-through' : ''}`}
-                              numberOfLines={1}
-                              ellipsizeMode="tail"
+                              className={`text-[13px] ${isComplete ? "text-gray-400" : isLate ? "text-red-500" : "text-primary"}`}
                             >
-                              {item.taskname}
+                              {item.date ? formatTaskDate(item.date) : ""}
                             </Text>
                           </View>
                         </View>
-                        <View>
-                          <Text
-                            className={`text-[13px] ${isComplete ? 'text-gray-400' : isLate ? 'text-red-500' : 'text-primary'}`}
-                          >
-                            {item.date ? formatTaskDate(item.date) : ''}
-                          </Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+
+              <View className="mt-3 px-2">
+                <TouchableOpacity
+                  onPress={onAddSubtask}
+                  className="flex-row items-center gap-x-2 py-2"
+                >
+                  <AppIcon name="Plus" size={19} color="#4772FA" />
+                  <Text className="text-[16px] text-primary">Add Subtask</Text>
+                </TouchableOpacity>
               </View>
-            )}
 
-            <View className='mt-3 px-2'>
-              <TouchableOpacity onPress={onAddSubtask} className='flex-row items-center gap-x-2 py-2'>
-                <AppIcon name="Plus" size={19} color="#4772FA" />
-                <Text className='text-[16px] text-primary'>Add Subtask</Text>
-              </TouchableOpacity>
-            </View>
-
-            {attachments.length > 0 && (
-              <View className='mt-4'>
-                {attachments.map((note) => {
-                  const isImage = typeof note.contentType === "string" && note.contentType.startsWith("image/");
-                  const isRemote = typeof note.content === "string" && /^https?:\/\//i.test(note.content);
-                  return (
-                    <TouchableWithoutFeedback onPress={() => openFile(note.content, note.name, note.contentType)}>
-                      <View key={note.id} className='mb-4'>
-                        <View className='bg-gray-100 rounded-2xl p-3'>
-                          {isImage && note.content ? (
-                            <View className='mb-2 overflow-hidden rounded-xl'>
-                              <Image
-                                source={{ uri: note.content }}
-                                style={{ width: "100%", height: 160 }}
-                                resizeMode="cover"
-                              />
+              {attachments.length > 0 && (
+                <View className="mt-4">
+                  {attachments.map((note) => {
+                    const isImage =
+                      typeof note.contentType === "string" &&
+                      note.contentType.startsWith("image/");
+                    const isRemote =
+                      typeof note.content === "string" &&
+                      /^https?:\/\//i.test(note.content);
+                    return (
+                      <TouchableWithoutFeedback
+                        onPress={() =>
+                          openFile(note.content, note.name, note.contentType)
+                        }
+                      >
+                        <View key={note.id} className="mb-4">
+                          <View className="bg-gray-100 rounded-2xl p-3">
+                            {isImage && note.content ? (
+                              <View className="mb-2 overflow-hidden rounded-xl">
+                                <Image
+                                  source={{ uri: note.content }}
+                                  style={{ width: "100%", height: 160 }}
+                                  resizeMode="cover"
+                                />
+                              </View>
+                            ) : null}
+                            <View className="flex-row items-center justify-between">
+                              <View style={{ flex: 1, paddingRight: 8 }}>
+                                <Text
+                                  className="text-[14px] text-[#111]"
+                                  numberOfLines={1}
+                                >
+                                  {note.name || "Attachment"}
+                                </Text>
+                                <Text className="text-[12px] text-gray-500">
+                                  {note.contentType || "file"}
+                                  {typeof note.size === "number"
+                                    ? ` • ${formatBytes(note.size)}`
+                                    : ""}
+                                  {note.content
+                                    ? ` • ${isRemote ? "cloud" : "local"}`
+                                    : ""}
+                                </Text>
+                              </View>
+                              {note.isUploading ? (
+                                <Text className="text-[12px] text-primary">
+                                  Uploading...
+                                </Text>
+                              ) : null}
+                              {note.uploadError ? (
+                                <Text className="text-[12px] text-red-500">
+                                  Failed
+                                </Text>
+                              ) : null}
+                              {!note.isUploading && !note.uploadError ? (
+                                <Pressable
+                                  onPress={() => removeNote(note.id)}
+                                  hitSlop={8}
+                                >
+                                  <X size={16} color="#9CA3AF" />
+                                </Pressable>
+                              ) : null}
                             </View>
-                          ) : null}
-                          <View className='flex-row items-center justify-between'>
-                            <View style={{ flex: 1, paddingRight: 8 }}>
-                              <Text className='text-[14px] text-[#111]' numberOfLines={1}>
-                                {note.name || "Attachment"}
-                              </Text>
-                              <Text className='text-[12px] text-gray-500'>
-                                {(note.contentType || "file")}
-                                {typeof note.size === "number" ? ` • ${formatBytes(note.size)}` : ""}
-                                {note.content ? ` • ${isRemote ? "cloud" : "local"}` : ""}
-                              </Text>
-                            </View>
-                            {note.isUploading ? (
-                              <Text className='text-[12px] text-primary'>Uploading...</Text>
-                            ) : null}
-                            {note.uploadError ? (
-                              <Text className='text-[12px] text-red-500'>Failed</Text>
-                            ) : null}
-                            {!note.isUploading && !note.uploadError ? (
-                              <Pressable onPress={() => removeNote(note.id)} hitSlop={8}>
-                                <X size={16} color="#9CA3AF" />
-                              </Pressable>
-                            ) : null}
                           </View>
                         </View>
-                      </View>
-                    </TouchableWithoutFeedback>
-                  );
-                })}
-              </View>
-            )}
+                      </TouchableWithoutFeedback>
+                    );
+                  })}
+                </View>
+              )}
 
-            <View className="mt-1 px-2 flex-row items-center gap-x-1 flex-wrap">
-              {editableTags.map((tag, index) => (
-                <TextInput
-                  key={`${tag}-${index}`}
-                  value={`#${tag}`}
-                  onChangeText={(value) => {
-                    const nextValue = value.replace(/^#/, "").trim();
-                    setTaskForm((prev) => {
-                      const nextTags = prev.tags
-                        .split(",")
-                        .map((t) => t.trim())
-                        .filter((t) => t && t !== "#");
-                      nextTags[index] = nextValue;
-                      return {
-                        ...prev,
-                        tags: nextTags.filter(Boolean).join(","),
-                      };
-                    });
-                  }}
-                  className="text-[12px] text-[#374151] bg-[#F3F4F6] px-2 py-1 rounded-full min-w-[30px]"
-                  placeholder="#tag"
-                  placeholderTextColor="#9CA3AF"
-                />
-              ))}
+              <View className="mt-1 px-2 flex-row items-center gap-x-1 flex-wrap">
+                {editableTags.map((tag, index) => (
+                  <TextInput
+                    key={`${tag}-${index}`}
+                    value={`#${tag}`}
+                    onChangeText={(value) => {
+                      const nextValue = value.replace(/^#/, "").trim();
+                      setTaskForm((prev) => {
+                        const nextTags = prev.tags
+                          .split(",")
+                          .map((t) => t.trim())
+                          .filter((t) => t && t !== "#");
+                        nextTags[index] = nextValue;
+                        return {
+                          ...prev,
+                          tags: nextTags.filter(Boolean).join(","),
+                        };
+                      });
+                    }}
+                    className="text-[12px] text-[#374151] bg-[#F3F4F6] px-2 py-1 rounded-full min-w-[30px]"
+                    placeholder="#tag"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                ))}
+              </View>
+            </ScrollView>
+
+            <View className="absolute bottom-0 left-0 right-0 bg-white px-4 py-3">
+              <View className="flex-row items-center gap-x-5">
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <RichToolbar
+                    editor={editorRef}
+                    actions={[
+                      actions.setBold,
+                      actions.setItalic,
+                      actions.setUnderline,
+                      actions.insertOrderedList,
+                      actions.insertBulletsList,
+                      actions.insertLink,
+                      actions.alignRight,
+                      actions.alignLeft,
+                      actions.alignCenter,
+                      actions.heading1,
+                      actions.heading2,
+                      actions.heading3,
+                      actions.heading4,
+                      actions.heading5,
+                      actions.heading6,
+                    ]}
+                    onInsertLink={openLinkModal}
+                    iconTint="#7E8591"
+                    selectedIconTint="#222"
+                    iconMap={{
+                      [actions.heading1]: ({
+                        tintColor,
+                      }: {
+                        tintColor?: string;
+                      }) => (
+                        <Text
+                          style={{
+                            color: tintColor,
+                            fontSize: 13,
+                            fontWeight: "400",
+                          }}
+                        >
+                          H1
+                        </Text>
+                      ),
+                      [actions.heading2]: ({
+                        tintColor,
+                      }: {
+                        tintColor?: string;
+                      }) => (
+                        <Text
+                          style={{
+                            color: tintColor,
+                            fontSize: 13,
+                            fontWeight: "400",
+                          }}
+                        >
+                          H2
+                        </Text>
+                      ),
+                      [actions.heading3]: ({
+                        tintColor,
+                      }: {
+                        tintColor?: string;
+                      }) => (
+                        <Text
+                          style={{
+                            color: tintColor,
+                            fontSize: 13,
+                            fontWeight: "400",
+                          }}
+                        >
+                          H3
+                        </Text>
+                      ),
+                      [actions.heading4]: ({
+                        tintColor,
+                      }: {
+                        tintColor?: string;
+                      }) => (
+                        <Text
+                          style={{
+                            color: tintColor,
+                            fontSize: 13,
+                            fontWeight: "400",
+                          }}
+                        >
+                          H4
+                        </Text>
+                      ),
+                      [actions.heading5]: ({
+                        tintColor,
+                      }: {
+                        tintColor?: string;
+                      }) => (
+                        <Text
+                          style={{
+                            color: tintColor,
+                            fontSize: 13,
+                            fontWeight: "400",
+                          }}
+                        >
+                          H5
+                        </Text>
+                      ),
+                      [actions.heading6]: ({
+                        tintColor,
+                      }: {
+                        tintColor?: string;
+                      }) => (
+                        <Text
+                          style={{
+                            color: tintColor,
+                            fontSize: 13,
+                            fontWeight: "400",
+                          }}
+                        >
+                          H6
+                        </Text>
+                      ),
+                    }}
+                    style={{ backgroundColor: "transparent", borderWidth: 0 }}
+                  />
+                </View>
+                <Pressable onPress={pickFile}>
+                  <Paperclip size={18} color="#7E8591" />
+                </Pressable>
+                <Pressable onPress={() => setShowCameraModel(true)}>
+                  <Camera size={18} color="#7E8591" />
+                </Pressable>
+              </View>
             </View>
 
-          </ScrollView>
-
-          <View className='absolute bottom-0 left-0 right-0 bg-white px-4 py-3'>
-            <View className='flex-row items-center gap-x-5'>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <RichToolbar
-                  editor={editorRef}
-                  actions={[
-                    actions.setBold,
-                    actions.setItalic,
-                    actions.setUnderline,
-                    actions.insertOrderedList,
-                    actions.insertBulletsList,
-                    actions.insertLink,
-                    actions.alignRight,
-                    actions.alignLeft,
-                    actions.alignCenter,
-                    actions.heading1,
-                    actions.heading2,
-                    actions.heading3,
-                    actions.heading4,
-                    actions.heading5,
-                    actions.heading6,
-                  ]}
-                  onInsertLink={openLinkModal}
-                  iconTint="#7E8591"
-                  selectedIconTint="#222"
-                  iconMap={{
-                    [actions.heading1]: ({ tintColor }: { tintColor?: string }) => (
-                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H1</Text>
-                    ),
-                    [actions.heading2]: ({ tintColor }: { tintColor?: string }) => (
-                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H2</Text>
-                    ),
-                    [actions.heading3]: ({ tintColor }: { tintColor?: string }) => (
-                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H3</Text>
-                    ),
-                    [actions.heading4]: ({ tintColor }: { tintColor?: string }) => (
-                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H4</Text>
-                    ),
-                    [actions.heading5]: ({ tintColor }: { tintColor?: string }) => (
-                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H5</Text>
-                    ),
-                    [actions.heading6]: ({ tintColor }: { tintColor?: string }) => (
-                      <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H6</Text>
-                    ),
-                  }}
-                  style={{ backgroundColor: "transparent", borderWidth: 0 }}
-                />
-              </View>
-              <Pressable onPress={pickFile}>
-                <Paperclip size={18} color="#7E8591" />
-              </Pressable>
-              <Pressable onPress={() => setShowCameraModel(true)}>
-                <Camera size={18} color="#7E8591" />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* link model */}
-          <Modal
-            transparent
-            animationType="fade"
-            visible={linkModalVisible}
-            onRequestClose={closeLinkModal}
-          >
-            <View className='flex-1 items-center justify-center bg-black/40 px-6'>
-              <View className='w-full rounded-3xl bg-white px-6 pt-7 pb-6'>
-                <Text className='text-[17px] font-semibold text-[#111]'>Add URL</Text>
-                <TextInput
-                  className='mt-4 rounded-xl bg-gray-100 px-4 py-4 text-[15px] text-[#111]'
-                  placeholder='Title (optional)'
-                  placeholderTextColor='#9ca3af'
-                  value={linkTitle}
-                  onChangeText={setLinkTitle}
-                />
-                <TextInput
-                  className='mt-3 rounded-xl bg-gray-100 px-4 py-4 text-[15px] text-[#111]'
-                  placeholder='https://example.com'
-                  placeholderTextColor='#9ca3af'
-                  keyboardType='url'
-                  autoCapitalize='none'
-                  autoCorrect={false}
-                  value={linkUrl}
-                  onChangeText={setLinkUrl}
-                />
-                <View className='mt-5 flex-row items-center justify-end gap-x-1'>
-                  <Pressable onPress={closeLinkModal} className='px-3 py-2'>
-                    <Text className='text-[16px] text-gray-400'>Cancel</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={handleInsertLink}
-                    className='px-2 py-2'
-                  >
-                    <Text className='text-[16px] font-semibold text-primary'>Insert</Text>
-                  </Pressable>
+            {/* link model */}
+            <Modal
+              transparent
+              animationType="fade"
+              visible={linkModalVisible}
+              onRequestClose={closeLinkModal}
+            >
+              <View className="flex-1 items-center justify-center bg-black/40 px-6">
+                <View className="w-full rounded-3xl bg-white px-6 pt-7 pb-6">
+                  <Text className="text-[17px] font-semibold text-[#111]">
+                    Add URL
+                  </Text>
+                  <TextInput
+                    className="mt-4 rounded-xl bg-gray-100 px-4 py-4 text-[15px] text-[#111]"
+                    placeholder="Title (optional)"
+                    placeholderTextColor="#9ca3af"
+                    value={linkTitle}
+                    onChangeText={setLinkTitle}
+                  />
+                  <TextInput
+                    className="mt-3 rounded-xl bg-gray-100 px-4 py-4 text-[15px] text-[#111]"
+                    placeholder="https://example.com"
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="url"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    value={linkUrl}
+                    onChangeText={setLinkUrl}
+                  />
+                  <View className="mt-5 flex-row items-center justify-end gap-x-1">
+                    <Pressable onPress={closeLinkModal} className="px-3 py-2">
+                      <Text className="text-[16px] text-gray-400">Cancel</Text>
+                    </Pressable>
+                    <Pressable onPress={handleInsertLink} className="px-2 py-2">
+                      <Text className="text-[16px] font-semibold text-primary">
+                        Insert
+                      </Text>
+                    </Pressable>
+                  </View>
                 </View>
               </View>
-            </View>
-          </Modal>
+            </Modal>
 
-          {/* priority model */}
-          <PriorityModal
-            visible={priorityVisible}
-            selectedPriority={taskForm.priorityLevel}
-            onClose={() => setPriorityVisible(false)}
-            onSelect={(p) =>
-              setTaskForm((prev) => ({ ...prev, priorityLevel: p }))
-            }
-          />
+            {/* priority model */}
+            <PriorityModal
+              visible={priorityVisible}
+              selectedPriority={taskForm.priorityLevel}
+              onClose={() => setPriorityVisible(false)}
+              onSelect={(p) =>
+                setTaskForm((prev) => ({ ...prev, priorityLevel: p }))
+              }
+            />
 
-          {/* task type model */}
-          <TaskTypeModal
-            visible={taskTypeVisible}
-            selectedTaskType={taskForm.taskType}
-            onClose={() => setTaskTypeVisible(false)}
-            onSelect={(t) =>
-              setTaskForm((prev) => ({ ...prev, taskType: t }))
-            }
-          />
+            {/* task type model */}
+            <TaskTypeModal
+              visible={taskTypeVisible}
+              selectedTaskType={taskForm.taskType}
+              onClose={() => setTaskTypeVisible(false)}
+              onSelect={(t) => setTaskForm((prev) => ({ ...prev, taskType: t }))}
+            />
 
-          {/* calender model */}
-          <CustomCalendarModal
-            visible={showDate}
-            date={taskForm.date}
-            choooseDate={(d) =>
-              setTaskForm((prev) => ({ ...prev, date: d }))
-            }
-            onClose={() => setShowDate(false)}
-            selectedTime={taskForm.time}
-            setSelectedTime={(t) =>
-              setTaskForm((prev) => ({ ...prev, time: t }))
-            }
-            selectedReminder={taskForm.reminder}
-            setSelectedReminder={(r) =>
-              setTaskForm((prev) => ({ ...prev, reminder: r }))
-            }
-            selectedRepeat={taskForm.repeat}
-            setSelectedRepeat={(rt) =>
-              setTaskForm((prev) => ({ ...prev, repeat: rt }))
-            }
-          />
+            {/* calender model */}
+            <CustomCalendarModal
+              visible={showDate}
+              date={taskForm.date}
+              choooseDate={(d) => setTaskForm((prev) => ({ ...prev, date: d }))}
+              onClose={() => setShowDate(false)}
+              selectedTime={taskForm.time}
+              setSelectedTime={(t) =>
+                setTaskForm((prev) => ({ ...prev, time: t }))
+              }
+              selectedReminder={taskForm.reminder}
+              setSelectedReminder={(r) =>
+                setTaskForm((prev) => ({ ...prev, reminder: r }))
+              }
+              selectedRepeat={taskForm.repeat}
+              setSelectedRepeat={(rt) =>
+                setTaskForm((prev) => ({ ...prev, repeat: rt }))
+              }
+            />
 
-          {/* Subtask edit model */}
-          <SubtaskEditModal
-            visible={showSubtaskEdit}
-            task={activeSubtask}
-            onClose={() => setShowSubtaskEdit(false)}
-          />
+            {/* Subtask edit model */}
+            <SubtaskEditModal
+              visible={showSubtaskEdit}
+              task={activeSubtask}
+              onClose={() => setShowSubtaskEdit(false)}
+            />
 
-          {/* Camera */}
-          <CameraModel
-            visible={showCameraModel}
-            uploadImage={(url: string) => {
-              setImage(url);
-              handleAddClickedImageToNote(url);
-            }}
-            removeImage={() => setImage('')}
-            onClose={() => {
-              setShowCameraModel(false);
-            }}
-          />
-
-        </KeyboardAvoidingView>
+            {/* Camera */}
+            <CameraModel
+              visible={showCameraModel}
+              uploadImage={(url: string) => {
+                setImage(url);
+                handleAddClickedImageToNote(url);
+              }}
+              removeImage={() => setImage("")}
+              onClose={() => {
+                setShowCameraModel(false);
+              }}
+            />
+          </KeyboardAvoidingView>
+        }
       </SafeAreaView>
     </Modal>
   );
