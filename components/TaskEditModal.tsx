@@ -166,11 +166,24 @@ export default function TaskEditModal({
   const [subTasks, setSubTasks] = useState<any[]>([]);
   const [activeSubtask, setactiveSubtask] = useState<{} | null>(null);
 
+  const [attachmentsLoaded, setAttachmentsLoaded] = useState(false);
+  const [notesLoaded, setNotesLoaded] = useState(false);
+  const [subTasksLoaded, setSubTasksLoaded] = useState(false);
+
   const [image, setImage] = useState<string>("");
 
   useEffect(() => {
-    if (visible && task) {
+    if (visible && task?.id) {
       setIsloading(true);
+      setAttachments([]);
+      setNotes({ id: "", taskId: "", subtaskId: "", note: "" });
+      setSubTasks([]);
+      setAttachmentsLoaded(false);
+      setNotesLoaded(false);
+      setSubTasksLoaded(false);
+      if (editorRef.current) {
+        editorRef.current.setContentHTML("");
+      }
     }
     const nextForm: TaskFormModel = {
       id: task?.id,
@@ -185,7 +198,7 @@ export default function TaskEditModal({
       status: task?.status ?? "pending",
     };
     setTaskForm(nextForm);
-  }, [task, visible])
+  }, [task, visible]);
 
   useEffect(() => {
     const loadAllData = async () => {
@@ -195,43 +208,54 @@ export default function TaskEditModal({
           const attachmentsRes = await getAttachmentsByTaskId(task.id);
           console.log("ATTACH", attachmentsRes);
           setAttachments(attachmentsRes);
+          setAttachmentsLoaded(true);
 
           // Load notes
           const notesRes: Notes = await getNotesByTaskId(task.id);
           console.log("NOTES", notesRes);
           setNotes(notesRes);
+          setNotesLoaded(true);
 
           if (editorRef.current && notesRes.note) {
             editorRef.current.setContentHTML(notesRes.note);
-          } else if (editorRef.current) {
+          }
+          else if (editorRef.current) {
             editorRef.current.setContentHTML("");
           }
 
-          // All data loaded, hide spinner
-          setIsloading(false);
-        } else {
+        }
+        else {
           setAttachments([]);
           setNotes({ id: "", taskId: "", subtaskId: "", note: "" });
           if (editorRef.current) {
             editorRef.current.setContentHTML("");
           }
-          setIsloading(false);
+          setAttachmentsLoaded(true);
+          setNotesLoaded(true);
         }
-      } catch (e) {
+      }
+      catch (e) {
         console.log(e);
         setAttachments([]);
         setNotes({ id: "", taskId: "", subtaskId: "", note: "" });
         if (editorRef.current) {
           editorRef.current.setContentHTML("");
         }
-        setIsloading(false);
+        setAttachmentsLoaded(true);
+        setNotesLoaded(true);
       }
     };
 
     if (visible && task?.id) {
       loadAllData();
     }
-  }, [task?.id, visible]);
+    if (visible && !task?.id) {
+      setIsloading(false);
+      setAttachmentsLoaded(true);
+      setNotesLoaded(true);
+      setSubTasksLoaded(true);
+    }
+  }, [task, visible]);
 
   useEffect(() => {
     if (!task?.id) {
@@ -241,13 +265,22 @@ export default function TaskEditModal({
 
     const unsubscribe = subscribeSubTasksByTaskId(
       task.id,
-      (tasks) => setSubTasks(tasks),
+      (tasks) => {
+        setSubTasks(tasks);
+        setSubTasksLoaded(true);
+      },
       (error) => console.log(error),
     );
 
-    setIsloading(false);
     return unsubscribe;
   }, [task?.id]);
+
+  useEffect(() => {
+    if (!visible || !task?.id) return;
+    if (attachmentsLoaded && notesLoaded && subTasksLoaded) {
+      setIsloading(false);
+    }
+  }, [attachmentsLoaded, notesLoaded, subTasksLoaded, task?.id, visible]);
 
   const headerDate = useMemo(
     () => formatHeaderDate(taskForm.date),
@@ -592,7 +625,7 @@ export default function TaskEditModal({
               <View className="flex-row items-center gap-x-2 mt-[23px]">
                 <View className="flex-row items-center gap-x-[14px]">
                   <View
-                    className="-translate-y-2"
+                    className={`${taskForm.repeat !== 'None' ? '-translate-y-2' : ''}`}
                     style={{
                       width: 20,
                       height: 20,
@@ -629,7 +662,7 @@ export default function TaskEditModal({
                       {taskForm.time != "None" ? "," : ""}{" "}
                       {taskForm.time != "None" ? taskForm.time : ""}
                     </Text>
-                    {taskForm.reminder != "None" ? (
+                    {taskForm.repeat != "None" ? (
                       <View className="flex-row items-center gap-x-1">
                         <Text className="text-gray-500 text-[11px]">
                           {taskForm.repeat}
