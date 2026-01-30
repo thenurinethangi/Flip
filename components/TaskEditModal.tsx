@@ -16,9 +16,12 @@ import Checkbox from "expo-checkbox";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import {
+  AlarmClock,
   ArrowLeft,
   Camera,
   ChevronsUpDown,
+  Clock,
+  Clock1,
   Flag,
   Paperclip,
   Repeat,
@@ -654,14 +657,17 @@ export default function TaskEditModal({
                     />
                   </View>
                   <View className="gap-y-[3px]">
-                    <Text
-                      onPress={() => setShowDate(true)}
-                      className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? "text-primary" : "text-red-500"}`}
-                    >
-                      {headerDate}
-                      {taskForm.time != "None" ? "," : ""}{" "}
-                      {taskForm.time != "None" ? taskForm.time : ""}
-                    </Text>
+                    <View className="flex-row gap-x-[5px]">
+                      <Text
+                        onPress={() => setShowDate(true)}
+                        className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? "text-primary" : "text-red-500"}`}
+                      >
+                        {headerDate}
+                        {taskForm.time != "None" ? "," : ""}{" "}
+                        {taskForm.time != "None" ? taskForm.time : ""}
+                      </Text>
+                      {taskForm.reminder !== 'None' ? <AlarmClock color={'#4772FA'} size={17} strokeWidth={1.7}></AlarmClock> : ''}
+                    </View>
                     {taskForm.repeat != "None" ? (
                       <View className="flex-row items-center gap-x-1">
                         <Text className="text-gray-500 text-[11px]">

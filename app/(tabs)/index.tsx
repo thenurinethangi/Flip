@@ -264,13 +264,13 @@ export default function HomeScreen() {
                             style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
                           />
                         </View>
-                        <View>
+                        <View className='w-[72%]'>
                           <Text className='text-[15.5px]' numberOfLines={1} ellipsizeMode="tail">{item.taskname}</Text>
                         </View>
                       </View>
                       <View>
                         <View>
-                          <Text className='text-primary text-[13px]'>{formatTaskDate(item.date)}</Text>
+                          <Text className='text-primary text-[13px]'>{item.time !== 'None' ? item.time : formatTaskDate(item.date)}</Text>
                         </View>
                         <View></View>
                       </View>
