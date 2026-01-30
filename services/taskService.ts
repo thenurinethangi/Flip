@@ -179,20 +179,6 @@ export const postponeTasksByTaskIds = async (ids: string[], date: string) => {
 };
 
 
-export const getNotesByTaskId = async (id: string) => {
-  const notesRef = collection(db, "notes");
-
-  const q = query(notesRef, where("taskId", "==", id));
-
-  const snapshot = await getDocs(q);
-
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-};
-
-
 export const update = async (task: any) => {
   const user = auth.currentUser;
   if (!user) {

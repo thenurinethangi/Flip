@@ -1,6 +1,8 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
+import { addAttachmentsForTask, getAttachmentsByTaskId } from "@/services/attachmentsService";
+import { AddOrEditNotesByTaskId, getNotesByTaskId } from "@/services/noteService";
 import { subscribeSubTasksByTaskId, updateSubTaskStatusByTaskId } from "@/services/subtaskService";
-import { getNotesByTaskId, update } from "@/services/taskService";
+import { update } from "@/services/taskService";
 import Checkbox from "expo-checkbox";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
@@ -30,12 +32,11 @@ import {
 } from "react-native";
 import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor";
 import { SafeAreaView } from "react-native-safe-area-context";
+import CameraModel from "./Camera";
 import CustomCalendarModal from "./DatePickerModal";
 import PriorityModal from "./PriorityModal";
 import SubtaskEditModal from "./SubtaskEditModel";
 import TaskTypeModal from "./TaskTypeModal";
-import CameraModel from "./Camera";
-import { addNotesForTask } from "@/services/noteService";
 
 type TaskEditModalProps = {
   visible: boolean;
@@ -61,7 +62,6 @@ type Block = {
 type TaskFormModel = {
   id?: string;
   taskname: string;
-  note: string;
   date: string;
   time: string;
   reminder: string;
@@ -70,6 +70,13 @@ type TaskFormModel = {
   taskType: string;
   tags: string;
   status: string;
+};
+
+type Notes = {
+  id: string;
+  taskId: string | null;
+  subtaskId: string | null;
+  note: string;
 };
 
 const createBlock = (type: BlockType): Block => ({
@@ -125,7 +132,6 @@ export default function TaskEditModal({
 }: TaskEditModalProps) {
   const [taskForm, setTaskForm] = useState<TaskFormModel>({
     taskname: "",
-    note: "",
     date: "",
     time: "",
     reminder: "",
@@ -135,7 +141,13 @@ export default function TaskEditModal({
     tags: "",
     status: "pending",
   });
-  const [notes, setNotes] = useState<any[]>([]);
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [notes, setNotes] = useState<Notes>({
+    id: '',
+    taskId: '',
+    subtaskId: '',
+    note: ''
+  });
   const editorRef = useRef<RichEditor | null>(null);
   const [linkModalVisible, setLinkModalVisible] = useState(false);
   const [linkTitle, setLinkTitle] = useState("");
@@ -156,7 +168,6 @@ export default function TaskEditModal({
     const nextForm: TaskFormModel = {
       id: task?.id,
       taskname: task?.taskname ?? "",
-      note: task?.note ?? "",
       date: task?.date ?? "",
       time: task?.time ?? "",
       reminder: task?.reminder ?? "",
@@ -167,18 +178,34 @@ export default function TaskEditModal({
       status: task?.status ?? "pending",
     };
     setTaskForm(nextForm);
-    if (editorRef.current) {
-      editorRef.current.setContentHTML(nextForm.note);
+  }, [task]);
+
+  useEffect(() => {
+    const getAttachments = async () => {
+      try {
+        if (task?.id) {
+          const res = await getAttachmentsByTaskId(task.id);
+          console.log('ATTACH', res);
+          setAttachments(res);
+        }
+      }
+      catch (e) {
+        console.log(e);
+      }
     }
+    getAttachments();
   }, [task]);
 
   useEffect(() => {
     const getNotes = async () => {
       try {
         if (task?.id) {
-          const res = await getNotesByTaskId(task.id);
+          const res: Notes = await getNotesByTaskId(task.id);
           console.log('NOTES', res);
           setNotes(res);
+          if (editorRef.current) {
+            editorRef.current.setContentHTML(res.note);
+          }
         }
       }
       catch (e) {
@@ -205,10 +232,6 @@ export default function TaskEditModal({
 
   const headerDate = useMemo(() => formatHeaderDate(taskForm.date), [taskForm.date]);
   const taskDate = taskForm.date ?? "";
-
-  const addBlock = (type: BlockType) => {
-    setNotes((prev) => [...prev, createBlock(type)]);
-  };
 
   const disableSpellcheck = () => {
     editorRef.current?.commandDOM(
@@ -290,7 +313,7 @@ export default function TaskEditModal({
   };
 
   const removeNote = (noteId: string) => {
-    setNotes((prev) => prev.filter((note) => note.id !== noteId));
+    setAttachments((prev) => prev.filter((note) => note.id !== noteId));
   };
 
   const editableTags = taskForm.tags
@@ -302,11 +325,13 @@ export default function TaskEditModal({
   async function editTask() {
     onClose();
     console.log(taskForm);
+    console.log(attachments);
     console.log(notes);
 
     try {
       await update(taskForm);
-      await addNotesForTask(notes, taskForm.id || '');
+      await addAttachmentsForTask(attachments, taskForm.id || '');
+      await AddOrEditNotesByTaskId(notes, taskForm.id || '');
     }
     catch (e) {
       console.log(e);
@@ -350,14 +375,14 @@ export default function TaskEditModal({
         uploadError: false,
       };
 
-      setNotes((prev) => {
+      setAttachments((prev) => {
         const nextSequence = prev.length + 1;
         return [...prev, { ...localNote, sequenceNo: nextSequence }];
       });
 
       uploadToCloudinary(file.uri, file.mimeType || "", file.name)
         .then((secure_url) => {
-          setNotes((prev) =>
+          setAttachments((prev) =>
             prev.map((note) =>
               note.id === noteId
                 ? { ...note, content: secure_url, isUploading: false }
@@ -367,7 +392,7 @@ export default function TaskEditModal({
         })
         .catch((err) => {
           console.log("Upload error:", err);
-          setNotes((prev) =>
+          setAttachments((prev) =>
             prev.map((note) =>
               note.id === noteId
                 ? { ...note, isUploading: false, uploadError: true }
@@ -454,14 +479,14 @@ export default function TaskEditModal({
       uploadError: false,
     };
 
-    setNotes((prev) => {
+    setAttachments((prev) => {
       const nextSequence = prev.length + 1;
       return [...prev, { ...localNote, sequenceNo: nextSequence }];
     });
 
     uploadToCloudinary(url, 'image/jpg', 'Camera capture')
       .then((secure_url) => {
-        setNotes((prev) =>
+        setAttachments((prev) =>
           prev.map((note) =>
             note.id === noteId
               ? { ...note, content: secure_url, isUploading: false }
@@ -471,7 +496,7 @@ export default function TaskEditModal({
       })
       .catch((err) => {
         console.log("Upload error:", err);
-        setNotes((prev) =>
+        setAttachments((prev) =>
           prev.map((note) =>
             note.id === noteId
               ? { ...note, isUploading: false, uploadError: true }
@@ -570,9 +595,9 @@ export default function TaskEditModal({
               <RichEditor
                 ref={editorRef}
                 placeholder="Write Note ..."
-                initialContentHTML={taskForm.note}
+                initialContentHTML={notes.note}
                 onChange={(value) =>
-                  setTaskForm((prev) => ({ ...prev, note: value }))
+                  setNotes((prev) => ({ ...prev, note: value }))
                 }
                 editorInitializedCallback={disableSpellcheck}
                 editorStyle={{
@@ -651,9 +676,9 @@ export default function TaskEditModal({
               </TouchableOpacity>
             </View>
 
-            {notes.length > 0 && (
+            {attachments.length > 0 && (
               <View className='mt-4'>
-                {notes.map((note) => {
+                {attachments.map((note) => {
                   const isImage = typeof note.contentType === "string" && note.contentType.startsWith("image/");
                   const isRemote = typeof note.content === "string" && /^https?:\/\//i.test(note.content);
                   return (
