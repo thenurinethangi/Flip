@@ -2,16 +2,15 @@ import {
   addDoc,
   collection,
   doc,
-  getDoc,
-  getDocs,
   onSnapshot,
   query,
   serverTimestamp,
   updateDoc,
   where,
-  writeBatch,
+  writeBatch
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { getAllSubTasksByTaskId } from "./subtaskService";
 
 export interface AddTaskInput {
   taskname: string;
@@ -23,7 +22,6 @@ export interface AddTaskInput {
   taskType: string;
   tags: string;
 }
-
 
 export const add = async (input: AddTaskInput) => {
   const user = auth.currentUser;
@@ -50,10 +48,14 @@ export const add = async (input: AddTaskInput) => {
   return docRef.id;
 };
 
-
 export const subscribePendingTasksByDate = (
   date: string,
-  onTasks: (tasks: Array<{ id: string } & Record<string, any>>) => void,
+  onTasks: (
+    tasks: Array<{
+      task: { id: string } & Record<string, any>;
+      subtasks: Array<{ id: string } & Record<string, any>>;
+    }>,
+  ) => void,
   onError?: (error: Error) => void,
 ) => {
   const user = auth.currentUser;
@@ -90,7 +92,16 @@ export const subscribePendingTasksByDate = (
         return aRank - bRank;
       });
 
-      onTasks(tasks);
+      Promise.all(
+        tasks.map(async (task) => ({
+          task,
+          subtasks: await getAllSubTasksByTaskId(task.id),
+        })),
+      )
+        .then(onTasks)
+        .catch((error) => {
+          if (onError) onError(error as Error);
+        });
     },
     (error) => {
       if (onError) onError(error);
@@ -98,10 +109,14 @@ export const subscribePendingTasksByDate = (
   );
 };
 
-
 export const subscribeOverdueTasks = (
   date: string,
-  onTasks: (tasks: Array<{ id: string } & Record<string, any>>) => void,
+  onTasks: (
+    tasks: Array<{
+      task: { id: string } & Record<string, any>;
+      subtasks: Array<{ id: string } & Record<string, any>>;
+    }>,
+  ) => void,
   onError?: (error: Error) => void,
 ) => {
   const user = auth.currentUser;
@@ -120,7 +135,17 @@ export const subscribeOverdueTasks = (
   return onSnapshot(
     q,
     (snapshot) => {
-      onTasks(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      const tasks = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      Promise.all(
+        tasks.map(async (task) => ({
+          task,
+          subtasks: await getAllSubTasksByTaskId(task.id),
+        })),
+      )
+        .then(onTasks)
+        .catch((error) => {
+          if (onError) onError(error as Error);
+        });
     },
     (error) => {
       if (onError) onError(error);
@@ -128,10 +153,14 @@ export const subscribeOverdueTasks = (
   );
 };
 
-
 export const subscribeCompleteTasksByDate = (
   date: string,
-  onTasks: (tasks: Array<{ id: string } & Record<string, any>>) => void,
+  onTasks: (
+    tasks: Array<{
+      task: { id: string } & Record<string, any>;
+      subtasks: Array<{ id: string } & Record<string, any>>;
+    }>,
+  ) => void,
   onError?: (error: Error) => void,
 ) => {
   const user = auth.currentUser;
@@ -150,7 +179,17 @@ export const subscribeCompleteTasksByDate = (
   return onSnapshot(
     q,
     (snapshot) => {
-      onTasks(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      const tasks = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      Promise.all(
+        tasks.map(async (task) => ({
+          task,
+          subtasks: await getAllSubTasksByTaskId(task.id),
+        })),
+      )
+        .then(onTasks)
+        .catch((error) => {
+          if (onError) onError(error as Error);
+        });
     },
     (error) => {
       if (onError) onError(error);
@@ -158,14 +197,12 @@ export const subscribeCompleteTasksByDate = (
   );
 };
 
-
 export const updateTaskStatusByTaskId = async (id: string, status: string) => {
   await updateDoc(doc(db, "tasks", id), {
     status: status,
     updatedAt: serverTimestamp(),
   });
 };
-
 
 export const postponeTasksByTaskIds = async (ids: string[], date: string) => {
   const batch = writeBatch(db);
@@ -177,7 +214,6 @@ export const postponeTasksByTaskIds = async (ids: string[], date: string) => {
   });
   await batch.commit();
 };
-
 
 export const update = async (task: any) => {
   const user = auth.currentUser;

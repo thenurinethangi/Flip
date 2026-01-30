@@ -2,15 +2,15 @@ import AddSubtaskModal from '@/components/AddSubtaskModal';
 import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
 import { AppIcon } from '@/components/ui/icon-symbol';
+import { addNewSubTask } from '@/services/subtaskService';
 import { add, postponeTasksByTaskIds, subscribeCompleteTasksByDate, subscribeOverdueTasks, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TaskEditModal from './../../components/TaskEditModal';
-import { addNewSubTask } from '@/services/subtaskService';
 
 export default function HomeScreen() {
 
@@ -36,11 +36,15 @@ export default function HomeScreen() {
   const [todayIncompleteTasks, setTodayIncompleteTasks] = useState<any[]>([]);
   const [todayCompleteTasks, setTodayCompleteTasks] = useState<any[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<any[]>([]);
+  const [expandedTaskIds, setExpandedTaskIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const unsubscribe = subscribePendingTasksByDate(
       todayStr,
-      (tasks) => setTodayIncompleteTasks(tasks),
+      (tasks) => {
+        // console.log(tasks);
+        setTodayIncompleteTasks(tasks)
+      },
       (error) => console.log(error)
     );
 
@@ -173,8 +177,8 @@ export default function HomeScreen() {
 
   async function handlePostpone() {
 
-    const ids = overdueTasks.map((task) => {
-      return task.id
+    const ids = overdueTasks.map((item) => {
+      return item.task.id
     });
     console.log(ids);
 
@@ -186,9 +190,16 @@ export default function HomeScreen() {
     }
   }
 
+  const toggleSubtasks = (taskId: string) => {
+    setExpandedTaskIds((prev) => ({
+      ...prev,
+      [taskId]: !prev[taskId],
+    }));
+  };
+
   return (
     <>
-      <SafeAreaView className='bg-[#F5F6F8] flex-1 px-4'>
+      <SafeAreaView className='bg-[#F5F6F8] flex-1'>
 
         <TouchableOpacity
           onPress={() => {
@@ -214,7 +225,7 @@ export default function HomeScreen() {
           <AppIcon name="Plus" size={32} color="#FFFFFF" />
         </TouchableOpacity>
 
-        <View className='mt-[17px] flex-row justify-between items-center'>
+        <View className='mt-[17px] flex-row justify-between items-center px-4'>
           <View className='flex-row items-center gap-x-4'>
             <AppIcon name="Menu" color="#222" />
             <Text className='text-[20.5px] font-semibold'>Today</Text>
@@ -224,220 +235,363 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <ScrollView className='mt-5 px-0.5 mb-5'>
-
+        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20 }}>
           {/* today incomplete tasks */}
           <DraggableFlatList
-            scrollEnabled={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            scrollEnabled={true}
+            showsVerticalScrollIndicator={false}
             data={todayIncompleteTasks}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.task.id}
             activationDistance={8}
             onDragEnd={({ data }) => setTodayIncompleteTasks(data)}
             renderItem={({ item, drag, isActive }) => (
               <ScaleDecorator>
-                <Animated.View
-                  layout={Layout.springify().damping(18).stiffness(180)}
-                  entering={FadeInDown.duration(200)}
-                  exiting={FadeOutUp.duration(150)}
-                  className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-4 h-[50px] shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'
-                >
-                  <TouchableOpacity
-                    activeOpacity={0.9}
-                    onPress={() => {
-                      setActiveTask(item);
-                      setShowTaskEdit(true);
-                    }}
-                    onLongPress={drag}
-                    delayLongPress={150}
-                    className='w-full'
+                <View className={`mb-2 bg-white`} style={{ opacity: isActive ? 0.9 : 1 }}>
+                  <Animated.View
+                    layout={Layout.springify().damping(18).stiffness(180)}
+                    entering={FadeInDown.duration(200)}
+                    exiting={FadeOutUp.duration(150)}
+                    className={`w-full box-content bg-white rounded-[10px] pl-[21px] py-4 h-[50px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} ${expandedTaskIds[item.task.id] && item.subtasks?.length > 0 ? '' : 'shadow-lg shadow-black/0.05'} flex-row items-center justify-between`}
                   >
-                    <Animated.View
-                      style={{ opacity: isActive ? 0.9 : 1 }}
-                      className='flex-row items-center justify-between'
-                    >
-                      <View className='flex-row items-center gap-x-3'>
-                        <View>
-                          <Checkbox
-                            value={item.status !== 'pending'}
-                            onValueChange={(checked) => handleChecked(item.id, checked)}
-                            color={getPriorityColor(item.priorityLevel)}
-                            style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                          />
-                        </View>
-                        <View className='w-[72%]'>
-                          <Text className='text-[15.5px]' numberOfLines={1} ellipsizeMode="tail">{item.taskname}</Text>
-                        </View>
+                    <View className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
+                      <View pointerEvents="auto">
+                        <Checkbox
+                          value={item.task.status !== 'pending'}
+                          onValueChange={(checked) => handleChecked(item.task.id, checked)}
+                          color={getPriorityColor(item.task.priorityLevel)}
+                          style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                        />
                       </View>
+                      <Text
+                        className='text-[15.5px] flex-1'
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        onPress={() => {
+                          setActiveTask(item.task);
+                          setShowTaskEdit(true);
+                        }}
+                      >
+                        {item.task.taskname}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onLongPress={drag}
+                      delayLongPress={150}
+                      activeOpacity={0.6}
+                      className='pr-2'
+                    >
                       <View>
                         <View>
-                          <Text className='text-primary text-[13px]'>{item.time !== 'None' ? item.time : formatTaskDate(item.date)}</Text>
+                          <Text className='text-primary text-[13px]'>{item.task.time !== 'None' ? item.task.time : formatTaskDate(item.task.date)}</Text>
                         </View>
                         <View></View>
                       </View>
-                    </Animated.View>
-                  </TouchableOpacity>
-                </Animated.View>
+                    </TouchableOpacity>
+                    {item.subtasks?.length > 0 && (
+                      <TouchableOpacity
+                        onPress={() => toggleSubtasks(item.task.id)}
+                        className=''
+                      >
+                        <AppIcon
+                          name={expandedTaskIds[item.task.id] ? "ChevronDown" : "chevronRight"}
+                          color="#9ca3af"
+                          size={15}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </Animated.View>
+
+                  {expandedTaskIds[item.task.id] && item.subtasks?.length > 0 && (
+                    <View className='mt-1 ml-4'>
+                      {item.subtasks.map((subtask: any) => (
+                        <View
+                          key={subtask.id}
+                          className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
+                        >
+                          <View className='flex-row items-center justify-between w-full'>
+                            <View className='flex-row items-center gap-x-3'>
+                              <View>
+                                <Checkbox
+                                  value={subtask.status !== 'pending'}
+                                  onValueChange={() => { }}
+                                  color={getPriorityColor(subtask.priorityLevel)}
+                                  style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
+                                />
+                              </View>
+                              <View>
+                                <Text className='text-[14.5px]' numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                              </View>
+                            </View>
+                            <View>
+                              <Text className='text-primary text-[12.5px]'>{subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}</Text>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
               </ScaleDecorator>
             )}
-          />
-
-          {/* overdue */}
-          {overdueTasks.length > 0 && (
-            <Animated.View
-              layout={Layout.springify().damping(18).stiffness(180)}
-              entering={FadeIn.duration(200)}
-              exiting={FadeOut.duration(150)}
-              className='bg-white py-[12px] shadow-lg shadow-black/0.05 rounded-[10px] mb-2'
-            >
-              <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
-                <View className='flex-row items-center gap-x-3'>
-                  <Text className='text-[16px] font-medium text-[#222]'>Overdue</Text>
-                  <Text className='text-[14px] text-gray-400'>{overdueTasks.length}</Text>
-                </View>
-                <View className='flex-row items-center gap-x-3'>
-                  <TouchableOpacity onPress={handlePostpone} className='flex-row items-center gap-x-1'>
-                    <Text className='text-red-500 text-[13.5px]'>Postpone</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setShowOverdueTasks((prev) => !prev)}>
-                    {showOverdueTasks
-                      ? <AppIcon name="ChevronDown" color='#9ca3af' size={17} />
-                      : <AppIcon name="chevronRight" color='#9ca3af' size={17} />
-                    }
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {showOverdueTasks
-                ? (
-                  <Animated.FlatList
-                    scrollEnabled={false}
-                    itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
-                    data={overdueTasks}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                      <Animated.View
-                        layout={Layout.springify().damping(18).stiffness(180)}
-                        entering={FadeInDown.duration(200)}
-                        exiting={FadeOutUp.duration(150)}
-                        className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
-                      >
-                        <TouchableOpacity
-                          activeOpacity={0.9}
-                          onPress={() => {
-                            setActiveTask(item);
-                            setShowTaskEdit(true);
-                          }}
-                          className='flex-row items-center justify-between flex-1'
-                        >
-                          <View className='flex-row items-center gap-x-3 w-[75%]'>
-                            <View>
-                              <Checkbox
-                                value={item.status !== 'pending'}
-                                onValueChange={(checked) => handleChecked(item.id, checked)}
-                                color={getPriorityColor(item.priorityLevel)}
-                                style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                              />
-                            </View>
-                            <View>
-                              <Text className='text-[15.5px]' numberOfLines={1} ellipsizeMode="tail">{item.taskname}</Text>
-                            </View>
-                          </View>
-                          <View>
-                            <View>
-                              <Text className='text-red-500 text-[13px]'>{formatTaskDate(item.date)}</Text>
-                            </View>
-                            <View></View>
-                          </View>
-                        </TouchableOpacity>
-                      </Animated.View>
-                    )}
+            ListFooterComponent={
+              <>
+                {/* overdue */}
+                {overdueTasks.length > 0 && (
+                  <Animated.View
+                    layout={Layout.springify().damping(18).stiffness(180)}
+                    entering={FadeIn.duration(200)}
+                    exiting={FadeOut.duration(150)}
+                    className='bg-white py-[12px] shadow-lg shadow-black/0.05 rounded-[10px] mb-2'
                   >
-                  </Animated.FlatList>
-                )
-                : ''
-              }
-            </Animated.View>
-          )}
+                    <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
+                      <View className='flex-row items-center gap-x-3'>
+                        <Text className='text-[16px] font-medium text-[#222]'>Overdue</Text>
+                        <Text className='text-[14px] text-gray-400'>{overdueTasks.length}</Text>
+                      </View>
+                      <View className='flex-row items-center gap-x-3'>
+                        <TouchableOpacity onPress={handlePostpone} className='flex-row items-center gap-x-1'>
+                          <Text className='text-red-500 text-[13.5px]'>Postpone</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setShowOverdueTasks((prev) => !prev)}>
+                          {showOverdueTasks
+                            ? <AppIcon name="ChevronDown" color='#9ca3af' size={17} />
+                            : <AppIcon name="chevronRight" color='#9ca3af' size={17} />
+                          }
+                        </TouchableOpacity>
+                      </View>
+                    </View>
 
+                    {showOverdueTasks
+                      ? (
+                        <Animated.FlatList
+                          scrollEnabled={false}
+                          itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
+                          data={overdueTasks}
+                          keyExtractor={(item) => item.task.id}
+                          renderItem={({ item }) => (
+                            <View className='mb-2'>
+                              <Animated.View
+                                layout={Layout.springify().damping(18).stiffness(180)}
+                                entering={FadeInDown.duration(200)}
+                                exiting={FadeOutUp.duration(150)}
+                                className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
+                              >
+                                <View className='flex-row items-center justify-between w-full'>
+                                  <TouchableOpacity
+                                    activeOpacity={0.9}
+                                    onPress={() => {
+                                      setActiveTask(item.task);
+                                      setShowTaskEdit(true);
+                                    }}
+                                    className='flex-row items-center justify-between flex-1'
+                                  >
+                                    <View className='flex-row items-center gap-x-3 w-[75%]'>
+                                      <View>
+                                        <Checkbox
+                                          value={item.task.status !== 'pending'}
+                                          onValueChange={(checked) => handleChecked(item.task.id, checked)}
+                                          color={getPriorityColor(item.task.priorityLevel)}
+                                          style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                                        />
+                                      </View>
+                                      <View className='w-[72%]'>
+                                        <Text className='text-[15.5px]' numberOfLines={1} ellipsizeMode="tail">{item.task.taskname}</Text>
+                                      </View>
+                                    </View>
+                                    <View>
+                                      <View>
+                                        <Text className='text-red-500 text-[13px]'>{formatTaskDate(item.task.date)}</Text>
+                                      </View>
+                                      <View></View>
+                                    </View>
+                                  </TouchableOpacity>
+                                  {item.subtasks?.length > 0 && (
+                                    <TouchableOpacity
+                                      onPress={() => toggleSubtasks(item.task.id)}
+                                      className='pl-2 py-1'
+                                    >
+                                      {expandedTaskIds[item.task.id]
+                                        ? <AppIcon name="ChevronDown" color="#9ca3af" size={18} />
+                                        : <AppIcon name="chevronRight" color="#9ca3af" size={18} />
+                                      }
+                                    </TouchableOpacity>
+                                  )}
+                                </View>
+                              </Animated.View>
 
-          {/* today complete task container */}
-          {todayCompleteTasks.length > 0
-            ?
-            <Animated.View
-              layout={Layout.springify().damping(18).stiffness(180)}
-              entering={FadeIn.duration(200)}
-              exiting={FadeOut.duration(150)}
-              className={`bg-white py-[12.5px] shadow-lg shadow-black/0.05 mb-2 rounded-[10px] ${todayCompleteTasks.length > 0 ? 'visible' : 'invisible'}`}
-            >
-              <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
-                <View className='flex-row items-center gap-x-3'>
-                  <Text className='text-[16px] font-medium text-gray-400'>Completed</Text>
-                  <Text className='text-[14px] text-gray-400'>{todayCompleteTasks.length}</Text>
-                </View>
-                <View className='flex-row items-center gap-x-1'>
-                  <TouchableOpacity onPress={() => setShowCompleteTasks((prev) => !prev)}>
-                    {showCompleteTasks
-                      ? <AppIcon name="ChevronDown" color='#9ca3af' size={17} />
-                      : <AppIcon name="chevronRight" color='#9ca3af' size={17} />
+                              {expandedTaskIds[item.task.id] && item.subtasks?.length > 0 && (
+                                <View className='mt-1 ml-4'>
+                                  {item.subtasks.map((subtask: any) => (
+                                    <View
+                                      key={subtask.id}
+                                      className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'
+                                    >
+                                      <View className='flex-row items-center justify-between w-full'>
+                                        <View className='flex-row items-center gap-x-3 w-[75%]'>
+                                          <View>
+                                            <Checkbox
+                                              value={subtask.status !== 'pending'}
+                                              onValueChange={() => { }}
+                                              color={getPriorityColor(subtask.priorityLevel)}
+                                              style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
+                                            />
+                                          </View>
+                                          <View className='w-[72%]'>
+                                            <Text className='text-[14.5px]' numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                          </View>
+                                        </View>
+                                        <View>
+                                          <View>
+                                            <Text className='text-red-500 text-[12.5px]'>{formatTaskDate(subtask.date)}</Text>
+                                          </View>
+                                          <View></View>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  ))}
+                                </View>
+                              )}
+                            </View>
+                          )}
+                        >
+                        </Animated.FlatList>
+                      )
+                      : ''
                     }
-                  </TouchableOpacity>
-                </View>
-              </View>
+                  </Animated.View>
+                )}
 
-              {/* today complete tasks */}
-              {showCompleteTasks
-                ?
-                <Animated.FlatList
-                  scrollEnabled={false}
-                  itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
-                  data={todayCompleteTasks}
-                  keyExtractor={(item) => item.id}
-                  renderItem={({ item }) => (
-                    <Animated.View
-                      layout={Layout.springify().damping(18).stiffness(180)}
-                      entering={FadeInDown.duration(200)}
-                      exiting={FadeOutUp.duration(150)}
-                      className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
-                    >
-                      <TouchableOpacity
-                        activeOpacity={0.9}
-                        onPress={() => {
-                          setActiveTask(item);
-                          setShowTaskEdit(true);
-                        }}
-                        className='flex-row items-center justify-between flex-1'
+
+                {/* today complete task container */}
+                {todayCompleteTasks.length > 0
+                  ?
+                  <Animated.View
+                    layout={Layout.springify().damping(18).stiffness(180)}
+                    entering={FadeIn.duration(200)}
+                    exiting={FadeOut.duration(150)}
+                    className={`bg-white py-[12.5px] shadow-lg shadow-black/0.05 mb-2 rounded-[10px] ${todayCompleteTasks.length > 0 ? 'visible' : 'invisible'}`}
+                  >
+                    <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
+                      <View className='flex-row items-center gap-x-3'>
+                        <Text className='text-[16px] font-medium text-gray-400'>Completed</Text>
+                        <Text className='text-[14px] text-gray-400'>{todayCompleteTasks.length}</Text>
+                      </View>
+                      <View className='flex-row items-center gap-x-1'>
+                        <TouchableOpacity onPress={() => setShowCompleteTasks((prev) => !prev)}>
+                          {showCompleteTasks
+                            ? <AppIcon name="ChevronDown" color='#9ca3af' size={17} />
+                            : <AppIcon name="chevronRight" color='#9ca3af' size={17} />
+                          }
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* today complete tasks */}
+                    {showCompleteTasks
+                      ?
+                      <Animated.FlatList
+                        scrollEnabled={false}
+                        itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
+                        data={todayCompleteTasks}
+                        keyExtractor={(item) => item.task.id}
+                        renderItem={({ item }) => (
+                          <View className='mb-2'>
+                            <Animated.View
+                              layout={Layout.springify().damping(18).stiffness(180)}
+                              entering={FadeInDown.duration(200)}
+                              exiting={FadeOutUp.duration(150)}
+                              className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
+                            >
+                              <View className='flex-row items-center justify-between w-full'>
+                                <TouchableOpacity
+                                  activeOpacity={0.9}
+                                  onPress={() => {
+                                    setActiveTask(item.task);
+                                    setShowTaskEdit(true);
+                                  }}
+                                  className='flex-row items-center justify-between flex-1'
+                                >
+                                  <View className='flex-row items-center gap-x-3'>
+                                    <View>
+                                      <Checkbox
+                                        value={item.task.status !== 'pending'}
+                                        onValueChange={(checked) => handleChecked(item.task.id, checked)}
+                                        color={'#B8BFC8'}
+                                        style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                                      />
+                                    </View>
+                                    <View className='w-[72%]'>
+                                      <Text className='text-[15.5px] text-gray-400 line-through' numberOfLines={1} ellipsizeMode="tail">{item.task.taskname}</Text>
+                                    </View>
+                                  </View>
+                                  <View>
+                                    <View>
+                                      <Text className='text-gray-400 text-[13px] opacity-90'>{item.task.time !== 'None' ? item.task.time : formatTaskDate(item.task.date)}</Text>
+                                    </View>
+                                    <View></View>
+                                  </View>
+                                </TouchableOpacity>
+                                {item.subtasks?.length > 0 && (
+                                  <TouchableOpacity
+                                    onPress={() => toggleSubtasks(item.task.id)}
+                                    className='pl-2 py-1'
+                                  >
+                                    {expandedTaskIds[item.task.id]
+                                      ? <AppIcon name="ChevronDown" color="#9ca3af" size={18} />
+                                      : <AppIcon name="chevronRight" color="#9ca3af" size={18} />
+                                    }
+                                  </TouchableOpacity>
+                                )}
+                              </View>
+                            </Animated.View>
+
+                            {expandedTaskIds[item.task.id] && item.subtasks?.length > 0 && (
+                              <View className='mt-1 ml-4'>
+                                {item.subtasks.map((subtask: any) => (
+                                  <View
+                                    key={subtask.id}
+                                    className='bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'
+                                  >
+                                    <View className='flex-row items-center justify-between w-full'>
+                                      <View className='flex-row items-center gap-x-3'>
+                                        <View>
+                                          <Checkbox
+                                            value={subtask.status !== 'pending'}
+                                            onValueChange={() => { }}
+                                            color={'#B8BFC8'}
+                                            style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
+                                          />
+                                        </View>
+                                        <View className='w-[72%]'>
+                                          <Text className='text-[14.5px] text-gray-400 line-through' numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                        </View>
+                                      </View>
+                                      <View>
+                                        <View>
+                                          <Text className='text-gray-400 text-[12.5px] opacity-90'>{subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}</Text>
+                                        </View>
+                                        <View></View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                ))}
+                              </View>
+                            )}
+                          </View>
+                        )
+                        }
                       >
-                        <View className='flex-row items-center gap-x-3'>
-                          <View>
-                            <Checkbox
-                              value={item.status !== 'pending'}
-                              onValueChange={(checked) => handleChecked(item.id, checked)}
-                              color={'#B8BFC8'}
-                              style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                            />
-                          </View>
-                          <View>
-                            <Text className='text-[15.5px] text-gray-400 line-through' numberOfLines={1} ellipsizeMode="tail">{item.taskname}</Text>
-                          </View>
-                        </View>
-                        <View>
-                          <View>
-                            <Text className='text-gray-400 text-[13px] opacity-90'>{formatTaskDate(item.date)}</Text>
-                          </View>
-                          <View></View>
-                        </View>
-                      </TouchableOpacity>
-                    </Animated.View>
-                  )}
-                >
-                </Animated.FlatList>
-                : ''
-              }
-            </Animated.View>
-            : ''
-          }
-
-        </ScrollView>
+                      </Animated.FlatList>
+                      : ''
+                    }
+                  </Animated.View>
+                  : ''
+                }
+              </>
+            }
+          />
+        </View>
 
         <TaskEditModal
           visible={showTaskEdit}
