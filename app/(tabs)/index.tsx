@@ -263,17 +263,19 @@ export default function HomeScreen() {
                           style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
                         />
                       </View>
-                      <Text
-                        className='text-[15.5px] flex-1'
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                        onPress={() => {
-                          setActiveTask(item.task);
-                          setShowTaskEdit(true);
-                        }}
-                      >
-                        {item.task.taskname}
-                      </Text>
+                      <View className='w-[82%]'>
+                        <Text
+                          className='text-[15.5px] flex-1'
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          onPress={() => {
+                            setActiveTask(item.task);
+                            setShowTaskEdit(true);
+                          }}
+                        >
+                          {item.task.taskname}
+                        </Text>
+                      </View>
                     </View>
                     <TouchableOpacity
                       onLongPress={drag}
@@ -283,7 +285,7 @@ export default function HomeScreen() {
                     >
                       <View>
                         <View>
-                          <Text className='text-primary text-[13px]'>{item.task.time !== 'None' ? item.task.time : formatTaskDate(item.task.date)}</Text>
+                          <Text className={`text-primary text-[13px] ${item.subtasks?.length > 0 ? 'translate-x-[13px] ' : 'translate-x-2'}`}>{item.task.time !== 'None' ? item.task.time : formatTaskDate(item.task.date)}</Text>
                         </View>
                         <View></View>
                       </View>
@@ -291,7 +293,7 @@ export default function HomeScreen() {
                     {item.subtasks?.length > 0 && (
                       <TouchableOpacity
                         onPress={() => toggleSubtasks(item.task.id)}
-                        className=''
+                        className='pl-[7px]'
                       >
                         <AppIcon
                           name={expandedTaskIds[item.task.id] ? "ChevronDown" : "chevronRight"}
