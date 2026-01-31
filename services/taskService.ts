@@ -1,13 +1,14 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   onSnapshot,
   query,
   serverTimestamp,
   updateDoc,
   where,
-  writeBatch
+  writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { getAllSubTasksByTaskId } from "./subtaskService";
@@ -233,4 +234,8 @@ export const update = async (task: any) => {
     status: task.status,
     updatedAt: serverTimestamp(),
   });
+};
+
+export const deleteTaskByTaskId = async (taskId: string) => {
+  await deleteDoc(doc(db, "tasks", taskId));
 };

@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDocs, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import { AddTaskInput } from "./taskService";
 
@@ -100,4 +100,9 @@ export const updateSubtaskStatusBySubtaskId = async (id: string, status: string)
         status: status,
         updatedAt: serverTimestamp(),
     });
+};
+
+
+export const deleteSubtaskBySubtaskId = async (subtaskId: string) => {
+    await deleteDoc(doc(db, 'subtasks', subtaskId));
 };

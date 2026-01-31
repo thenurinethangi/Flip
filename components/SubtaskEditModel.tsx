@@ -34,8 +34,10 @@ import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor"
 import { SafeAreaView } from "react-native-safe-area-context";
 import CameraModel from "./Camera";
 import CustomCalendarModal from "./DatePickerModal";
+import DeleteModal from "./DeleteModal";
 import PriorityModal from "./PriorityModal";
 import TaskTypeModal from "./TaskTypeModal";
+import Spinner from "./spinner";
 
 type TaskEditModalProps = {
     visible: boolean;
@@ -78,12 +80,6 @@ type Notes = {
     subtaskId: string | null;
     note: string;
 };
-
-const createBlock = (type: BlockType): Block => ({
-    id: `${type}-${Date.now()}-${Math.random()}`,
-    type,
-    text: "",
-});
 
 const formatHeaderDate = (dateStr?: string) => {
     if (!dateStr) return "";
@@ -155,6 +151,7 @@ export default function SubtaskEditModal({
     });
 
     const editorRef = useRef<RichEditor | null>(null);
+    const prevSubtaskIdRef = useRef<string | null>(null);
     const [linkModalVisible, setLinkModalVisible] = useState(false);
     const [linkTitle, setLinkTitle] = useState("");
     const [linkUrl, setLinkUrl] = useState("");
@@ -163,6 +160,7 @@ export default function SubtaskEditModal({
     const [taskTypeVisible, setTaskTypeVisible] = useState(false);
     const [showDate, setShowDate] = useState(false);
     const [showCameraModel, setShowCameraModel] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const [attachmentsLoaded, setAttachmentsLoaded] = useState(false);
     const [notesLoaded, setNotesLoaded] = useState(false);
@@ -170,6 +168,23 @@ export default function SubtaskEditModal({
     const [image, setImage] = useState<string>("");
 
     useEffect(() => {
+        if (!visible) {
+            prevSubtaskIdRef.current = null;
+            return;
+        }
+
+        const subtaskId = task?.id ?? null;
+        if (subtaskId && prevSubtaskIdRef.current !== subtaskId) {
+            prevSubtaskIdRef.current = subtaskId;
+            setIsloading(true);
+            setAttachments([]);
+            setNotes({ id: "", taskId: null, subtaskId: null, note: "" });
+            setAttachmentsLoaded(false);
+            setNotesLoaded(false);
+            if (editorRef.current) {
+                editorRef.current.setContentHTML("");
+            }
+        }
         const nextForm: TaskFormModel = {
             id: task?.id,
             taskname: task?.taskname ?? "",
@@ -185,7 +200,7 @@ export default function SubtaskEditModal({
             status: task?.status ?? "pending",
         };
         setTaskForm(nextForm);
-    }, [task]);
+    }, [task, visible]);
 
     useEffect(() => {
         const loadAllData = async () => {
@@ -228,7 +243,7 @@ export default function SubtaskEditModal({
             catch (e) {
                 console.log(e);
                 setAttachments([]);
-                setNotes({ id: "", taskId: "", subtaskId: "", note: "" });
+                setNotes({ id: "", taskId: null, subtaskId: null, note: "" });
                 if (editorRef.current) {
                     editorRef.current.setContentHTML("");
                 }
@@ -535,18 +550,30 @@ export default function SubtaskEditModal({
     }
 
     return (
-        <Modal
-            visible={visible}
-            animationType="slide"
-            presentationStyle="fullScreen"
-            statusBarTranslucent
-            onRequestClose={onClose}
-        >
-            <SafeAreaView className='flex-1 bg-white' style={{ paddingTop: 0 }}>
-                <KeyboardAvoidingView
-                    className='flex-1'
-                    behavior={Platform.OS === "ios" ? "padding" : undefined}
-                >
+        <>
+            <Modal
+                visible={visible && isloading}
+                transparent
+                animationType="fade"
+                statusBarTranslucent
+                onRequestClose={onClose}
+            >
+                <View className="flex-1 bg-white items-center justify-center">
+                    <Spinner />
+                </View>
+            </Modal>
+            <Modal
+                visible={visible && !isloading}
+                animationType="slide"
+                presentationStyle="fullScreen"
+                statusBarTranslucent
+                onRequestClose={onClose}
+            >
+                <SafeAreaView className='flex-1 bg-white' style={{ paddingTop: 0 }}>
+                    <KeyboardAvoidingView
+                        className='flex-1'
+                        behavior={Platform.OS === "ios" ? "padding" : undefined}
+                    >
                     <View className='px-4 pt-3 pb-3 border-b border-gray-100'>
                         <View className='flex-row items-center justify-between'>
                             <View className='flex-row items-center gap-x-4'>
@@ -562,7 +589,9 @@ export default function SubtaskEditModal({
                                 <TouchableOpacity onPress={() => setPriorityVisible(true)}>
                                     <Flag size={21} color={priorityColorMap[taskForm.priorityLevel] ?? "#9BA2AB"} />
                                 </TouchableOpacity>
-                                <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
+                                <TouchableOpacity onPress={() => setShowDeleteModal(true)}>
+                                    <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
+                                </TouchableOpacity>
                             </View>
                         </View>
 
@@ -916,8 +945,17 @@ export default function SubtaskEditModal({
                         }}
                     />
 
-                </KeyboardAvoidingView>
-            </SafeAreaView>
-        </Modal>
+                    <DeleteModal
+                        visible={showDeleteModal}
+                        onClose={() => setShowDeleteModal(false)}
+                        onCloseTaskEditModel={onClose}
+                        targetId={task?.id ?? null}
+                        targetType="subtask"
+                    />
+
+                    </KeyboardAvoidingView>
+                </SafeAreaView>
+            </Modal>
+        </>
     );
 }

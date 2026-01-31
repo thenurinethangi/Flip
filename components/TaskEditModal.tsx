@@ -20,12 +20,10 @@ import {
   ArrowLeft,
   Camera,
   ChevronsUpDown,
-  Clock,
-  Clock1,
   Flag,
   Paperclip,
   Repeat,
-  X,
+  X
 } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -50,6 +48,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import CameraModel from "./Camera";
 import CustomCalendarModal from "./DatePickerModal";
+import DeleteModal from "./DeleteModal";
 import PriorityModal from "./PriorityModal";
 import SubtaskEditModal from "./SubtaskEditModel";
 import TaskTypeModal from "./TaskTypeModal";
@@ -156,6 +155,7 @@ export default function TaskEditModal({
     note: "",
   });
   const editorRef = useRef<RichEditor | null>(null);
+  const prevTaskIdRef = useRef<string | null>(null);
   const [linkModalVisible, setLinkModalVisible] = useState(false);
   const [linkTitle, setLinkTitle] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
@@ -165,6 +165,7 @@ export default function TaskEditModal({
   const [showDate, setShowDate] = useState(false);
   const [showSubtaskEdit, setShowSubtaskEdit] = useState(false);
   const [showCameraModel, setShowCameraModel] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [subTasks, setSubTasks] = useState<any[]>([]);
   const [activeSubtask, setactiveSubtask] = useState<{} | null>(null);
@@ -176,7 +177,14 @@ export default function TaskEditModal({
   const [image, setImage] = useState<string>("");
 
   useEffect(() => {
-    if (visible && task?.id) {
+    if (!visible) {
+      prevTaskIdRef.current = null;
+      return;
+    }
+
+    const taskId = task?.id ?? null;
+    if (taskId && prevTaskIdRef.current !== taskId) {
+      prevTaskIdRef.current = taskId;
       setIsloading(true);
       setAttachments([]);
       setNotes({ id: "", taskId: "", subtaskId: "", note: "" });
@@ -188,6 +196,7 @@ export default function TaskEditModal({
         editorRef.current.setContentHTML("");
       }
     }
+
     const nextForm: TaskFormModel = {
       id: task?.id,
       taskname: task?.taskname ?? "",
@@ -261,11 +270,12 @@ export default function TaskEditModal({
   }, [task, visible]);
 
   useEffect(() => {
-    if (!task?.id) {
+    if (!visible || !task?.id) {
       setSubTasks([]);
       return;
     }
 
+    setSubTasksLoaded(false);
     const unsubscribe = subscribeSubTasksByTaskId(
       task.id,
       (tasks) => {
@@ -276,7 +286,7 @@ export default function TaskEditModal({
     );
 
     return unsubscribe;
-  }, [task?.id]);
+  }, [task?.id, visible]);
 
   useEffect(() => {
     if (!visible || !task?.id) return;
@@ -577,17 +587,27 @@ export default function TaskEditModal({
   }
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="fullScreen"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
-      <SafeAreaView className="flex-1 bg-white" style={{ paddingTop: 0 }}>
-        {isloading
-          ? <Spinner />
-          : <KeyboardAvoidingView
+    <>
+      <Modal
+        visible={visible && isloading}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={onClose}
+      >
+        <View className="flex-1 bg-white items-center justify-center">
+          <Spinner />
+        </View>
+      </Modal>
+      <Modal
+        visible={visible && !isloading}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        statusBarTranslucent
+        onRequestClose={onClose}
+      >
+        <SafeAreaView className="flex-1 bg-white" style={{ paddingTop: 0 }}>
+          <KeyboardAvoidingView
             className="flex-1"
             behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
@@ -621,7 +641,9 @@ export default function TaskEditModal({
                       }
                     />
                   </TouchableOpacity>
-                  <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
+                  <TouchableOpacity onPress={() => setShowDeleteModal(true)}>
+                    <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -1124,9 +1146,17 @@ export default function TaskEditModal({
                 setShowCameraModel(false);
               }}
             />
+
+            <DeleteModal
+              visible={showDeleteModal}
+              onClose={() => setShowDeleteModal(false)}
+              onCloseTaskEditModel={onClose}
+              targetId={task?.id ?? null}
+              targetType="task"
+            />
           </KeyboardAvoidingView>
-        }
-      </SafeAreaView>
-    </Modal>
+        </SafeAreaView>
+      </Modal>
+    </>
   );
 }
