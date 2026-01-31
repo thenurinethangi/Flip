@@ -429,7 +429,7 @@ export default function HomeScreen() {
                                 </TouchableNativeFeedback>
                               </View>
                               <View>
-                                <Text className={`text-[12.5px] ${subtask.status !== 'pending' ? 'text-gray-400 opacity-90' : 'text-primary'}`}>{subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}</Text>
+                                <Text className={`text-[12.5px] ${subtask.status !== 'pending' ? 'text-gray-400 opacity-90' : subtask.time === 'None' && !isNotPastDate(subtask.date) ? 'text-red-500' : 'text-primary' }`}>{subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}</Text>
                               </View>
                             </View>
                           </TouchableWithoutFeedback>
