@@ -93,3 +93,11 @@ export const updateSubTask = async (subtask: any) => {
         updatedAt: serverTimestamp(),
     });
 };
+
+
+export const updateSubtaskStatusBySubtaskId = async (id: string, status: string) => {
+    await updateDoc(doc(db, "subtasks", id), {
+        status: status,
+        updatedAt: serverTimestamp(),
+    });
+};

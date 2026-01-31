@@ -1,12 +1,13 @@
 import AddSubtaskModal from '@/components/AddSubtaskModal';
 import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
+import SubtaskEditModal from '@/components/SubtaskEditModel';
 import { AppIcon } from '@/components/ui/icon-symbol';
-import { addNewSubTask } from '@/services/subtaskService';
+import { addNewSubTask, subscribeSubTasksByTaskId, updateSubtaskStatusBySubtaskId } from '@/services/subtaskService';
 import { add, postponeTasksByTaskIds, subscribeCompleteTasksByDate, subscribeOverdueTasks, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
-import { useEffect, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Text, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,7 +22,9 @@ export default function HomeScreen() {
   const [showOverdueTasks, setShowOverdueTasks] = useState<boolean>(false);
   const [showTaskEdit, setShowTaskEdit] = useState<boolean>(false);
   const [showSubtaskModal, setShowSubtaskModal] = useState<boolean>(false);
+  const [showSubtaskEdit, setShowSubtaskEdit] = useState(false);
   const [activeTask, setActiveTask] = useState<any | null>(null);
+  const [activeSubtask, setactiveSubtask] = useState<{} | null>(null);
 
   const todayStr = new Date().toLocaleDateString("en-CA");
 
@@ -37,6 +40,27 @@ export default function HomeScreen() {
   const [todayCompleteTasks, setTodayCompleteTasks] = useState<any[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<any[]>([]);
   const [expandedTaskIds, setExpandedTaskIds] = useState<Record<string, boolean>>({});
+
+  const subtaskUnsubscribers = useRef<Record<string, () => void>>({});
+
+  const updateSubtasksForTask = (taskId: string, subtasks: any[]) => {
+    setTodayIncompleteTasks((prev) =>
+      prev.map((item) =>
+        item.task.id === taskId ? { ...item, subtasks } : item,
+      ),
+    );
+    setTodayCompleteTasks((prev) =>
+      prev.map((item) =>
+        item.task.id === taskId ? { ...item, subtasks } : item,
+      ),
+    );
+    setOverdueTasks((prev) =>
+      prev.map((item) =>
+        item.task.id === taskId ? { ...item, subtasks } : item,
+      ),
+    );
+  };
+
 
   useEffect(() => {
     const unsubscribe = subscribePendingTasksByDate(
@@ -70,6 +94,33 @@ export default function HomeScreen() {
 
     return unsubscribe;
   }, [todayStr]);
+
+  useEffect(() => {
+    const allTasks = [...todayIncompleteTasks, ...todayCompleteTasks, ...overdueTasks];
+    const activeTaskIds = new Set(allTasks.map((item) => item.task.id));
+
+    activeTaskIds.forEach((taskId) => {
+      if (!subtaskUnsubscribers.current[taskId]) {
+        subtaskUnsubscribers.current[taskId] = subscribeSubTasksByTaskId(
+          taskId,
+          (subtasks) => updateSubtasksForTask(taskId, subtasks),
+          (error) => console.log(error),
+        );
+      }
+    });
+
+    Object.keys(subtaskUnsubscribers.current).forEach((taskId) => {
+      if (!activeTaskIds.has(taskId)) {
+        subtaskUnsubscribers.current[taskId]();
+        delete subtaskUnsubscribers.current[taskId];
+      }
+    });
+  }, [todayIncompleteTasks, todayCompleteTasks, overdueTasks]);
+
+  useEffect(() => () => {
+    Object.values(subtaskUnsubscribers.current).forEach((unsubscribe) => unsubscribe());
+    subtaskUnsubscribers.current = {};
+  }, []);
 
   async function addNewTask(payload: {
     taskname: string;
@@ -163,12 +214,43 @@ export default function HomeScreen() {
     }
   };
 
+  const updateSubtaskStatusInList = (
+    list: Array<{ task: { id: string } & Record<string, any>; subtasks?: Array<{ id: string } & Record<string, any>> }>,
+    subtaskId: string,
+    status: string,
+  ) =>
+    list.map((item) => {
+      if (!item.subtasks || item.subtasks.length === 0) return item;
+      const nextSubtasks = item.subtasks.map((subtask) =>
+        subtask.id === subtaskId ? { ...subtask, status } : subtask,
+      );
+      const changed = nextSubtasks.some((subtask, index) => subtask !== item.subtasks?.[index]);
+      return changed ? { ...item, subtasks: nextSubtasks } : item;
+    });
+
   async function handleChecked(taskId: string, checked: boolean) {
     console.log("taskId", taskId, "checked", checked);
     console.log(checked ? 'complete' : 'pending');
 
     try {
       await updateTaskStatusByTaskId(taskId, checked ? 'complete' : 'pending');
+    }
+    catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function handleSubtaskChecked(subtaskId: string, checked: boolean) {
+    console.log("taskId", subtaskId, "checked", checked);
+    console.log(checked ? 'complete' : 'pending');
+
+    const nextStatus = checked ? 'complete' : 'pending';
+    setTodayIncompleteTasks((prev) => updateSubtaskStatusInList(prev, subtaskId, nextStatus));
+    setTodayCompleteTasks((prev) => updateSubtaskStatusInList(prev, subtaskId, nextStatus));
+    setOverdueTasks((prev) => updateSubtaskStatusInList(prev, subtaskId, nextStatus));
+
+    try {
+      await updateSubtaskStatusBySubtaskId(subtaskId, nextStatus);
     }
     catch (e) {
       console.log(e);
@@ -307,29 +389,39 @@ export default function HomeScreen() {
                   {expandedTaskIds[item.task.id] && item.subtasks?.length > 0 && (
                     <View className='mt-1 ml-4'>
                       {item.subtasks.map((subtask: any) => (
-                        <View
+                        <Animated.View
+                          layout={Layout.springify().damping(18).stiffness(180)}
+                          entering={FadeInDown.duration(200)}
+                          exiting={FadeOutUp.duration(150)}
                           key={subtask.id}
                           className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
                         >
-                          <View className='flex-row items-center justify-between w-full'>
-                            <View className='flex-row items-center gap-x-3'>
-                              <View>
-                                <Checkbox
-                                  value={subtask.status !== 'pending'}
-                                  onValueChange={() => { }}
-                                  color={getPriorityColor(subtask.priorityLevel)}
-                                  style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
-                                />
+                          <TouchableWithoutFeedback onPress={() => {
+                            setactiveSubtask(subtask);
+                          }}>
+                            <View className='flex-row items-center justify-between w-full'>
+                              <View className='flex-row items-center gap-x-3'>
+                                <View>
+                                  <Checkbox
+                                    value={subtask.status !== 'pending'}
+                                    onValueChange={(checked) => handleSubtaskChecked(subtask.id, checked)}
+                                    color={subtask.status !== 'pending' ? '#B8BFC8' : getPriorityColor(subtask.priorityLevel)}
+                                    style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
+                                  />
+                                </View>
+                                <TouchableNativeFeedback onPress={() => {
+                                  setactiveSubtask(subtask);
+                                  setShowSubtaskEdit(true);
+                                }}>
+                                  <Text className={`text-[14.5px] ${subtask.status !== 'pending' ? 'text-gray-400 line-through' : ''}`} numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                </TouchableNativeFeedback>
                               </View>
                               <View>
-                                <Text className='text-[14.5px]' numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                <Text className={`text-[12.5px] ${subtask.status !== 'pending' ? 'text-gray-400 opacity-90' : 'text-primary'}`}>{subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}</Text>
                               </View>
                             </View>
-                            <View>
-                              <Text className='text-primary text-[12.5px]'>{subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}</Text>
-                            </View>
-                          </View>
-                        </View>
+                          </TouchableWithoutFeedback>
+                        </Animated.View>
                       ))}
                     </View>
                   )}
@@ -372,12 +464,12 @@ export default function HomeScreen() {
                           data={overdueTasks}
                           keyExtractor={(item) => item.task.id}
                           renderItem={({ item }) => (
-                            <View className='mb-2'>
+                            <View className='mb-2 bg-white'>
                               <Animated.View
                                 layout={Layout.springify().damping(18).stiffness(180)}
                                 entering={FadeInDown.duration(200)}
                                 exiting={FadeOutUp.duration(150)}
-                                className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
+                                className={`bg-white rounded-[10px] pl-[21px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} py-4 flex-row items-center justify-between`}
                               >
                                 <View className='flex-row items-center justify-between w-full'>
                                   <TouchableOpacity
@@ -411,11 +503,11 @@ export default function HomeScreen() {
                                   {item.subtasks?.length > 0 && (
                                     <TouchableOpacity
                                       onPress={() => toggleSubtasks(item.task.id)}
-                                      className='pl-2 py-1'
+                                      className='pl-[5px]'
                                     >
                                       {expandedTaskIds[item.task.id]
-                                        ? <AppIcon name="ChevronDown" color="#9ca3af" size={18} />
-                                        : <AppIcon name="chevronRight" color="#9ca3af" size={18} />
+                                        ? <AppIcon name="ChevronDown" color="#9ca3af" size={15} />
+                                        : <AppIcon name="chevronRight" color="#9ca3af" size={15} />
                                       }
                                     </TouchableOpacity>
                                   )}
@@ -427,7 +519,7 @@ export default function HomeScreen() {
                                   {item.subtasks.map((subtask: any) => (
                                     <View
                                       key={subtask.id}
-                                      className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'
+                                      className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
                                     >
                                       <View className='flex-row items-center justify-between w-full'>
                                         <View className='flex-row items-center gap-x-3 w-[75%]'>
@@ -503,7 +595,7 @@ export default function HomeScreen() {
                               layout={Layout.springify().damping(18).stiffness(180)}
                               entering={FadeInDown.duration(200)}
                               exiting={FadeOutUp.duration(150)}
-                              className='bg-white rounded-[10px] pl-[21px] pr-4 py-4 flex-row items-center justify-between'
+                              className={`bg-white rounded-[10px] pl-[21px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} py-4 flex-row items-center justify-between`}
                             >
                               <View className='flex-row items-center justify-between w-full'>
                                 <TouchableOpacity
@@ -537,11 +629,11 @@ export default function HomeScreen() {
                                 {item.subtasks?.length > 0 && (
                                   <TouchableOpacity
                                     onPress={() => toggleSubtasks(item.task.id)}
-                                    className='pl-2 py-1'
+                                    className='pl-[5px]'
                                   >
                                     {expandedTaskIds[item.task.id]
-                                      ? <AppIcon name="ChevronDown" color="#9ca3af" size={18} />
-                                      : <AppIcon name="chevronRight" color="#9ca3af" size={18} />
+                                      ? <AppIcon name="ChevronDown" color="#9ca3af" size={15} />
+                                      : <AppIcon name="chevronRight" color="#9ca3af" size={15} />
                                     }
                                   </TouchableOpacity>
                                 )}
@@ -553,7 +645,7 @@ export default function HomeScreen() {
                                 {item.subtasks.map((subtask: any) => (
                                   <View
                                     key={subtask.id}
-                                    className='bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] shadow-lg shadow-black/0.05 flex-row items-center justify-between mb-2'
+                                    className='bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
                                   >
                                     <View className='flex-row items-center justify-between w-full'>
                                       <View className='flex-row items-center gap-x-3'>
@@ -657,6 +749,13 @@ export default function HomeScreen() {
         setSelectedReminder={setSelectedReminder}
         selectedRepeat={selectedRepeat}
         setSelectedRepeat={setSelectedRepeat}
+      />
+
+      {/* Subtask edit model */}
+      <SubtaskEditModal
+        visible={showSubtaskEdit}
+        task={activeSubtask}
+        onClose={() => setShowSubtaskEdit(false)}
       />
 
     </>

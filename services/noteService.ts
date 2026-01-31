@@ -28,6 +28,7 @@ export const getNotesByTaskId = async (id: string) => {
     }
 };
 
+
 export const AddOrEditNotesByTaskId = async (note: any, taskId: string) => {
     if (!taskId) {
         return;
@@ -47,6 +48,52 @@ export const AddOrEditNotesByTaskId = async (note: any, taskId: string) => {
         await addDoc(collection(db, "notes"), {
             taskId: taskId,
             subtaskId: null,
+            note: note.note,
+        });
+    }
+};
+
+
+export const getNotesBySubtaskId = async (id: string) => {
+    const notesRef = collection(db, "notes");
+
+    const q = query(notesRef, where("subtaskId", "==", id));
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.docs[0]) {
+        return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as {
+            id: string;
+            taskId: string | null;
+            subtaskId: string | null;
+            note: string;
+        };
+    }
+    else {
+        return { id: '', taskId: '', subtaskId: '', note: '' };
+    }
+};
+
+
+export const AddOrEditNotesBySubtaskId = async (note: any, taskId: string) => {
+    if (!taskId) {
+        return;
+    }
+
+    const notesRef = collection(db, "notes");
+
+    const q = query(notesRef, where("subtaskId", "==", taskId));
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.docs.length > 0) {
+        await updateDoc(snapshot.docs[0].ref, {
+            note: note.note,
+        });
+    } else {
+        await addDoc(collection(db, "notes"), {
+            taskId: null,
+            subtaskId: taskId,
             note: note.note,
         });
     }
