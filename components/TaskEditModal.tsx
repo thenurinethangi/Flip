@@ -660,7 +660,7 @@ export default function TaskEditModal({
                     <View className="flex-row gap-x-[5px]">
                       <Text
                         onPress={() => setShowDate(true)}
-                        className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? "text-primary" : "text-red-500"}`}
+                        className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? "text-primary" : "text-red-500"} ${taskDate && !isNotPastDate(taskDate) && task?.status === 'complete' ? "text-[#9BA2AB]" : ""}`}
                       >
                         {headerDate}
                         {taskForm.time != "None" ? "," : ""}{" "}

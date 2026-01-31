@@ -279,6 +279,18 @@ export default function HomeScreen() {
     }));
   };
 
+  const isNotPastDate = (dateStr: string): boolean => {
+    const [year, month, day] = dateStr.split("-").map(Number);
+
+    const inputDate = new Date(year, month - 1, day);
+    inputDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return inputDate >= today;
+  };
+
   return (
     <>
       <SafeAreaView className='bg-[#F5F6F8] flex-1'>
@@ -521,27 +533,32 @@ export default function HomeScreen() {
                                       key={subtask.id}
                                       className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
                                     >
-                                      <View className='flex-row items-center justify-between w-full'>
-                                        <View className='flex-row items-center gap-x-3 w-[75%]'>
-                                          <View>
-                                            <Checkbox
-                                              value={subtask.status !== 'pending'}
-                                              onValueChange={() => { }}
-                                              color={getPriorityColor(subtask.priorityLevel)}
-                                              style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
-                                            />
+                                      <TouchableWithoutFeedback onPress={() => {
+                                        setactiveSubtask(subtask);
+                                        setShowSubtaskEdit(true);
+                                      }}>
+                                        <View className='flex-row items-center justify-between w-full'>
+                                          <View className='flex-row items-center gap-x-3 w-[75%]'>
+                                            <View>
+                                              <Checkbox
+                                                value={subtask.status !== 'pending'}
+                                                onValueChange={(checked) => handleSubtaskChecked(subtask.id, checked)}
+                                                color={getPriorityColor(subtask.priorityLevel)}
+                                                style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
+                                              />
+                                            </View>
+                                            <View className='w-[72%]'>
+                                              <Text className='text-[14.5px]' numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                            </View>
                                           </View>
-                                          <View className='w-[72%]'>
-                                            <Text className='text-[14.5px]' numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                          <View>
+                                            <View>
+                                              <Text className={`text-[12.5px] ${isNotPastDate(subtask.date) ? 'text-primary' : 'text-red-500'}`}>{formatTaskDate(subtask.date)}</Text>
+                                            </View>
+                                            <View></View>
                                           </View>
                                         </View>
-                                        <View>
-                                          <View>
-                                            <Text className='text-red-500 text-[12.5px]'>{formatTaskDate(subtask.date)}</Text>
-                                          </View>
-                                          <View></View>
-                                        </View>
-                                      </View>
+                                      </TouchableWithoutFeedback>
                                     </View>
                                   ))}
                                 </View>
@@ -647,27 +664,32 @@ export default function HomeScreen() {
                                     key={subtask.id}
                                     className='bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
                                   >
-                                    <View className='flex-row items-center justify-between w-full'>
-                                      <View className='flex-row items-center gap-x-3'>
-                                        <View>
-                                          <Checkbox
-                                            value={subtask.status !== 'pending'}
-                                            onValueChange={() => { }}
-                                            color={'#B8BFC8'}
-                                            style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
-                                          />
+                                    <TouchableWithoutFeedback onPress={() => {
+                                      setactiveSubtask(subtask);
+                                      setShowSubtaskEdit(true);
+                                    }}>
+                                      <View className='flex-row items-center justify-between w-full'>
+                                        <View className='flex-row items-center gap-x-3'>
+                                          <View>
+                                            <Checkbox
+                                              value={subtask.status !== 'pending'}
+                                              onValueChange={(checked) => handleSubtaskChecked(subtask.id, checked)}
+                                              color={'#B8BFC8'}
+                                              style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
+                                            />
+                                          </View>
+                                          <View className='w-[72%]'>
+                                            <Text className={`text-[14.5px] text-gray-400 ${subtask.status !== 'pending' ? 'line-through' : ''}`} numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                          </View>
                                         </View>
-                                        <View className='w-[72%]'>
-                                          <Text className='text-[14.5px] text-gray-400 line-through' numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                        <View>
+                                          <View>
+                                            <Text className='text-gray-400 text-[12.5px] opacity-90'>{subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}</Text>
+                                          </View>
+                                          <View></View>
                                         </View>
                                       </View>
-                                      <View>
-                                        <View>
-                                          <Text className='text-gray-400 text-[12.5px] opacity-90'>{subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}</Text>
-                                        </View>
-                                        <View></View>
-                                      </View>
-                                    </View>
+                                    </TouchableWithoutFeedback>
                                   </View>
                                 ))}
                               </View>
