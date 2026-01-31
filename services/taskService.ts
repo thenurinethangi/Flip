@@ -1,8 +1,10 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
+  getDocs,
   onSnapshot,
   query,
   serverTimestamp,
@@ -49,6 +51,84 @@ export const add = async (input: AddTaskInput) => {
   return docRef.id;
 };
 
+const DAILY_REPEAT_STORAGE_KEY = "dailyRepeatAdd";
+const WEEKLY_REPEAT_STORAGE_KEY = "weeklyRepeatAdd";
+const MONTHLY_REPEAT_STORAGE_KEY = "monthlyRepeatAdd";
+
+const ensureRepeatTasks = async (date: string, userId: string) => {
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  if (date !== todayStr) return;
+
+  const dateObj = new Date(`${date}T00:00:00`);
+  const isMonday = dateObj.getDay() === 1;
+  const isMonthStart = dateObj.getDate() === 1;
+
+  const runRepeat = async (
+    repeatValue: "Daily" | "Weekly" | "Monthly",
+    storageKeyBase: string,
+    shouldRun: boolean,
+  ) => {
+    if (!shouldRun) return;
+
+    const storageKey = `${storageKeyBase}_${userId}`;
+    const stored = await AsyncStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as { date?: string; done?: boolean };
+        if (parsed?.date === date && parsed?.done) {
+          return;
+        }
+      } catch {
+        // ignore parse errors and proceed
+      }
+    }
+
+    const tasksRef = collection(db, "tasks");
+    const q = query(
+      tasksRef,
+      where("userId", "==", userId),
+      where("repeat", "==", repeatValue),
+    );
+
+    const snapshot = await getDocs(q);
+    const repeatTasks = snapshot.docs
+      .map((docItem) => ({ id: docItem.id, ...docItem.data() }))
+      .filter((task: any) => !task.isRepeated);
+
+    if (repeatTasks.length > 0) {
+      const batch = writeBatch(db);
+      repeatTasks.forEach((task: any) => {
+        const {
+          id: _id,
+          createdAt: _createdAt,
+          updatedAt: _updatedAt,
+          ...rest
+        } = task;
+        const payload = {
+          ...rest,
+          date,
+          status: "pending",
+          isRepeated: true,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
+        const newDocRef = doc(collection(db, "tasks"));
+        batch.set(newDocRef, payload);
+      });
+      await batch.commit();
+    }
+
+    await AsyncStorage.setItem(
+      storageKey,
+      JSON.stringify({ date, done: true }),
+    );
+  };
+
+  await runRepeat("Daily", DAILY_REPEAT_STORAGE_KEY, true);
+  await runRepeat("Weekly", WEEKLY_REPEAT_STORAGE_KEY, isMonday);
+  await runRepeat("Monthly", MONTHLY_REPEAT_STORAGE_KEY, isMonthStart);
+};
+
 export const subscribePendingTasksByDate = (
   date: string,
   onTasks: (
@@ -63,6 +143,10 @@ export const subscribePendingTasksByDate = (
   if (!user) {
     throw new Error("User not authenticated");
   }
+
+  void ensureRepeatTasks(date, user.uid).catch((error) => {
+    if (onError) onError(error as Error);
+  });
 
   const tasksRef = collection(db, "tasks");
   const q = query(
