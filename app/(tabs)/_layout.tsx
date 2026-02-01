@@ -37,10 +37,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="calendar"
         options={{
           tabBarShowLabel: false,
-          title: "Explore",
+          title: "Calendar",
           tabBarIcon: ({ color }) => <AppIcon name="Calendar" color={color} />,
         }}
       />

@@ -329,7 +329,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20 }}>
+        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20, paddingBottom: 0, marginBottom: 0 }}>
           {/* today incomplete tasks */}
           <DraggableFlatList
             contentContainerStyle={{ paddingBottom: 100 }}
