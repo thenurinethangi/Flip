@@ -4,13 +4,40 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const getMonthNameFromDate = (dateStr: string): string => {
+  if (!dateStr) return '';
+
+  const [, month] = dateStr.split('-');
+  const monthIndex = Number(month) - 1;
+
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  return months[monthIndex] ?? '';
+};
+
 export default function TabTwoScreen() {
 
   const todayStr = new Date().toLocaleDateString("en-CA");
-  const date = new Date().toLocaleDateString("en-CA");
 
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const [showDate, setShowDate] = useState<boolean>(false);
+
+  const [choooseDate, setChoooseDate] = useState(todayStr);
+  const [monthStr, setMonthStr] = useState(getMonthNameFromDate(todayStr));
+
 
   return (
     <>
@@ -43,7 +70,7 @@ export default function TabTwoScreen() {
         <View className='mt-[17px] flex-row justify-between items-center px-4'>
           <View className='flex-row items-center gap-x-4'>
             {/* <AppIcon name="Menu" color="#222" /> */}
-            <Text className='text-[20.5px] font-semibold'>January</Text>
+            <Text className='text-[20.5px] font-semibold'>{monthStr}</Text>
           </View>
           <View className=''>
             <AppIcon name="EllipsisVertical" color="#424242" size={22} />
@@ -52,13 +79,17 @@ export default function TabTwoScreen() {
 
         {/* Calendar */}
         <CalendarProvider
-          date={date || todayStr}
+          date={todayStr}
           style={{ backgroundColor: '#F5F6F8' }}
-        // onDateChanged={(d) => choooseDate(d)}
+          onDateChanged={(d) => {
+            setChoooseDate(d);
+            setMonthStr(getMonthNameFromDate(d));
+          }}
         >
           <ExpandableCalendar
             initialPosition="collapsed"
             firstDay={1}
+            closeOnDayPress={false}
             hideArrows
             renderHeader={() => null}
             style={{
@@ -72,7 +103,7 @@ export default function TabTwoScreen() {
               shadowOffset: { width: 0, height: 0 },
             }}
             markedDates={{
-              [date]: {
+              [choooseDate]: {
                 selected: true,
                 selectedColor: '#4772FA',
                 selectedTextColor: '#FFFFFF',
@@ -96,9 +127,13 @@ export default function TabTwoScreen() {
               backgroundColor: '#F5F6F8',
               calendarBackground: '#F5F6F8',
               textDayFontSize: 14,
-              textSectionTitleColor: '#6E7583',
-              textDayHeaderFontSize: 12.3,
+              textDayFontWeight: 700,
+              textDayTextColor: '#3B3B3B',
+              // textSectionTitleColor: '#6E7583',
+              textDayHeaderFontSize: 12.1,
               textDayHeaderFontWeight: '500',
+              todayBackgroundColor: '#F5F6F8',
+              todayTextColor: '#4772FA',
             }}
           />
         </CalendarProvider>
