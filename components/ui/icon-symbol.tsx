@@ -15,6 +15,8 @@ import {
   EllipsisVertical,
   ChevronDown,
   Plus,
+  Clock,
+  CheckCircle,
 } from "lucide-react-native";
 
 type LucideIcon = React.ComponentType<{
@@ -39,7 +41,9 @@ const ICONS = {
   Disc: Disc,
   Menu: Menu,
   EllipsisVertical: EllipsisVertical,
-  Plus: Plus
+  Plus: Plus,
+  Clock: Clock,
+  CheckCircle: CheckCircle
 };
 
 export type IconName = keyof typeof ICONS;

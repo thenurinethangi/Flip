@@ -13,7 +13,10 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
-import { getAllSubTasksByTaskId } from "./subtaskService";
+import {
+  ensureRepeatSubtasksForTask,
+  getAllSubTasksByTaskId,
+} from "./subtaskService";
 
 export interface AddTaskInput {
   taskname: string;
@@ -178,10 +181,13 @@ export const subscribePendingTasksByDate = (
       });
 
       Promise.all(
-        tasks.map(async (task) => ({
-          task,
-          subtasks: await getAllSubTasksByTaskId(task.id),
-        })),
+        tasks.map(async (task) => {
+          await ensureRepeatSubtasksForTask(date, user.uid, task.id);
+          return {
+            task,
+            subtasks: await getAllSubTasksByTaskId(task.id),
+          };
+        }),
       )
         .then(onTasks)
         .catch((error) => {
@@ -222,10 +228,13 @@ export const subscribeOverdueTasks = (
     (snapshot) => {
       const tasks = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       Promise.all(
-        tasks.map(async (task) => ({
-          task,
-          subtasks: await getAllSubTasksByTaskId(task.id),
-        })),
+        tasks.map(async (task) => {
+          await ensureRepeatSubtasksForTask(date, user.uid, task.id);
+          return {
+            task,
+            subtasks: await getAllSubTasksByTaskId(task.id),
+          };
+        }),
       )
         .then(onTasks)
         .catch((error) => {
@@ -266,10 +275,13 @@ export const subscribeCompleteTasksByDate = (
     (snapshot) => {
       const tasks = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       Promise.all(
-        tasks.map(async (task) => ({
-          task,
-          subtasks: await getAllSubTasksByTaskId(task.id),
-        })),
+        tasks.map(async (task) => {
+          await ensureRepeatSubtasksForTask(date, user.uid, task.id);
+          return {
+            task,
+            subtasks: await getAllSubTasksByTaskId(task.id),
+          };
+        }),
       )
         .then(onTasks)
         .catch((error) => {
