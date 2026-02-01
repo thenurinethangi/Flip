@@ -37,7 +37,7 @@ const getMonthNameFromDate = (dateStr: string): string => {
   return months[monthIndex] ?? '';
 };
 
-export default function TabTwoScreen() {
+export default function Calendar() {
 
   const todayStr = new Date().toLocaleDateString("en-CA");
 

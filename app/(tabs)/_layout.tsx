@@ -53,10 +53,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="habit"
+        name="countdown"
         options={{
           tabBarShowLabel: false,
-          title: "Habit",
+          title: "Countdown",
           tabBarIcon: ({ color }) => <AppIcon name="layers" color={color} />,
         }}
       />
