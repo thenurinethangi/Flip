@@ -17,6 +17,10 @@ import {
   Plus,
   Clock,
   CheckCircle,
+  Hourglass,
+  Heart,
+  Cake,
+  Gift,
 } from "lucide-react-native";
 
 type LucideIcon = React.ComponentType<{
@@ -43,7 +47,11 @@ const ICONS = {
   EllipsisVertical: EllipsisVertical,
   Plus: Plus,
   Clock: Clock,
-  CheckCircle: CheckCircle
+  CheckCircle: CheckCircle,
+  Hourglass: Hourglass,
+  Heart: Heart,
+  Cake: Cake,
+  Gift: Gift
 };
 
 export type IconName = keyof typeof ICONS;
