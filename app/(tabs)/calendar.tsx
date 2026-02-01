@@ -397,7 +397,7 @@ export default function TabTwoScreen() {
             {/* incomplete tasks */}
             {incompleteTasks.length > 0
               ? <View className='bg-white shadow-lg shadow-black/0.05 px-2 pb-2'>
-                <Text className='text-[16px] font-semibold uppercase px-[12px] py-[14px]'>Today</Text>
+                <Text className='text-[16px] font-semibold uppercase px-[12px] py-[14px]'>{formatTaskDate(choooseDate)}</Text>
                 <FlatList
                   contentContainerStyle={{ paddingBottom: 0 }}
                   scrollEnabled={false}
