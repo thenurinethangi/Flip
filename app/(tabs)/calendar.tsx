@@ -507,7 +507,7 @@ export default function TabTwoScreen() {
 
             {/* complete tasks container */}
             {completeTasks.length > 0
-              ? <View className='bg-[#F5F6F8] pt-3 shadow-lg shadow-black/0.05'>
+              ? <View className='bg-[#F5F6F8] pt-3 shadow-lg shadow-black/0.05 px-2'>
                 <Animated.View
                   layout={Layout.springify().damping(18).stiffness(180)}
                   entering={FadeIn.duration(200)}
