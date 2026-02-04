@@ -26,6 +26,22 @@ export const getDaysLeftFromToday = (futureDateStr: string): number => {
   return diffDays;
 };
 
+type CountdownType = 'Countdown' | 'Anniversary' | 'Birthday' | 'Holiday'
+
+const countdownTypeImageMap: Record<CountdownType, any> = {
+  Countdown: require('./../../assets/images/sand-clock.png'),
+  Anniversary: require('./../../assets/images/hearts.png'),
+  Birthday: require('./../../assets/images/cake.png'),
+  Holiday: require('./../../assets/images/balloon.png'),
+};
+
+const typeBgColorMap: Record<CountdownType, string> = {
+  Holiday: "bg-[#D1FAE5]",
+  Birthday: "bg-[#FECACA]",
+  Anniversary: "bg-[#FBCFE8]",
+  Countdown: "bg-[#BFDBFE]",
+};
+
 const Countdown = () => {
   const [showCountdownTypeModal, setShowCountdownTypeModal] = useState(false);
   const [showAddCountdownModal, setShowAddCountdownModal] = useState(false);
@@ -97,8 +113,8 @@ const Countdown = () => {
                   className={`w-full box-content bg-white rounded-[10px] py-3 px-5 flex-row items-center justify-between shadow-lg shadow-black/0.05`}
                 >
                   <View className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
-                    <View className='w-[36px] h-[36px] rounded-full bg-blue-200 flex-row justify-center items-center'>
-                      <Image source={require('./../../assets/images/sand-clock.png')} className='w-[22px] h-[22px]'></Image>
+                    <View className={`w-[36px] h-[36px] rounded-full flex-row justify-center items-center ${typeBgColorMap[item.type as CountdownType]}`}>
+                      <Image source={countdownTypeImageMap[item.type as CountdownType] ?? countdownTypeImageMap.Countdown} className='w-[22px] h-[22px]'></Image>
                     </View>
                     <View className='flex-1 justify-center'>
                       <Text className='text-[16px] font-semibold' numberOfLines={1} ellipsizeMode="tail">
