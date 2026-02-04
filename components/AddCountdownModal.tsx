@@ -2,6 +2,7 @@ import { AppIcon } from "@/components/ui/icon-symbol";
 import { Bookmark, ChevronRight, HelpCircle, Pencil, X } from "lucide-react-native";
 import React, { useState } from "react";
 import {
+    Alert,
     Modal,
     Pressable,
     Text,
@@ -12,8 +13,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { CountdownTypeId } from "./CountdownTypeModal";
-import CustomCalendarModal from "./DatePickerModal";
 import DatePickerMinimalModal from "./DatePickerMinimalModal";
+import SelectionModal from "./SelectionModal";
+import { add } from "@/services/countdownService";
 
 interface AddCountdownModalProps {
     visible: boolean;
@@ -69,8 +71,54 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
     const iconBgColor = typeBgColorMap[resolvedType];
 
     const [showDate, setShowDate] = useState<boolean>(false);
+    const [activeSubModal, setActiveSubModal] = useState<"time" | "reminder" | "repeat" | null>(null);
 
+    const [countdownName, setCountdownName] = useState('');
     const [selectedDate, setSelectedDate] = useState(todayStr);
+    const [selectedReminder, setSelectedReminder] = useState('None');
+    const [selectedRepeat, setSelectedRepeat] = useState('None');
+
+    const reminderOptions = [
+        { id: "1", label: "None", isAvailable: true },
+        { id: "2", label: "1 day early", isAvailable: true },
+        { id: "3", label: "2 day early", isAvailable: true },
+        { id: "4", label: "5 day early", isAvailable: true },
+        { id: "5", label: "1 week early", isAvailable: true },
+        { id: "6", label: "2 week early", isAvailable: true },
+        { id: "7", label: "1 month early", isAvailable: true },
+    ];
+
+    const repeatOptions = [
+        { id: "1", label: "None", isAvailable: true },
+        { id: "2", label: "Weekly", isAvailable: true },
+        { id: "3", label: "Monthly", isAvailable: true },
+        { id: "4", label: "Yearly", isAvailable: true },
+    ];
+
+    async function handleAddNewCountdown() {
+
+        if (countdownName.trim() === '') {
+            return;
+        }
+
+        const newCountdown = {
+            countdownName,
+            date: selectedDate,
+            reminder: selectedReminder,
+            repeat: selectedRepeat,
+            type: typeLabelMap[type || 'countdown']
+        }
+
+        try {
+            const id = await add(newCountdown);
+            console.log(id);
+        }
+        catch (e) {
+            console.log(e);
+            Alert.alert('Fail!, Please try later');
+        }
+        onClose();
+    }
 
 
     return (
@@ -106,6 +154,7 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                     <View className="px-5 mt-6">
                         <View className="bg-white rounded-[16px] px-4 py-3 flex-row items-center justify-between">
                             <TextInput
+                                onChangeText={setCountdownName}
                                 placeholder="Name"
                                 placeholderTextColor="#C5C9D3"
                                 className="flex-1 text-[15px] text-[#111827]"
@@ -127,7 +176,9 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                             <View className="flex-row items-center justify-between px-4 py-[14px]">
                                 <Text className="text-[15px] text-[#111827]">Reminder</Text>
                                 <View className="flex-row items-center gap-x-2">
-                                    <Text className="text-[15px] text-[#9CA3AF]">On the day, 3 days early</Text>
+                                    <TouchableWithoutFeedback onPress={() => setActiveSubModal('reminder')}>
+                                        <Text className="text-[15px] text-[#9CA3AF]">{selectedReminder}</Text>
+                                    </TouchableWithoutFeedback>
                                     <X size={16} color="#C5C9D3" />
                                 </View>
                             </View>
@@ -135,7 +186,9 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                             <View className="flex-row items-center justify-between px-4 py-[14px]">
                                 <Text className="text-[15px] text-[#111827]">Repeat</Text>
                                 <View className="flex-row items-center gap-x-2">
-                                    <Text className="text-[15px] text-[#9CA3AF]">None</Text>
+                                    <TouchableWithoutFeedback onPress={() => setActiveSubModal('repeat')}>
+                                        <Text className="text-[15px] text-[#9CA3AF]">{selectedRepeat}</Text>
+                                    </TouchableWithoutFeedback>
                                     <ChevronRight size={18} color="#C5C9D3" />
                                 </View>
                             </View>
@@ -155,7 +208,7 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                     </View>
 
                     <View className="mt-auto px-5 pb-6">
-                        <TouchableOpacity className="bg-[#4772FA] items-center" style={{ borderRadius: 15, paddingBlock: 13 }}>
+                        <TouchableOpacity onPress={handleAddNewCountdown} className="bg-[#4772FA] items-center" style={{ borderRadius: 15, paddingBlock: 13 }}>
                             <Text className="text-white text-[16px] font-semibold">Save</Text>
                         </TouchableOpacity>
                     </View>
@@ -167,6 +220,30 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                 date={selectedDate}
                 choooseDate={setSelectedDate}
                 onClose={() => setShowDate(false)}
+            />
+
+            <SelectionModal
+                visible={activeSubModal === "reminder"}
+                title="Reminder"
+                data={reminderOptions}
+                selectedValue={selectedReminder}
+                onClose={() => setActiveSubModal(null)}
+                onSelect={(val) => {
+                    setSelectedReminder(val);
+                    setActiveSubModal(null);
+                }}
+            />
+
+            <SelectionModal
+                visible={activeSubModal === "repeat"}
+                title="Repeat"
+                data={repeatOptions}
+                selectedValue={selectedRepeat}
+                onClose={() => setActiveSubModal(null)}
+                onSelect={(val) => {
+                    setSelectedRepeat(val);
+                    setActiveSubModal(null);
+                }}
             />
         </>
     );

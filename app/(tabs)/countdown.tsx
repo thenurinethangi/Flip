@@ -1,15 +1,46 @@
 import AddCountdownModal from '@/components/AddCountdownModal'
 import CountdownTypeModal, { CountdownTypeId } from '@/components/CountdownTypeModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
-import React, { useState } from 'react'
-import { Image, Text, TouchableOpacity, View } from 'react-native'
+import { subscribeCountdown } from '@/services/countdownService'
+import React, { useEffect, useState } from 'react'
+import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 import Animated, { FadeInDown, FadeOutUp, Layout } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
+
+export const getDaysLeftFromToday = (futureDateStr: string): number => {
+  if (!futureDateStr) return 0;
+
+  const today = new Date();
+  const todayUTC = Date.UTC(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
+  const [year, month, day] = futureDateStr.split('-').map(Number);
+  const futureUTC = Date.UTC(year, month - 1, day);
+
+  const diffMs = futureUTC - todayUTC;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  return diffDays;
+};
 
 const Countdown = () => {
   const [showCountdownTypeModal, setShowCountdownTypeModal] = useState(false);
   const [showAddCountdownModal, setShowAddCountdownModal] = useState(false);
   const [selectedCountdownType, setSelectedCountdownType] = useState<CountdownTypeId | null>(null);
+
+  const [countdowns, setCountdowns] = useState<Array<{ id: string } & Record<string, any>>>([]);
+
+  useEffect(() => {
+    const loadCountdowns = async () => {
+      await subscribeCountdown((c) => { setCountdowns(c) }, (error) => { console.log(error) });
+    }
+    loadCountdowns();
+
+  }, []);
+
 
   return (
     <>
@@ -52,63 +83,42 @@ const Countdown = () => {
         {/* countdowns container */}
         <View style={{ flex: 1, paddingHorizontal: 14, paddingTop: 20, paddingBottom: 0, marginBottom: 0 }}>
 
-          {/* single countdown */}
-          <View className={`mb-2 bg-white rounded-[10px]`}>
-            <Animated.View
-              layout={Layout.springify().damping(18).stiffness(180)}
-              entering={FadeInDown.duration(200)}
-              exiting={FadeOutUp.duration(150)}
-              className={`w-full box-content bg-white rounded-[10px] py-3 px-5 flex-row items-center justify-between shadow-lg shadow-black/0.05`}
-            >
-              <View className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
-                <View className='w-[36px] h-[36px] rounded-full bg-blue-200 flex-row justify-center items-center'>
-                  <Image source={require('./../../assets/images/sand-clock.png')} className='w-[22px] h-[22px]'></Image>
-                </View>
-                <View className='flex-1 justify-center'>
-                  <Text className='text-[16px] font-semibold' numberOfLines={1} ellipsizeMode="tail">
-                    Weekend
-                  </Text>
-                </View>
+          <FlatList
+            data={countdowns}
+            scrollEnabled={true}
+            showsVerticalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View className={`mb-2 bg-white rounded-[10px]`}>
+                <Animated.View
+                  layout={Layout.springify().damping(18).stiffness(180)}
+                  entering={FadeInDown.duration(200)}
+                  exiting={FadeOutUp.duration(150)}
+                  className={`w-full box-content bg-white rounded-[10px] py-3 px-5 flex-row items-center justify-between shadow-lg shadow-black/0.05`}
+                >
+                  <View className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
+                    <View className='w-[36px] h-[36px] rounded-full bg-blue-200 flex-row justify-center items-center'>
+                      <Image source={require('./../../assets/images/sand-clock.png')} className='w-[22px] h-[22px]'></Image>
+                    </View>
+                    <View className='flex-1 justify-center'>
+                      <Text className='text-[16px] font-semibold' numberOfLines={1} ellipsizeMode="tail">
+                        {item.countdownName}
+                      </Text>
+                    </View>
+                  </View>
+                  <View className='justify-center items-end'>
+                    <View>
+                      <Text className={`text-primary text-[22px] font-semibold`}>{getDaysLeftFromToday(item.date)}</Text>
+                    </View>
+                    <View>
+                      <Text className='text-primary text-[12px]'>Days left</Text>
+                    </View>
+                  </View>
+                </Animated.View>
               </View>
-              <View className='justify-center items-end'>
-                <View>
-                  <Text className={`text-primary text-[22px] font-semibold`}>6</Text>
-                </View>
-                <View>
-                  <Text className='text-primary text-[12px]'>Days left</Text>
-                </View>
-              </View>
-            </Animated.View>
-          </View>
-
-          {/* single countdown */}
-          <View className={`mb-2 bg-white rounded-[10px]`}>
-            <Animated.View
-              layout={Layout.springify().damping(18).stiffness(180)}
-              entering={FadeInDown.duration(200)}
-              exiting={FadeOutUp.duration(150)}
-              className={`w-full box-content bg-white rounded-[10px] py-3 px-5 flex-row items-center justify-between shadow-lg shadow-black/0.05`}
-            >
-              <View className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
-                <View className='w-[36px] h-[36px] rounded-full bg-blue-200 flex-row justify-center items-center'>
-                  <Image source={require('./../../assets/images/sand-clock.png')} className='w-[22px] h-[22px]'></Image>
-                </View>
-                <View className='flex-1 justify-center'>
-                  <Text className='text-[16px] font-semibold' numberOfLines={1} ellipsizeMode="tail">
-                    Weekend
-                  </Text>
-                </View>
-              </View>
-              <View className='justify-center items-end'>
-                <View>
-                  <Text className={`text-primary text-[22px] font-semibold`}>6</Text>
-                </View>
-                <View>
-                  <Text className='text-primary text-[12px]'>Days left</Text>
-                </View>
-              </View>
-            </Animated.View>
-          </View>
+            )}
+          >
+          </FlatList>
 
         </View>
 
