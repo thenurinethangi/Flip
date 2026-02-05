@@ -1,14 +1,14 @@
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    getDocs,
-    onSnapshot,
-    query,
-    serverTimestamp,
-    updateDoc,
-    where,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
@@ -156,5 +156,15 @@ export const subscribeCountdown = async (
 };
 
 export const deleteCountdown = async (id: string) => {
-  await deleteDoc(doc(db,'countdowns',id));
+  await deleteDoc(doc(db, 'countdowns', id));
+};
+
+export const editCountdown = async (data: any) => {
+  await updateDoc(doc(db, 'countdowns', data.id), {
+    countdownName: data.countdownName,
+    date: data.date,
+    reminder: data.reminder,
+    repeat: data.repeat,
+    updatedAt: serverTimestamp(),
+  });
 };

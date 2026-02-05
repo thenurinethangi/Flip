@@ -1,6 +1,6 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
 import { Bookmark, ChevronRight, HelpCircle, Pencil, X } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Alert,
     Modal,
@@ -12,36 +12,37 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { CountdownTypeId } from "./CountdownTypeModal";
 import DatePickerMinimalModal from "./DatePickerMinimalModal";
 import SelectionModal from "./SelectionModal";
-import { add } from "@/services/countdownService";
+import { add, editCountdown } from "@/services/countdownService";
 
-interface AddCountdownModalProps {
+interface EditCountdownModalProps {
     visible: boolean;
     onClose: () => void;
-    type?: CountdownTypeId | null;
+    countdown: any;
 }
 
+export type CountdownTypeId = "Holiday" | "Birthday" | "Anniversary" | "Countdown";
+
 const typeLabelMap: Record<CountdownTypeId, string> = {
-    holiday: "Holiday",
-    birthday: "Birthday",
-    anniversary: "Anniversary",
-    countdown: "Countdown",
+    Holiday: "Holiday",
+    Birthday: "Birthday",
+    Anniversary: "Anniversary",
+    Countdown: "Countdown",
 };
 
 const typeColorMap: Record<CountdownTypeId, string> = {
-    holiday: "#10B981",
-    birthday: "#F87171",
-    anniversary: "#EC4899",
-    countdown: "#3B82F6",
+    Holiday: "#10B981",
+    Birthday: "#F87171",
+    Anniversary: "#EC4899",
+    Countdown: "#3B82F6",
 };
 
 const typeBgColorMap: Record<CountdownTypeId, string> = {
-    holiday: "#D1FAE5",
-    birthday: "#FECACA",
-    anniversary: "#FBCFE8",
-    countdown: "#BFDBFE",
+    Holiday: "#D1FAE5",
+    Birthday: "#FECACA",
+    Anniversary: "#FBCFE8",
+    Countdown: "#BFDBFE",
 };
 
 export const formatDateShort = (dateStr: string): string => {
@@ -61,12 +62,12 @@ export const formatDateShort = (dateStr: string): string => {
 };
 
 
-const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose, type, }) => {
+const EditCountdownModal: React.FC<EditCountdownModalProps> = ({ visible, onClose, countdown }) => {
     if (!visible) return null;
 
     const todayStr = new Date().toLocaleDateString("en-CA");
 
-    const resolvedType: CountdownTypeId = type ?? "countdown";
+    const resolvedType: CountdownTypeId = countdown.type ?? "Countdown";
     const iconColor = typeColorMap[resolvedType];
     const iconBgColor = typeBgColorMap[resolvedType];
 
@@ -95,23 +96,31 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
         { id: "4", label: "Yearly", isAvailable: true },
     ];
 
-    async function handleAddNewCountdown() {
+    useEffect(() => {
+        setCountdownName(countdown?.countdownName || '');
+        setSelectedDate(countdown?.date || todayStr);
+        setSelectedReminder(countdown?.reminder || 'None');
+        setSelectedRepeat(countdown?.repeat || 'None');
+
+    }, [countdown?.id, visible]);
+
+    async function handleEditCountdown() {
 
         if (countdownName.trim() === '') {
             return;
         }
 
-        const newCountdown = {
+        const editedCountdown = {
+            id: countdown?.id,
             countdownName,
             date: selectedDate,
             reminder: selectedReminder,
             repeat: selectedRepeat,
-            type: typeLabelMap[type || 'countdown']
+            type: countdown?.type
         }
 
         try {
-            const id = await add(newCountdown);
-            console.log(id);
+            await editCountdown(editedCountdown);
         }
         catch (e) {
             console.log(e);
@@ -143,7 +152,7 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                     <View className="items-center mt-6">
                         <View className="relative">
                             <View className="w-[72px] h-[72px] rounded-full items-center justify-center" style={{ backgroundColor: iconBgColor }}>
-                                <AppIcon name={`${resolvedType === 'countdown' ? 'Hourglass' : resolvedType === 'anniversary' ? 'Heart' : resolvedType === 'birthday' ? 'Cake' : 'Balloon'}`} size={28} color={iconColor} />
+                                <AppIcon name={`${resolvedType === 'Countdown' ? 'Hourglass' : resolvedType === 'Anniversary' ? 'Heart' : resolvedType === 'Birthday' ? 'Cake' : 'Balloon'}`} size={28} color={iconColor} />
                             </View>
                             <View className="absolute bottom-0 right-0 w-[22px] h-[22px] rounded-full bg-white items-center justify-center shadow-lg shadow-black/10">
                                 <Pencil size={12} color="#6B7280" />
@@ -154,6 +163,7 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                     <View className="px-5 mt-6">
                         <View className="bg-white rounded-[16px] px-4 py-3 flex-row items-center justify-between">
                             <TextInput
+                                value={countdownName}
                                 onChangeText={setCountdownName}
                                 placeholder="Name"
                                 placeholderTextColor="#C5C9D3"
@@ -199,7 +209,7 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                                 <Text className="text-[15px] text-[#111827]">Type</Text>
                                 <View className="flex-row items-center gap-x-2">
                                     <Text className="text-[15px] text-[#9CA3AF]">
-                                        {type ? typeLabelMap[type] : "Countdown"}
+                                        {countdown?.type ? typeLabelMap[countdown?.type as CountdownTypeId] : "Countdown"}
                                     </Text>
                                     <ChevronRight size={18} color="#C5C9D3" />
                                 </View>
@@ -208,8 +218,8 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                     </View>
 
                     <View className="mt-auto px-5 pb-6">
-                        <TouchableOpacity onPress={handleAddNewCountdown} className="bg-[#4772FA] items-center" style={{ borderRadius: 15, paddingBlock: 13 }}>
-                            <Text className="text-white text-[16px] font-semibold">Save</Text>
+                        <TouchableOpacity onPress={handleEditCountdown} className="bg-[#4772FA] items-center" style={{ borderRadius: 15, paddingBlock: 13 }}>
+                            <Text className="text-white text-[16px] font-semibold">Edit</Text>
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>
@@ -249,4 +259,4 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
     );
 };
 
-export default AddCountdownModal;
+export default EditCountdownModal;

@@ -4,9 +4,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ImageBackground, Modal, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
+import CountdownOptionModal from './CoundownOptionModal';
+import EditCountdownModal from './EditCountdownModal';
 import Spinner from './spinner';
 import { AppIcon } from './ui/icon-symbol';
-import CountdownOptionModal from './CoundownOptionModal';
 
 interface ViewCountdownModalProps {
     visible: boolean;
@@ -19,6 +20,7 @@ const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClos
     const [isLoading, setIsLoading] = useState(true);
 
     const [showOptionModal, setShowOptionModal] = useState(false);
+    const [showEditCountdownModal, setShowEditCountdownModal] = useState(false);
 
     const todayStr = new Date().toLocaleDateString("en-CA");
 
@@ -134,6 +136,17 @@ const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClos
             <CountdownOptionModal
                 visible={showOptionModal}
                 onClose={() => {
+                    setShowOptionModal(false);
+                    onClose();
+                }}
+                countdown={countdown}
+                onShowEdit={() => setShowEditCountdownModal(true)}
+            />
+
+            <EditCountdownModal
+                visible={showEditCountdownModal}
+                onClose={() => {
+                    setShowEditCountdownModal(false);
                     setShowOptionModal(false);
                     onClose();
                 }}

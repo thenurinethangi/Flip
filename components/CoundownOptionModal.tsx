@@ -7,9 +7,10 @@ interface DeleteModalProps {
     visible: boolean;
     onClose: () => void;
     countdown: any;
+    onShowEdit: () => void;
 }
 
-const CountdownOptionModal: React.FC<DeleteModalProps> = ({ visible, onClose, countdown }) => {
+const CountdownOptionModal: React.FC<DeleteModalProps> = ({ visible, onClose, countdown, onShowEdit }) => {
 
     async function handleDeleteCountdown() {
         if (countdown?.id) {
@@ -33,7 +34,7 @@ const CountdownOptionModal: React.FC<DeleteModalProps> = ({ visible, onClose, co
             <View style={styles.overlay} pointerEvents="box-none">
                 <Pressable style={styles.backdrop} onPress={onClose} />
                 <TouchableOpacity style={styles.card}>
-                    <Pressable style={styles.row}>
+                    <Pressable onPress={onShowEdit} style={styles.row}>
                         <Pencil size={20} color="#2B2B2B" />
                         <Text style={styles.text}>Edit</Text>
                     </Pressable>
