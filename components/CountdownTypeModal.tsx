@@ -1,4 +1,4 @@
-import { Cake, Gift, Heart, Hourglass } from "lucide-react-native";
+import { Cake, Gift, Heart, Hourglass, Balloon } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -16,7 +16,7 @@ const options: Array<{
     color: string;
     Icon: typeof Gift;
 }> = [
-        { id: "holiday", label: "Holiday", color: "#10B981", Icon: Gift },
+        { id: "holiday", label: "Holiday", color: "#10B981", Icon: Balloon },
         { id: "birthday", label: "Birthday", color: "#F87171", Icon: Cake },
         { id: "anniversary", label: "Anniversary", color: "#EC4899", Icon: Heart },
         { id: "countdown", label: "Countdown", color: "#3B82F6", Icon: Hourglass },

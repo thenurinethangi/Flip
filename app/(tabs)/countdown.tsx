@@ -42,6 +42,13 @@ const typeBgColorMap: Record<CountdownType, string> = {
   Countdown: "bg-[#BFDBFE]",
 };
 
+const typeColorMap: Record<CountdownType, string> = {
+  Holiday: "#10B981",
+  Birthday: "#F87171",
+  Anniversary: "#EC4899",
+  Countdown: "#3B82F6",
+};
+
 const Countdown = () => {
   const [showCountdownTypeModal, setShowCountdownTypeModal] = useState(false);
   const [showAddCountdownModal, setShowAddCountdownModal] = useState(false);
@@ -105,12 +112,12 @@ const Countdown = () => {
             showsVerticalScrollIndicator={false}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View className={`mb-2 bg-white rounded-[10px]`}>
+              <View className={`mb-[8px] bg-white rounded-[10px]`}>
                 <Animated.View
                   layout={Layout.springify().damping(18).stiffness(180)}
                   entering={FadeInDown.duration(200)}
                   exiting={FadeOutUp.duration(150)}
-                  className={`w-full box-content bg-white rounded-[10px] py-3 px-5 flex-row items-center justify-between shadow-lg shadow-black/0.05`}
+                  className={`w-full box-content bg-white rounded-[10px] py-4 px-5 flex-row items-center justify-between shadow-md shadow-black/0.05`}
                 >
                   <View className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
                     <View className={`w-[36px] h-[36px] rounded-full flex-row justify-center items-center ${typeBgColorMap[item.type as CountdownType]}`}>
