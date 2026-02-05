@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
 import Spinner from './spinner';
 import { AppIcon } from './ui/icon-symbol';
+import CountdownOptionModal from './CoundownOptionModal';
 
 interface ViewCountdownModalProps {
     visible: boolean;
@@ -16,6 +17,8 @@ interface ViewCountdownModalProps {
 const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClose, countdown }) => {
 
     const [isLoading, setIsLoading] = useState(true);
+
+    const [showOptionModal, setShowOptionModal] = useState(false);
 
     const todayStr = new Date().toLocaleDateString("en-CA");
 
@@ -64,7 +67,7 @@ const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClos
                             </TouchableOpacity>
                         </View>
                         <View className="flex-row items-center gap-x-5">
-                            <TouchableOpacity>
+                            <TouchableOpacity onPress={() => setShowOptionModal(true)}>
                                 <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
                             </TouchableOpacity>
                         </View>
@@ -128,6 +131,11 @@ const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClos
                 </SafeAreaView>
             </Modal>
 
+            <CountdownOptionModal
+                visible={showOptionModal}
+                onClose={() => setShowOptionModal(false)}
+                countdown={countdown}
+            />
         </>
     )
 }

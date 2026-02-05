@@ -1,6 +1,7 @@
 import {
     addDoc,
     collection,
+    deleteDoc,
     doc,
     getDocs,
     onSnapshot,
@@ -152,4 +153,8 @@ export const subscribeCountdown = async (
     });
     onCountdowns(countdowns);
   });
+};
+
+export const deleteCountdown = async (id: string) => {
+  await deleteDoc(doc(db,'countdowns',id));
 };
