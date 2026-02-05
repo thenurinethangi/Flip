@@ -1,3 +1,4 @@
+import { deleteCountdown } from "@/services/countdownService";
 import { Pencil, Trash2 } from "lucide-react-native";
 import React from "react";
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -11,12 +12,15 @@ interface DeleteModalProps {
 const CountdownOptionModal: React.FC<DeleteModalProps> = ({ visible, onClose, countdown }) => {
 
     async function handleDeleteCountdown() {
-        try {
-            
+        if (countdown?.id) {
+            try {
+                await deleteCountdown(countdown?.id);
+            }
+            catch (e) {
+                console.log(e);
+            }
         }
-        catch (e) {
-            console.log(e);
-        }
+        onClose();
     }
 
     return (

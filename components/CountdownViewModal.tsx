@@ -133,7 +133,10 @@ const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClos
 
             <CountdownOptionModal
                 visible={showOptionModal}
-                onClose={() => setShowOptionModal(false)}
+                onClose={() => {
+                    setShowOptionModal(false);
+                    onClose();
+                }}
                 countdown={countdown}
             />
         </>
