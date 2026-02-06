@@ -234,6 +234,9 @@ const ensureRepeatCountdown = async (userId: string) => {
           });
         }
       }
+      else {
+        await deleteDoc(doc(db, 'countdowns', item.id));
+      }
     }
   }
 };
