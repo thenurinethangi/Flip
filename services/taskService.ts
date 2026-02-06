@@ -53,7 +53,7 @@ export const add = async (input: AddTaskInput) => {
 
   const docRef = await addDoc(collection(db, "tasks"), payload);
 
-  if (input.reminder !== "None" && input.repeat === "None") {
+  if (input.reminder !== "None") {
     const reminderDate = getReminderDate(input);
     const title = input.taskname;
     const body = getReminderBodyText(input.reminder as ReminderLabel);
