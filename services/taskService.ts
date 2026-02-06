@@ -79,7 +79,7 @@ export const add = async (input: AddTaskInput) => {
   return docRef.id;
 };
 
-type ReminderLabel =
+export type ReminderLabel =
   | "None"
   | "At time of task"
   | "5 minutes before"
@@ -88,7 +88,7 @@ type ReminderLabel =
   | "On the day"
   | "1 day early";
 
-const getReminderBodyText = (reminderLabel: ReminderLabel): string => {
+export const getReminderBodyText = (reminderLabel: ReminderLabel): string => {
   if (reminderLabel === "None") {
     return "";
   }
@@ -237,6 +237,8 @@ const ensureRepeatTasks = async (date: string, userId: string) => {
 
     if (repeatTasks.length > 0) {
       const batch = writeBatch(db);
+      const createdTasks: Array<{ id: string; payload: Record<string, any> }> =
+        [];
       repeatTasks.forEach((task: any) => {
         const {
           id: _id,
@@ -254,8 +256,29 @@ const ensureRepeatTasks = async (date: string, userId: string) => {
         };
         const newDocRef = doc(collection(db, "tasks"));
         batch.set(newDocRef, payload);
+        createdTasks.push({ id: newDocRef.id, payload });
       });
       await batch.commit();
+
+      for (const created of createdTasks) {
+        const reminder = created.payload.reminder as ReminderLabel | undefined;
+        if (reminder && reminder !== "None") {
+          const reminderDate = getReminderDate(created.payload as AddTaskInput);
+          const title = String(created.payload.taskname ?? "Task");
+          const body = getReminderBodyText(reminder);
+          const notificationId = await scheduleLocalNotificationForTask(
+            title,
+            body,
+            reminderDate,
+            created.id,
+          );
+
+          await updateDoc(doc(db, "tasks", created.id), {
+            notificationId,
+            updatedAt: serverTimestamp(),
+          });
+        }
+      }
     }
 
     await AsyncStorage.setItem(
@@ -489,8 +512,7 @@ export const update = async (task: any) => {
       notificationId: notificationId,
       updatedAt: serverTimestamp(),
     });
-  }
-  else {
+  } else {
     await updateDoc(doc(db, "tasks", task.id), {
       taskname: task.taskname,
       date: task.date,
@@ -508,7 +530,6 @@ export const update = async (task: any) => {
 };
 
 export const deleteTaskByTaskId = async (taskId: string) => {
-
   const docRef = await getDoc(doc(db, "tasks", taskId));
   if (docRef.exists() && docRef.data().notificationId) {
     try {
@@ -516,6 +537,25 @@ export const deleteTaskByTaskId = async (taskId: string) => {
     } catch (error) {
       console.log("Failed to cancel notification", error);
     }
+  }
+
+  const subtaskRef = collection(db, "subtasks");
+  const subtaskQuery = query(subtaskRef, where("taskId", "==", taskId));
+  const subtaskSnapshot = await getDocs(subtaskQuery);
+  if (!subtaskSnapshot.empty) {
+    const batch = writeBatch(db);
+    for (const subtaskDoc of subtaskSnapshot.docs) {
+      const data = subtaskDoc.data();
+      if (data?.notificationId) {
+        try {
+          await cancelLocalNotification(data.notificationId);
+        } catch (error) {
+          console.log("Failed to cancel subtask notification", error);
+        }
+      }
+      batch.delete(subtaskDoc.ref);
+    }
+    await batch.commit();
   }
 
   await deleteDoc(doc(db, "tasks", taskId));
