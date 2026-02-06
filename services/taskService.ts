@@ -13,6 +13,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { scheduleLocalNotificationForTaskWithoutRepeat } from "./notificationService";
 import {
   ensureRepeatSubtasksForTask,
   getAllSubTasksByTaskId,
@@ -51,8 +52,139 @@ export const add = async (input: AddTaskInput) => {
   };
 
   const docRef = await addDoc(collection(db, "tasks"), payload);
+
+  if (input.reminder !== "None" && input.repeat === "None") {
+    const reminderDate = getReminderDate(input);
+    const title = input.taskname;
+    const body = getReminderBodyText(input.reminder as ReminderLabel);
+
+    const notificationId = await scheduleLocalNotificationForTaskWithoutRepeat(
+      title,
+      body,
+      reminderDate,
+      docRef.id,
+    );
+
+    await updateDoc(doc(db, "tasks", docRef.id), {
+      notificationId: notificationId,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
   return docRef.id;
 };
+
+type ReminderLabel =
+  | "None"
+  | "At time of task"
+  | "5 minutes before"
+  | "30 minutes before"
+  | "1 hour before"
+  | "On the day"
+  | "1 day early";
+
+const getReminderBodyText = (reminderLabel: ReminderLabel): string => {
+  if (reminderLabel === "None") {
+    return "";
+  }
+
+  const prefixMap: Record<Exclude<ReminderLabel, "None">, string> = {
+    "At time of task": "Scheduled now",
+    "5 minutes before": "Scheduled in 5 minutes",
+    "30 minutes before": "Scheduled in 30 minutes",
+    "1 hour before": "Scheduled in 1 hour",
+    "On the day": "Scheduled today",
+    "1 day early": "Scheduled next day",
+  };
+
+  return prefixMap[reminderLabel];
+};
+
+export function getReminderDate(task: AddTaskInput): Date {
+  const [year, month, day] = task.date.split("-").map(Number);
+
+  const reminderDate = new Date(year, month - 1, day, 9, 0, 0);
+
+  const today = new Date();
+
+  const parseTimeToHoursMinutes = (
+    timeStr: string,
+  ): { hours: number; minutes: number } | null => {
+    if (!timeStr) return null;
+    const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return null;
+    let hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    const meridiem = match[3].toUpperCase();
+    if (meridiem === "PM" && hours < 12) hours += 12;
+    if (meridiem === "AM" && hours === 12) hours = 0;
+    return { hours, minutes };
+  };
+
+  switch (task.reminder) {
+    case "At time of task":
+      {
+        const parsed = parseTimeToHoursMinutes(task.time);
+        if (parsed) {
+          reminderDate.setHours(parsed.hours, parsed.minutes, 0, 0);
+        }
+      }
+      break;
+
+    case "5 minutes before":
+      {
+        const parsed = parseTimeToHoursMinutes(task.time);
+        if (parsed) {
+          reminderDate.setHours(parsed.hours, parsed.minutes, 0, 0);
+          reminderDate.setMinutes(reminderDate.getMinutes() - 5);
+        }
+      }
+      break;
+
+    case "30 minutes before":
+      {
+        const parsed = parseTimeToHoursMinutes(task.time);
+        if (parsed) {
+          reminderDate.setHours(parsed.hours, parsed.minutes, 0, 0);
+          reminderDate.setMinutes(reminderDate.getMinutes() - 30);
+        }
+      }
+      break;
+
+    case "1 hour before":
+      {
+        const parsed = parseTimeToHoursMinutes(task.time);
+        if (parsed) {
+          reminderDate.setHours(parsed.hours, parsed.minutes, 0, 0);
+          reminderDate.setMinutes(reminderDate.getMinutes() - 60);
+        }
+      }
+      break;
+
+    case "On the day":
+      {
+        reminderDate.setHours(9, 0, 0, 0);
+        if (reminderDate < today) {
+          const now = new Date();
+          now.setMinutes(now.getMinutes() + 2);
+          reminderDate.setTime(now.getTime());
+        }
+      }
+      break;
+
+    case "1 day early":
+      reminderDate.setDate(reminderDate.getDate() - 1);
+      reminderDate.setHours(9, 0, 0, 0);
+      if (reminderDate < today) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 2);
+        reminderDate.setTime(now.getTime());
+      }
+      break;
+  }
+
+  return reminderDate;
+}
 
 const DAILY_REPEAT_STORAGE_KEY = "dailyRepeatAdd";
 const WEEKLY_REPEAT_STORAGE_KEY = "weeklyRepeatAdd";
@@ -62,7 +194,7 @@ const ensureRepeatTasks = async (date: string, userId: string) => {
   const todayStr = new Date().toLocaleDateString("en-CA");
   if (date !== todayStr) return;
 
-  const dateObj = new Date(`${date}T00:00:00`);
+  const dateObj = new Date(`${date} T00:00:00`);
   const isMonday = dateObj.getDay() === 1;
   const isMonthStart = dateObj.getDate() === 1;
 
@@ -73,7 +205,7 @@ const ensureRepeatTasks = async (date: string, userId: string) => {
   ) => {
     if (!shouldRun) return;
 
-    const storageKey = `${storageKeyBase}_${userId}`;
+    const storageKey = `${storageKeyBase}_${userId} `;
     const stored = await AsyncStorage.getItem(storageKey);
     if (stored) {
       try {
