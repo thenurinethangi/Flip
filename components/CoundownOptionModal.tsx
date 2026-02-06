@@ -1,7 +1,7 @@
 import { deleteCountdown } from "@/services/countdownService";
 import { Pencil, Trash2 } from "lucide-react-native";
 import React from "react";
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface DeleteModalProps {
     visible: boolean;
@@ -33,16 +33,24 @@ const CountdownOptionModal: React.FC<DeleteModalProps> = ({ visible, onClose, co
         >
             <View style={styles.overlay} pointerEvents="box-none">
                 <Pressable style={styles.backdrop} onPress={onClose} />
-                <TouchableOpacity style={styles.card}>
+                <View style={styles.card}>
                     <Pressable onPress={onShowEdit} style={styles.row}>
-                        <Pencil size={20} color="#2B2B2B" />
-                        <Text style={styles.text}>Edit</Text>
+                        {({ pressed }) => (
+                            <View style={[styles.rowContent, pressed && styles.rowPressed]}>
+                                <Pencil size={20} color="#2B2B2B" />
+                                <Text style={styles.text}>Edit</Text>
+                            </View>
+                        )}
                     </Pressable>
                     <Pressable onPress={handleDeleteCountdown} style={styles.row}>
-                        <Trash2 size={20} color="#2B2B2B" />
-                        <Text style={styles.text}>Delete</Text>
+                        {({ pressed }) => (
+                            <View style={[styles.rowContent, pressed && styles.rowPressed]}>
+                                <Trash2 size={20} color="#2B2B2B" />
+                                <Text style={styles.text}>Delete</Text>
+                            </View>
+                        )}
                     </Pressable>
-                </TouchableOpacity>
+                </View>
             </View>
         </Modal>
     );
@@ -65,8 +73,6 @@ const styles = StyleSheet.create({
         width: 192,
         backgroundColor: "#fff",
         borderRadius: 20,
-        paddingVertical: 3,
-        paddingHorizontal: 18,
         shadowColor: "#000",
         shadowOpacity: 0.05,
         shadowRadius: 12,
@@ -74,10 +80,19 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     row: {
+        borderRadius: 12,
+        overflow: "hidden",
+    },
+    rowContent: {
         flexDirection: "row",
         alignItems: "center",
         gap: 12,
-        paddingVertical: 12,
+        paddingVertical: 14,
+        paddingHorizontal: 18,
+    },
+    rowPressed: {
+        flex: 1,
+        backgroundColor: "#E5E7EB",
     },
     text: {
         fontSize: 16,

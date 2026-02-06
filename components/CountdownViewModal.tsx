@@ -8,6 +8,7 @@ import CountdownOptionModal from './CoundownOptionModal';
 import EditCountdownModal from './EditCountdownModal';
 import Spinner from './spinner';
 import { AppIcon } from './ui/icon-symbol';
+import SpinnerTwo from './SpinnerTwo';
 
 interface ViewCountdownModalProps {
     visible: boolean;
@@ -78,7 +79,7 @@ const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClos
                     <View className="flex-1 items-center justify-center px-5 relative">
                         {isLoading ? (
                             <View className="items-center justify-center" style={{ width: '100%', maxWidth: 320, height: 640 }}>
-                                <Spinner />
+                                <SpinnerTwo />
                             </View>
                         ) : (
                             <>
