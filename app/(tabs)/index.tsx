@@ -12,6 +12,7 @@ import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatli
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TaskEditModal from './../../components/TaskEditModal';
+import { requestNotificationPermission } from '@/config/notificationConfig';
 
 export default function HomeScreen() {
 
@@ -40,6 +41,8 @@ export default function HomeScreen() {
   const [todayCompleteTasks, setTodayCompleteTasks] = useState<any[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<any[]>([]);
   const [expandedTaskIds, setExpandedTaskIds] = useState<Record<string, boolean>>({});
+
+  requestNotificationPermission();
 
   const subtaskUnsubscribers = useRef<Record<string, () => void>>({});
 

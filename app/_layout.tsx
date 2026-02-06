@@ -9,6 +9,7 @@ import { useContext } from "react";
 import { StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast, { ToastConfig } from "react-native-toast-message";
+import { useNotificationTapHandler } from "@/hooks/useNotificationTapHandler";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -16,6 +17,8 @@ export const unstable_settings = {
 
 function RootLayoutContent() {
   const { currentTheme } = useContext(ThemeContext);
+
+  useNotificationTapHandler();
 
   const toastConfig: ToastConfig = {
     success: ({ text1, text2 }) => (

@@ -11,6 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { scheduleLocalNotificationForCountdown } from "./notificationService";
 
 export type AddNewCountdownType = {
   countdownName: string;
@@ -18,6 +19,72 @@ export type AddNewCountdownType = {
   reminder: string;
   repeat: string;
   type: string;
+};
+
+type ReminderLabel =
+  | "None"
+  | "1 day early"
+  | "2 day early"
+  | "5 day early"
+  | "1 week early"
+  | "2 week early"
+  | "1 month early";
+
+export function getReminderDate(
+  taskDateStr: string,
+  reminderLabel: ReminderLabel,
+): Date {
+  const [year, month, day] = taskDateStr.split("-").map(Number);
+
+  const reminderDate = new Date(year, month - 1, day, 9, 0, 0);
+
+  switch (reminderLabel) {
+    case "1 day early":
+      reminderDate.setDate(reminderDate.getDate() - 1);
+      break;
+
+    case "2 day early":
+      reminderDate.setDate(reminderDate.getDate() - 2);
+      break;
+
+    case "5 day early":
+      reminderDate.setDate(reminderDate.getDate() - 5);
+      break;
+
+    case "1 week early":
+      reminderDate.setDate(reminderDate.getDate() - 7);
+      break;
+
+    case "2 week early":
+      reminderDate.setDate(reminderDate.getDate() - 14);
+      break;
+
+    case "1 month early":
+      reminderDate.setMonth(reminderDate.getMonth() - 1);
+      break;
+  }
+
+  return reminderDate;
+}
+
+const getReminderBodyText = (
+  reminderLabel: ReminderLabel,
+  countdownName: string,
+): string => {
+  if (reminderLabel === "None") {
+    return countdownName;
+  }
+
+  const prefixMap: Record<Exclude<ReminderLabel, "None">, string> = {
+    "1 day early": "1 day left to ",
+    "2 day early": "2 days left to ",
+    "5 day early": "5 days left to ",
+    "1 week early": "1 week left to ",
+    "2 week early": "2 weeks left to ",
+    "1 month early": "1 month left to ",
+  };
+
+  return `${prefixMap[reminderLabel] ?? ""}${countdownName}`.trim();
 };
 
 export const add = async (data: AddNewCountdownType) => {
@@ -38,6 +105,29 @@ export const add = async (data: AddNewCountdownType) => {
   };
 
   const docRef = await addDoc(collection(db, "countdowns"), payload);
+
+  if (data.reminder !== "None") {
+    const dateToRemind = getReminderDate(
+      data.date,
+      data.reminder as ReminderLabel,
+    );
+    const bodyText = getReminderBodyText(
+      data.reminder as ReminderLabel,
+      data.countdownName,
+    );
+    const notificationId = await scheduleLocalNotificationForCountdown(
+      "Countdown Reminder",
+      bodyText,
+      dateToRemind,
+      docRef.id
+    );
+    console.log(notificationId)
+
+    await updateDoc(doc(db, 'countdowns', docRef.id), {
+      notificationId: notificationId
+    })
+  }
+
   return docRef.id;
 };
 
@@ -156,11 +246,11 @@ export const subscribeCountdown = async (
 };
 
 export const deleteCountdown = async (id: string) => {
-  await deleteDoc(doc(db, 'countdowns', id));
+  await deleteDoc(doc(db, "countdowns", id));
 };
 
 export const editCountdown = async (data: any) => {
-  await updateDoc(doc(db, 'countdowns', data.id), {
+  await updateDoc(doc(db, "countdowns", data.id), {
     countdownName: data.countdownName,
     date: data.date,
     reminder: data.reminder,

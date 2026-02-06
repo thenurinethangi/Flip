@@ -66,7 +66,8 @@ const styles = StyleSheet.create({
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "transparent",
+        backgroundColor: "#F5F6F8",
+        opacity: 0.95,
     },
     container: {
         gap: 16,
