@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
 import {
-  cancelLocalNotificationForCountdown,
+  cancelLocalNotification,
   scheduleLocalNotificationForCountdown,
 } from "./notificationService";
 
@@ -278,7 +278,7 @@ export const deleteCountdown = async (id: string) => {
 
   if (c_doc.exists() && c_doc.data().notificationId) {
     try {
-      await cancelLocalNotificationForCountdown(c_doc.data().notificationId);
+      await cancelLocalNotification(c_doc.data().notificationId);
     } catch (error) {
       console.log("Failed to cancel notification", error);
     }
@@ -292,7 +292,7 @@ export const editCountdown = async (data: any) => {
 
   if (c_doc.exists() && c_doc.data().notificationId) {
     try {
-      await cancelLocalNotificationForCountdown(c_doc.data().notificationId);
+      await cancelLocalNotification(c_doc.data().notificationId);
     } catch (error) {
       console.log("Failed to cancel notification", error);
     }
@@ -322,8 +322,7 @@ export const editCountdown = async (data: any) => {
       notificationId: notificationId,
       updatedAt: serverTimestamp(),
     });
-  }
-  else {
+  } else {
     await updateDoc(doc(db, "countdowns", data.id), {
       countdownName: data.countdownName,
       date: data.date,

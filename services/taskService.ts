@@ -3,7 +3,9 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -13,7 +15,10 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
-import { scheduleLocalNotificationForTaskWithoutRepeat } from "./notificationService";
+import {
+  cancelLocalNotification,
+  scheduleLocalNotificationForTask,
+} from "./notificationService";
 import {
   ensureRepeatSubtasksForTask,
   getAllSubTasksByTaskId,
@@ -58,7 +63,7 @@ export const add = async (input: AddTaskInput) => {
     const title = input.taskname;
     const body = getReminderBodyText(input.reminder as ReminderLabel);
 
-    const notificationId = await scheduleLocalNotificationForTaskWithoutRepeat(
+    const notificationId = await scheduleLocalNotificationForTask(
       title,
       body,
       reminderDate,
@@ -94,7 +99,7 @@ const getReminderBodyText = (reminderLabel: ReminderLabel): string => {
     "30 minutes before": "Scheduled in 30 minutes",
     "1 hour before": "Scheduled in 1 hour",
     "On the day": "Scheduled today",
-    "1 day early": "Scheduled next day",
+    "1 day early": "Scheduled tomorrow",
   };
 
   return prefixMap[reminderLabel];
@@ -450,20 +455,68 @@ export const update = async (task: any) => {
     throw new Error("User not authenticated");
   }
 
-  await updateDoc(doc(db, "tasks", task.id), {
-    taskname: task.taskname,
-    date: task.date,
-    time: task.time,
-    reminder: task.reminder,
-    repeat: task.repeat,
-    priorityLevel: task.priorityLevel,
-    taskType: task.taskType,
-    tags: task.tags,
-    status: task.status,
-    updatedAt: serverTimestamp(),
-  });
+  const docRef = await getDoc(doc(db, "tasks", task.id));
+  if (docRef.exists() && docRef.data().notificationId) {
+    try {
+      await cancelLocalNotification(docRef.data().notificationId);
+    } catch (error) {
+      console.log("Failed to cancel notification", error);
+    }
+  }
+
+  if (task.reminder !== "None") {
+    const reminderDate = getReminderDate(task);
+    const title = task.taskname;
+    const body = getReminderBodyText(task.reminder as ReminderLabel);
+
+    const notificationId = await scheduleLocalNotificationForTask(
+      title,
+      body,
+      reminderDate,
+      docRef.id,
+    );
+
+    await updateDoc(doc(db, "tasks", task.id), {
+      taskname: task.taskname,
+      date: task.date,
+      time: task.time,
+      reminder: task.reminder,
+      repeat: task.repeat,
+      priorityLevel: task.priorityLevel,
+      taskType: task.taskType,
+      tags: task.tags,
+      status: task.status,
+      notificationId: notificationId,
+      updatedAt: serverTimestamp(),
+    });
+  }
+  else {
+    await updateDoc(doc(db, "tasks", task.id), {
+      taskname: task.taskname,
+      date: task.date,
+      time: task.time,
+      reminder: task.reminder,
+      repeat: task.repeat,
+      priorityLevel: task.priorityLevel,
+      taskType: task.taskType,
+      tags: task.tags,
+      status: task.status,
+      notificationId: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+  }
 };
 
 export const deleteTaskByTaskId = async (taskId: string) => {
+
+  const docRef = await getDoc(doc(db, "tasks", taskId));
+  if (docRef.exists() && docRef.data().notificationId) {
+    try {
+      await cancelLocalNotification(docRef.data().notificationId);
+    } catch (error) {
+      console.log("Failed to cancel notification", error);
+    }
+  }
+
   await deleteDoc(doc(db, "tasks", taskId));
 };
