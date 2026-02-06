@@ -2,7 +2,9 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -11,7 +13,10 @@ import {
   where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
-import { scheduleLocalNotificationForCountdown } from "./notificationService";
+import {
+  cancelLocalNotificationForCountdown,
+  scheduleLocalNotificationForCountdown,
+} from "./notificationService";
 
 export type AddNewCountdownType = {
   countdownName: string;
@@ -116,16 +121,16 @@ export const add = async (data: AddNewCountdownType) => {
       data.countdownName,
     );
     const notificationId = await scheduleLocalNotificationForCountdown(
-      "Countdown Reminder",
+      data.type + " Reminder",
       bodyText,
       dateToRemind,
-      docRef.id
+      docRef.id,
     );
-    console.log(notificationId)
+    console.log(notificationId);
 
-    await updateDoc(doc(db, 'countdowns', docRef.id), {
-      notificationId: notificationId
-    })
+    await updateDoc(doc(db, "countdowns", docRef.id), {
+      notificationId: notificationId,
+    });
   }
 
   return docRef.id;
@@ -201,10 +206,33 @@ const ensureRepeatCountdown = async (userId: string) => {
     if (isOldDate(item.date)) {
       const nextDate = getNextRepeatDate(item.date, item.repeat);
       if (nextDate && nextDate !== item.date) {
-        await updateDoc(doc(db, "countdowns", item.id), {
-          date: nextDate,
-          updatedAt: serverTimestamp(),
-        });
+        if (item.reminder !== "None") {
+          const dateToRemind = getReminderDate(
+            nextDate,
+            item.reminder as ReminderLabel,
+          );
+          const bodyText = getReminderBodyText(
+            item.reminder as ReminderLabel,
+            item.countdownName,
+          );
+          const notificationId = await scheduleLocalNotificationForCountdown(
+            item.type + " Reminder",
+            bodyText,
+            dateToRemind,
+            item.id,
+          );
+
+          await updateDoc(doc(db, "countdowns", item.id), {
+            date: nextDate,
+            updatedAt: serverTimestamp(),
+            notificationId: notificationId,
+          });
+        } else {
+          await updateDoc(doc(db, "countdowns", item.id), {
+            date: nextDate,
+            updatedAt: serverTimestamp(),
+          });
+        }
       }
     }
   }
@@ -246,15 +274,63 @@ export const subscribeCountdown = async (
 };
 
 export const deleteCountdown = async (id: string) => {
+  const c_doc = await getDoc(doc(db, "countdowns", id));
+
+  if (c_doc.exists() && c_doc.data().notificationId) {
+    try {
+      await cancelLocalNotificationForCountdown(c_doc.data().notificationId);
+    } catch (error) {
+      console.log("Failed to cancel notification", error);
+    }
+  }
+
   await deleteDoc(doc(db, "countdowns", id));
 };
 
 export const editCountdown = async (data: any) => {
-  await updateDoc(doc(db, "countdowns", data.id), {
-    countdownName: data.countdownName,
-    date: data.date,
-    reminder: data.reminder,
-    repeat: data.repeat,
-    updatedAt: serverTimestamp(),
-  });
+  const c_doc = await getDoc(doc(db, "countdowns", data.id));
+
+  if (c_doc.exists() && c_doc.data().notificationId) {
+    try {
+      await cancelLocalNotificationForCountdown(c_doc.data().notificationId);
+    } catch (error) {
+      console.log("Failed to cancel notification", error);
+    }
+  }
+
+  if (data.reminder !== "None") {
+    const dateToRemind = getReminderDate(
+      data.date,
+      data.reminder as ReminderLabel,
+    );
+    const bodyText = getReminderBodyText(
+      data.reminder as ReminderLabel,
+      data.countdownName,
+    );
+    const notificationId = await scheduleLocalNotificationForCountdown(
+      data.type + " Reminder",
+      bodyText,
+      dateToRemind,
+      data.id,
+    );
+
+    await updateDoc(doc(db, "countdowns", data.id), {
+      countdownName: data.countdownName,
+      date: data.date,
+      reminder: data.reminder,
+      repeat: data.repeat,
+      notificationId: notificationId,
+      updatedAt: serverTimestamp(),
+    });
+  }
+  else {
+    await updateDoc(doc(db, "countdowns", data.id), {
+      countdownName: data.countdownName,
+      date: data.date,
+      reminder: data.reminder,
+      repeat: data.repeat,
+      notificationId: deleteField(),
+      updatedAt: serverTimestamp(),
+    });
+  }
 };
