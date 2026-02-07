@@ -10,6 +10,7 @@ import { StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast, { ToastConfig } from "react-native-toast-message";
 import { useNotificationTapHandler } from "@/hooks/useNotificationTapHandler";
+import ColorProvider from "@/context/colorContext";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -59,7 +60,9 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <ThemeProvider>
-          <RootLayoutContent />
+          <ColorProvider>
+            <RootLayoutContent />
+          </ColorProvider>
         </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>
