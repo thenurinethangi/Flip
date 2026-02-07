@@ -45,8 +45,6 @@ const ThemeModal: React.FC<ThemeModalProps> = ({ visible, onClose }) => {
           </TouchableOpacity>
           <View className="flex-row items-center gap-x-5">
             <Text className="text-[18px] font-semibold text-[#111827]">Theme</Text>
-            <Text className="text-[16px] text-[#9CA3AF]">App icons</Text>
-            <Text className="text-[16px] text-[#9CA3AF]">Display</Text>
           </View>
         </View>
 

@@ -1,4 +1,5 @@
 import AccountModal from '@/components/AccountModal'
+import ThemeModal from '@/components/ThemeModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
 import { auth } from '@/services/firebase'
 import { getUser, subscribeUser, UserProfile } from '@/services/userService'
@@ -9,22 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 const profile = () => {
 
-  const settingsItems = [
-    { label: 'Tab Bar', icon: 'layers' as const },
-    { label: 'Appearance', icon: 'Disc' as const },
-    { label: 'Date & Time', icon: 'Clock' as const },
-    { label: 'Sounds & Notifications', icon: 'bell' as const },
-    { label: 'General', icon: 'Menu' as const },
-  ]
-
-  const moreItems = [
-    { label: 'Recommend to Friends', icon: 'send' as const },
-    { label: 'Help & Feedback', icon: 'bell' as const },
-    { label: 'Follow Us', icon: 'user' as const, hasSocial: true },
-    { label: 'About', icon: 'code' as const },
-  ]
-
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
 
   const [userData, setUserData] = useState<UserProfile>({
     id: '',
@@ -33,6 +20,21 @@ const profile = () => {
     name: '',
     email: ''
   });
+
+  const settingsItems = [
+    { label: 'Tab Bar', icon: 'layers' as const, fuc: () => { } },
+    { label: 'Appearance', icon: 'Disc' as const, fuc: () => setShowThemeModal(true) },
+    { label: 'Date & Time', icon: 'Clock' as const, fuc: () => { } },
+    { label: 'Sounds & Notifications', icon: 'bell' as const, fuc: () => { } },
+    { label: 'General', icon: 'Menu' as const, fuc: () => { } },
+  ]
+
+  const moreItems = [
+    { label: 'Recommend to Friends', icon: 'send' as const },
+    { label: 'Help & Feedback', icon: 'bell' as const },
+    { label: 'Follow Us', icon: 'user' as const, hasSocial: true },
+    { label: 'About', icon: 'code' as const },
+  ]
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -104,7 +106,7 @@ const profile = () => {
           {/* Settings list */}
           <View className='bg-white rounded-[18px] mt-4 shadow-xl shadow-black/15 border border-gray-100 overflow-hidden'>
             {settingsItems.map((item, index) => (
-              <TouchableOpacity key={item.label} className='flex-row items-center justify-between px-4 py-4'>
+              <TouchableOpacity onPress={item.fuc} key={item.label} className='flex-row items-center justify-between px-4 py-4'>
                 <View className='flex-row items-center gap-x-3'>
                   <View className='w-[30px] h-[30px] rounded-[10px] bg-[#EEF2FF] items-center justify-center'>
                     <AppIcon name={item.icon} size={18} color='#4F6EF7' />
@@ -165,6 +167,11 @@ const profile = () => {
       <AccountModal
         visible={showAccountModal}
         onClose={() => setShowAccountModal(false)}
+      />
+
+      <ThemeModal
+        visible={showThemeModal}
+        onClose={() => setShowThemeModal(false)}
       />
 
     </>
