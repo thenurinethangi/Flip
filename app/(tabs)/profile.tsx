@@ -1,6 +1,10 @@
+import AccountModal from '@/components/AccountModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
-import React from 'react'
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { auth } from '@/services/firebase'
+import { getUser, subscribeUser, UserProfile } from '@/services/userService'
+import { onAuthStateChanged } from 'firebase/auth'
+import React, { useEffect, useState } from 'react'
+import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const profile = () => {
@@ -10,7 +14,6 @@ const profile = () => {
     { label: 'Appearance', icon: 'Disc' as const },
     { label: 'Date & Time', icon: 'Clock' as const },
     { label: 'Sounds & Notifications', icon: 'bell' as const },
-    { label: 'Widgets', icon: 'layers' as const },
     { label: 'General', icon: 'Menu' as const },
   ]
 
@@ -20,6 +23,46 @@ const profile = () => {
     { label: 'Follow Us', icon: 'user' as const, hasSocial: true },
     { label: 'About', icon: 'code' as const },
   ]
+
+  const [showAccountModal, setShowAccountModal] = useState(false);
+
+  const [userData, setUserData] = useState<UserProfile>({
+    id: '',
+    userId: '',
+    avatar: '',
+    name: '',
+    email: ''
+  });
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      if (u) {
+        void getUserAdditionalData(u.uid, u.email ?? "");
+      }
+    });
+    return unsub;
+  }, []);
+
+  async function getUserAdditionalData(uid: string, email: string) {
+    try {
+      await subscribeUser(uid, (profile: UserProfile | null) => {
+        if (profile) {
+          setUserData(profile);
+        }
+        else {
+          setUserData({
+            id: '',
+            userId: uid,
+            avatar: '',
+            name: email.split("@")[0],
+            email: email.split("@")[0]
+          });
+        }
+      }, (error) => console.log(error));
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
   return (
     <>
@@ -32,53 +75,41 @@ const profile = () => {
           </View>
         </View>
 
-        <ScrollView className='mt-4' contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+        <ScrollView className='mt-4 flex-1' contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+
           {/* Profile card */}
-          <TouchableOpacity className='bg-white rounded-[18px] px-4 py-4 flex-row items-center justify-between shadow-sm shadow-black/5'>
-            <View className='flex-row items-center gap-x-3'>
-              <View className='w-[48px] h-[48px] rounded-full bg-[#E6E9F4] items-center justify-center'>
-                <AppIcon name='user' color='#9CA3AF' size={22} />
-              </View>
+          <TouchableOpacity onPress={() => setShowAccountModal(true)} className='bg-white rounded-[18px] px-4 py-4 flex-row items-center justify-between shadow-xl shadow-black/15 border border-gray-100'>
+            <View className='flex-row items-center gap-x-4'>
+              {userData.avatar === ''
+                ? <View className='w-[59px] h-[59px] rounded-full bg-[#E6E9F4] items-center justify-center'>
+                  <AppIcon name='user' color='#9CA3AF' size={22} />
+                </View>
+                : <Image source={{ uri: userData.avatar }} className='w-[59px] h-[59px] rounded-full object-center object-cover'></Image>
+              }
               <View>
-                <Text className='text-[16px] font-semibold text-[#111827]'>Thenuri Nathangi</Text>
+                <Text className='text-[17.5px] font-semibold text-[#111827]'>{userData.name}</Text>
                 <View className='flex-row items-center gap-x-2 mt-1'>
                   <View className='px-2 py-[2px] rounded-full bg-[#E6F7EE] flex-row items-center gap-x-1'>
-                    <Text className='text-[11px] text-[#22C55E] font-semibold'>Lv.6</Text>
+                    <Text className='text-[11px] text-[#22C55E] font-semibold'>Free</Text>
                   </View>
-                  <View className='px-2 py-[2px] rounded-full bg-[#E9ECF8] flex-row items-center gap-x-1'>
+                  {/* <View className='px-2 py-[2px] rounded-full bg-[#E9ECF8] flex-row items-center gap-x-1'>
                     <Text className='text-[11px] text-[#64748B] font-semibold'>15 Badges</Text>
-                  </View>
+                  </View> */}
                 </View>
               </View>
             </View>
             <AppIcon name='chevronRight' color='#C5C9D3' size={20} />
           </TouchableOpacity>
 
-          {/* Premium */}
-          <View className='bg-white rounded-[18px] px-4 py-4 flex-row items-center justify-between mt-4 shadow-sm shadow-black/5'>
-            <View className='flex-row items-center gap-x-3 flex-1'>
-              <View className='w-[36px] h-[36px] rounded-full bg-[#FFF4D6] items-center justify-center'>
-                <Text className='text-[16px]'>👑</Text>
-              </View>
-              <View className='flex-1'>
-                <Text className='text-[15px] font-semibold text-[#111827]'>Premium Account</Text>
-                <Text className='text-[12px] text-[#9CA3AF]'>Calendar view and more features</Text>
-              </View>
-            </View>
-            <View className='border border-[#F4B183] px-3 py-[6px] rounded-full'>
-              <Text className='text-[#E57B2C] text-[12px] font-semibold'>Upgrade Now</Text>
-            </View>
-          </View>
-
           {/* Settings list */}
-          <View className='bg-white rounded-[18px] mt-4 shadow-sm shadow-black/5 overflow-hidden'>
+          <View className='bg-white rounded-[18px] mt-4 shadow-xl shadow-black/15 border border-gray-100 overflow-hidden'>
             {settingsItems.map((item, index) => (
               <TouchableOpacity key={item.label} className='flex-row items-center justify-between px-4 py-4'>
                 <View className='flex-row items-center gap-x-3'>
                   <View className='w-[30px] h-[30px] rounded-[10px] bg-[#EEF2FF] items-center justify-center'>
                     <AppIcon name={item.icon} size={18} color='#4F6EF7' />
                   </View>
-                  <Text className='text-[15px] text-[#111827] font-medium'>{item.label}</Text>
+                  <Text className='text-[15px] text-[#000000]'>{item.label}</Text>
                 </View>
                 <AppIcon name='chevronRight' color='#C5C9D3' size={18} />
               </TouchableOpacity>
@@ -86,35 +117,34 @@ const profile = () => {
           </View>
 
           {/* Integrations */}
-          <View className='bg-white rounded-[18px] mt-4 shadow-sm shadow-black/5'>
+          <View className='bg-white rounded-[18px] mt-4 shadow-xl shadow-black/15 border border-gray-100'>
             <TouchableOpacity className='flex-row items-center justify-between px-4 py-4'>
               <View className='flex-row items-center gap-x-3'>
                 <View className='w-[30px] h-[30px] rounded-[10px] bg-[#E6FAF1] items-center justify-center'>
                   <AppIcon name='send' size={18} color='#22C55E' />
                 </View>
-                <Text className='text-[15px] text-[#111827] font-medium'>Integrations & Import</Text>
+                <Text className='text-[15px] text-[#000000]'>Integrations & Import</Text>
               </View>
               <AppIcon name='chevronRight' color='#C5C9D3' size={18} />
             </TouchableOpacity>
           </View>
 
           {/* More */}
-          <View className='bg-white rounded-[18px] mt-4 shadow-sm shadow-black/5 overflow-hidden'>
+          <View className='bg-white rounded-[18px] mt-4 shadow-xl shadow-black/15 overflow-hidden border border-gray-100'>
             {moreItems.map((item) => (
               <TouchableOpacity key={item.label} className='flex-row items-center justify-between px-4 py-4'>
                 <View className='flex-row items-center gap-x-3 flex-1'>
                   <View className='w-[30px] h-[30px] rounded-[10px] bg-[#FFF7E6] items-center justify-center'>
                     <AppIcon name={item.icon} size={18} color='#F59E0B' />
                   </View>
-                  <Text className='text-[15px] text-[#111827] font-medium'>{item.label}</Text>
+                  <Text className='text-[15px] text-[#000000]'>{item.label}</Text>
                 </View>
                 {item.hasSocial ? (
                   <View className='flex-row items-center gap-x-2'>
-                    <View className='w-[20px] h-[20px] rounded-full bg-[#111827] items-center justify-center'><Text className='text-[10px] text-white'>X</Text></View>
-                    <View className='w-[20px] h-[20px] rounded-full bg-[#FF4500] items-center justify-center'><Text className='text-[10px] text-white'>R</Text></View>
-                    <View className='w-[20px] h-[20px] rounded-full bg-[#1877F2] items-center justify-center'><Text className='text-[10px] text-white'>f</Text></View>
-                    <View className='w-[20px] h-[20px] rounded-full bg-[#E1306C] items-center justify-center'><Text className='text-[10px] text-white'>Ig</Text></View>
-                    <View className='w-[20px] h-[20px] rounded-full bg-[#3B82F6] items-center justify-center'><Text className='text-[10px] text-white'>B</Text></View>
+                    <View className='w-[20px] h-[20px] rounded-full items-center justify-center'><Image source={require('./../../assets/images/twitter.png')} className='w-6 h-6 rounded-full'></Image></View>
+                    <View className='w-[20px] h-[20px] rounded-full items-center justify-center'><Image source={require('./../../assets/images/media.png')} className='w-7 h-7 rounded-full'></Image></View>
+                    <View className='w-[20px] h-[20px] rounded-full items-center justify-center'><Image source={require('./../../assets/images/communication.png')} className='w-6 h-6 rounded-full'></Image></View>
+                    <View className='w-[20px] h-[20px] rounded-full items-center justify-center'><Image source={require('./../../assets/images/social.png')} className='w-6 h-6 rounded-full'></Image></View>
                   </View>
                 ) : (
                   <AppIcon name='chevronRight' color='#C5C9D3' size={18} />
@@ -124,12 +154,19 @@ const profile = () => {
           </View>
 
           {/* Sign out */}
-          <TouchableOpacity className='bg-white rounded-[18px] mt-4 px-4 py-4 items-center shadow-sm shadow-black/5'>
-            <Text className='text-[#E94E4E] text-[15px] font-semibold'>Sign Out</Text>
+          <TouchableOpacity className='bg-white rounded-[18px] mt-4 px-4 py-4 items-center shadow-xl shadow-black/15 border border-gray-100'>
+            <Text className='text-[#E94E4E] text-[15px] font-medium'>Sign Out</Text>
           </TouchableOpacity>
+
         </ScrollView>
 
       </SafeAreaView>
+
+      <AccountModal
+        visible={showAccountModal}
+        onClose={() => setShowAccountModal(false)}
+      />
+
     </>
   )
 }
