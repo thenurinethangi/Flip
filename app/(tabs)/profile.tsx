@@ -2,10 +2,11 @@ import AccountModal from '@/components/AccountModal'
 import ThemeModal from '@/components/ThemeModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
 import { auth } from '@/services/firebase'
-import { getUser, subscribeUser, UserProfile } from '@/services/userService'
-import { onAuthStateChanged } from 'firebase/auth'
+import { subscribeUser, UserProfile } from '@/services/userService'
+import { router } from 'expo-router'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 import React, { useEffect, useState } from 'react'
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const profile = () => {
@@ -63,6 +64,17 @@ const profile = () => {
       }, (error) => console.log(error));
     } catch (e) {
       console.log(e);
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+      router.replace('/');
+    }
+    catch (e) {
+      console.log(e);
+      Alert.alert('Fail to logout!');
     }
   }
 
@@ -156,7 +168,7 @@ const profile = () => {
           </View>
 
           {/* Sign out */}
-          <TouchableOpacity className='bg-white rounded-[18px] mt-4 px-4 py-4 items-center shadow-xl shadow-black/15 border border-gray-100'>
+          <TouchableOpacity onPress={handleLogout} className='bg-white rounded-[18px] mt-4 px-4 py-4 items-center shadow-xl shadow-black/15 border border-gray-100'>
             <Text className='text-[#E94E4E] text-[15px] font-medium'>Sign Out</Text>
           </TouchableOpacity>
 

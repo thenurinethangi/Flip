@@ -4,17 +4,13 @@ import "./../global.css";
 
 import { CustomToast } from "@/components/custom-toast";
 import { AuthProvider } from "@/context/authContext";
+import ColorProvider from "@/context/colorContext";
 import ThemeProvider, { ThemeContext } from "@/context/themeContext";
+import { useNotificationTapHandler } from "@/hooks/useNotificationTapHandler";
 import { useContext } from "react";
 import { StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast, { ToastConfig } from "react-native-toast-message";
-import { useNotificationTapHandler } from "@/hooks/useNotificationTapHandler";
-import ColorProvider from "@/context/colorContext";
-
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
 
 function RootLayoutContent() {
   const { currentTheme } = useContext(ThemeContext);

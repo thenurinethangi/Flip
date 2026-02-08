@@ -1,7 +1,6 @@
 import { ThemeContext } from "@/context/themeContext";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -25,12 +24,12 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 
-import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
-import { getAuth, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
-import * as AuthSession from "expo-auth-session";
-import { useAuth } from "@/context/authContext";
 import Spinner from "@/components/spinner";
+import { useAuth } from "@/context/authContext";
+import * as AuthSession from "expo-auth-session";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
+import { getAuth, GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 
 WebBrowser.maybeCompleteAuthSession();
 
