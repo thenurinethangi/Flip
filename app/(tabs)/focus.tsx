@@ -1,7 +1,9 @@
+import FocusStatsModal from '@/components/FocusStatsModal'
 import FocusTaskModal from '@/components/FocusTaskModal'
 import FocusTimeModal from '@/components/FocusTimeModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
-import { add, getAllFocusByDate } from '@/services/focusService'
+import { useAuth } from '@/context/authContext'
+import { add, FocusType, subscribeFocusByDate } from '@/services/focusService'
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import * as Notifications from "expo-notifications"
 import { Pause, Play, Square } from 'lucide-react-native'
@@ -28,6 +30,8 @@ const STORAGE_KEY = 'ACTIVE_POMO';
 
 const focus = () => {
 
+  const { user } = useAuth();
+
   const [focusTimeChangeCount, setFocusTimeChangeCount] = useState(1);
 
   const [totalSeconds, setTotalSeconds] = useState(60 * 60);
@@ -49,6 +53,7 @@ const focus = () => {
 
   const [showFocusTimeModal, setShowFocusTimeModal] = useState(false);
   const [showFocusTaskModal, setShowFocusTaskModal] = useState(false);
+  const [showFocusStatsModal, setShowFocusStatsModal] = useState(true);
 
   const refreshFocusTime = async () => {
     const focusTime = await AsyncStorage.getItem('focusTime');
@@ -221,8 +226,26 @@ const focus = () => {
   }, [status]);
 
   useEffect(() => {
-    loadFocusStats();
-  }, []);
+    if (!user) return;
+    const unsubscribe = subscribeFocusByDate(new Date(), (focusDocs: FocusType[]) => {
+      setPomos(focusDocs.length);
+      const durations = focusDocs.map((x: any) => x.focusDuration);
+      let totalDurationInMinutes = 0;
+      for (let i = 0; i < durations.length; i++) {
+        const element = durations[i];
+        totalDurationInMinutes += element;
+      }
+
+      const hours = Math.floor(totalDurationInMinutes / 60);
+      const minutes = Math.floor(totalDurationInMinutes % 60);
+      const hoursText = hours > 0 ? `${hours} hour${hours === 1 ? '' : 's'}` : '';
+      const minutesText = minutes > 0 ? `${minutes} minute${minutes === 1 ? '' : 's'}` : '';
+      const display = [hoursText, minutesText].filter(Boolean).join(' ');
+      setTime(display || '0 minutes');
+    });
+
+    return unsubscribe;
+  }, [user]);
 
   const resetFocusSession = () => {
     setIsRunning(false);
@@ -291,31 +314,6 @@ const focus = () => {
     }
   }
 
-  async function loadFocusStats() {
-
-    try {
-      const todayFocusData = await getAllFocusByDate(new Date());
-      setPomos(todayFocusData.length);
-      const durations = todayFocusData.map((x: any) => x.focusDuration);
-      let totalDurationInMinutes = 0;
-      for (let i = 0; i < durations.length; i++) {
-        const element = durations[i];
-        totalDurationInMinutes += element;
-      }
-
-      const hours = Math.floor(totalDurationInMinutes / 60);
-      const minutes = Math.floor(totalDurationInMinutes % 60);
-      const hoursText = hours > 0 ? `${hours} hour${hours === 1 ? '' : 's'}` : '';
-      const minutesText = minutes > 0 ? `${minutes} minute${minutes === 1 ? '' : 's'}` : '';
-      const display = [hoursText, minutesText].filter(Boolean).join(' ');
-      setTime(display || '0 minutes');
-
-    }
-    catch (e) {
-      console.log(e);
-    }
-  }
-
 
   return (
     <>
@@ -327,7 +325,9 @@ const focus = () => {
             <Text className='text-[20.5px] font-semibold'>Pomo</Text>
           </View>
           <View className='flex-row items-center gap-x-3'>
-            <AppIcon name="ChartPie" color="#424242" size={22} />
+            <TouchableOpacity onPress={() => setShowFocusStatsModal(true)}>
+              <AppIcon name="ChartPie" color="#424242" size={22} />
+            </TouchableOpacity>
             <AppIcon name="EllipsisVertical" color="#424242" size={22} />
           </View>
         </View>
@@ -545,6 +545,11 @@ const focus = () => {
         visible={showFocusTaskModal}
         onClose={() => setShowFocusTaskModal(false)}
         onSelect={(task: FocusedTask) => setFocusedTask(task)}
+      />
+
+      <FocusStatsModal
+        visible={showFocusStatsModal}
+        onClose={() => setShowFocusStatsModal(false)}
       />
     </>
   )
