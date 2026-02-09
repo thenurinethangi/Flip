@@ -1,7 +1,7 @@
 import FocusTaskModal from '@/components/FocusTaskModal'
 import FocusTimeModal from '@/components/FocusTimeModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
-import { add } from '@/services/focusService'
+import { add, getAllFocusByDate } from '@/services/focusService'
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import * as Notifications from "expo-notifications"
 import { Pause, Play, Square } from 'lucide-react-native'
@@ -43,6 +43,9 @@ const focus = () => {
   const [remainingBreakSeconds, setRemainingBreakSeconds] = useState(totalBreakSeconds);
   const [isRunningBreak, setIsRunningBreak] = useState(false);
   const [statusBreak, setStatusBreak] = useState('end');
+
+  const [pomos, setPomos] = useState(0);
+  const [time, setTime] = useState('');
 
   const [showFocusTimeModal, setShowFocusTimeModal] = useState(false);
   const [showFocusTaskModal, setShowFocusTaskModal] = useState(false);
@@ -217,6 +220,10 @@ const focus = () => {
     }
   }, [status]);
 
+  useEffect(() => {
+    loadFocusStats();
+  }, []);
+
   const resetFocusSession = () => {
     setIsRunning(false);
     setStatus('end');
@@ -278,6 +285,31 @@ const focus = () => {
 
     try {
       const id = await add(payload);
+    }
+    catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function loadFocusStats() {
+
+    try {
+      const todayFocusData = await getAllFocusByDate(new Date());
+      setPomos(todayFocusData.length);
+      const durations = todayFocusData.map((x: any) => x.focusDuration);
+      let totalDurationInMinutes = 0;
+      for (let i = 0; i < durations.length; i++) {
+        const element = durations[i];
+        totalDurationInMinutes += element;
+      }
+
+      const hours = Math.floor(totalDurationInMinutes / 60);
+      const minutes = Math.floor(totalDurationInMinutes % 60);
+      const hoursText = hours > 0 ? `${hours} hour${hours === 1 ? '' : 's'}` : '';
+      const minutesText = minutes > 0 ? `${minutes} minute${minutes === 1 ? '' : 's'}` : '';
+      const display = [hoursText, minutesText].filter(Boolean).join(' ');
+      setTime(display || '0 minutes');
+
     }
     catch (e) {
       console.log(e);
@@ -408,7 +440,7 @@ const focus = () => {
 
               {!isRunning && status === 'end'
                 ? <View className='mt-5'>
-                  <Text className='text-gray-500 text-[14px]'>Today: 1 Pomo . 1 hour</Text>
+                  <Text className='text-gray-500 text-[14px]'>Today: {pomos} Pomo . {time || '0 minutes'}</Text>
                 </View>
                 : ''}
             </View>
