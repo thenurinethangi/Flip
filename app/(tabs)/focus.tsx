@@ -84,6 +84,13 @@ const focus = () => {
     await AsyncStorage.removeItem(STORAGE_KEY);
   };
 
+  const ensureNotificationPermission = async () => {
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status === "granted") return true;
+    const request = await Notifications.requestPermissionsAsync();
+    return request.status === "granted";
+  };
+
   const createSession = async (nextSession: PomodoroSession) => {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nextSession));
     setSession(nextSession);
@@ -93,16 +100,24 @@ const focus = () => {
     const duration = totalBreakSeconds;
     const startTime = Date.now();
 
-    const notificationId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Break finished',
-        body: 'Ready for another focus session 🚀',
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: new Date(Date.now() + duration * 1000),
-      },
-    });
+    let notificationId: string | null = null;
+    try {
+      const hasPermission = await ensureNotificationPermission();
+      if (hasPermission) {
+        notificationId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Break finished',
+            body: 'Ready for another focus session 🚀',
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: new Date(Date.now() + duration * 1000),
+          },
+        });
+      }
+    } catch {
+      notificationId = null;
+    }
 
     const nextSession: PomodoroSession = {
       mode: 'break',
@@ -123,16 +138,24 @@ const focus = () => {
     const duration = durationOverride ?? totalSeconds;
     const startTime = Date.now();
 
-    const notificationId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Focus complete',
-        body: 'Time to take a break ☕',
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: new Date(Date.now() + duration * 1000),
-      },
-    });
+    let notificationId: string | null = null;
+    try {
+      const hasPermission = await ensureNotificationPermission();
+      if (hasPermission) {
+        notificationId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Focus complete',
+            body: 'Time to take a break ☕',
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: new Date(Date.now() + duration * 1000),
+          },
+        });
+      }
+    } catch {
+      notificationId = null;
+    }
 
     const nextSession: PomodoroSession = {
       mode: 'focus',

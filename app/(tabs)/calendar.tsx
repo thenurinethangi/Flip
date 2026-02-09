@@ -514,7 +514,7 @@ export default function Calendar() {
 
             {/* complete tasks container */}
             {completeTasks.length > 0
-              ? <View className='pt-3 shadow-lg shadow-black/0.05 px-2' style={{ backgroundColor: surfaceBg }}>
+              ? <View className='pt-3 shadow-lg shadow-black/0.05' style={{ backgroundColor: surfaceBg }}>
                 <Animated.View
                   layout={Layout.springify().damping(18).stiffness(180)}
                   entering={FadeIn.duration(200)}
@@ -522,12 +522,13 @@ export default function Calendar() {
                   className={`py-[12.5px]  rounded-[10px] ${completeTasks.length > 0 ? 'visible' : 'invisible'}`}
                   style={{ backgroundColor: cardBg }}
                 >
-                  <View className=''>
+                  <View className='px-2'>
                     <Text className='text-[16px] font-semibold uppercase px-[12px] py-[14px]' style={{ color: textSecondary }}>Completed</Text>
                   </View>
 
                   {/* today complete tasks */}
                   <FlatList
+                    className='px-2'
                     scrollEnabled={false}
                     data={completeTasks}
                     keyExtractor={(item) => item.task.id}

@@ -661,7 +661,8 @@ export default function SubtaskEditModal({
                                         <View className="flex-row gap-x-[5px]">
                                             <Text
                                                 onPress={() => setShowDate(true)}
-                                                className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? "text-primary" : "text-red-500"} ${taskDate && !isNotPastDate(taskDate) && task?.status === 'complete' ? "text-[#9BA2AB]" : ""}`}
+                                                className={`text-[15.5px] ${taskDate && !isNotPastDate(taskDate) ? "text-red-500" : ""} ${taskDate && !isNotPastDate(taskDate) && task?.status === 'complete' ? "text-[#9BA2AB]" : ""}`}
+                                                style={{ color: taskDate && isNotPastDate(taskDate) ? colorTheme : undefined }}
                                             >
                                                 {headerDate}
                                                 {taskForm.time != "None" ? "," : ""}{" "}
@@ -726,7 +727,7 @@ export default function SubtaskEditModal({
                                         }))
                                     }
                                     editorInitializedCallback={disableSpellcheck}
-                                        editorStyle={{
+                                    editorStyle={{
                                         backgroundColor: cardBg,
                                         color: textPrimary,
                                         contentCSSText: `

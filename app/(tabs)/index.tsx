@@ -57,7 +57,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/");
+      router.replace("/(auth)");
     }
   }, [user, loading]);
 
@@ -87,6 +87,7 @@ export default function HomeScreen() {
 
 
   useEffect(() => {
+    if (!user) return;
     const unsubscribe = subscribePendingTasksByDate(
       todayStr,
       (tasks) => {
@@ -97,9 +98,10 @@ export default function HomeScreen() {
     );
 
     return unsubscribe;
-  }, [todayStr]);
+  }, [todayStr, user]);
 
   useEffect(() => {
+    if (!user) return;
     const unsubscribe = subscribeCompleteTasksByDate(
       todayStr,
       (tasks) => setTodayCompleteTasks(tasks),
@@ -107,9 +109,10 @@ export default function HomeScreen() {
     );
 
     return unsubscribe;
-  }, [todayStr]);
+  }, [todayStr, user]);
 
   useEffect(() => {
+    if (!user) return;
     const unsubscribe = subscribeOverdueTasks(
       todayStr,
       (tasks) => setOverdueTasks(tasks),
@@ -117,9 +120,18 @@ export default function HomeScreen() {
     );
 
     return unsubscribe;
-  }, [todayStr]);
+  }, [todayStr, user]);
 
   useEffect(() => {
+    if (!user) {
+      Object.values(subtaskUnsubscribers.current).forEach((unsubscribe) => unsubscribe());
+      subtaskUnsubscribers.current = {};
+      setTodayIncompleteTasks([]);
+      setTodayCompleteTasks([]);
+      setOverdueTasks([]);
+      setExpandedTaskIds({});
+      return;
+    }
     const allTasks = [...todayIncompleteTasks, ...todayCompleteTasks, ...overdueTasks];
     const activeTaskIds = new Set(allTasks.map((item) => item.task.id));
 
@@ -139,7 +151,7 @@ export default function HomeScreen() {
         delete subtaskUnsubscribers.current[taskId];
       }
     });
-  }, [todayIncompleteTasks, todayCompleteTasks, overdueTasks]);
+  }, [todayIncompleteTasks, todayCompleteTasks, overdueTasks, user]);
 
   useEffect(() => () => {
     Object.values(subtaskUnsubscribers.current).forEach((unsubscribe) => unsubscribe());
