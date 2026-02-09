@@ -3,11 +3,13 @@ import FocusTaskModal from '@/components/FocusTaskModal'
 import FocusTimeModal from '@/components/FocusTimeModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
 import { useAuth } from '@/context/authContext'
+import { ColorContext } from '@/context/colorContext'
+import { ThemeContext } from '@/context/themeContext'
 import { add, FocusType, subscribeFocusByDate } from '@/services/focusService'
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import * as Notifications from "expo-notifications"
 import { Pause, Play, Square } from 'lucide-react-native'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, AppState, Image, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Svg, { Circle } from 'react-native-svg'
@@ -31,6 +33,9 @@ const STORAGE_KEY = 'ACTIVE_POMO';
 const focus = () => {
 
   const { user } = useAuth();
+  const { currentTheme } = useContext(ThemeContext);
+  const { colorTheme } = useContext(ColorContext);
+  const isDark = currentTheme === 'dark';
 
   const [focusTimeChangeCount, setFocusTimeChangeCount] = useState(1);
 
@@ -53,7 +58,7 @@ const focus = () => {
 
   const [showFocusTimeModal, setShowFocusTimeModal] = useState(false);
   const [showFocusTaskModal, setShowFocusTaskModal] = useState(false);
-  const [showFocusStatsModal, setShowFocusStatsModal] = useState(true);
+  const [showFocusStatsModal, setShowFocusStatsModal] = useState(false);
 
   const refreshFocusTime = async () => {
     const focusTime = await AsyncStorage.getItem('focusTime');
@@ -317,18 +322,18 @@ const focus = () => {
 
   return (
     <>
-      <SafeAreaView className='bg-[#F5F6F8] flex-1'>
+      <SafeAreaView className={`${isDark ? 'bg-[#000000]' : 'bg-[#F5F6F8]'} flex-1`}>
 
         <View className='mt-[17px] flex-row justify-between items-center px-4'>
           <View className='flex-row items-center gap-x-4'>
             {/* <AppIcon name="Menu" color="#222" /> */}
-            <Text className='text-[20.5px] font-semibold'>Pomo</Text>
+            <Text className='text-[20.5px] font-semibold' style={{ color: isDark ? '#E5E7EB' : '#111827' }}>Pomo</Text>
           </View>
           <View className='flex-row items-center gap-x-3'>
             <TouchableOpacity onPress={() => setShowFocusStatsModal(true)}>
-              <AppIcon name="ChartPie" color="#424242" size={22} />
+              <AppIcon name="ChartPie" color={isDark ? '#E5E7EB' : '#424242'} size={22} />
             </TouchableOpacity>
-            <AppIcon name="EllipsisVertical" color="#424242" size={22} />
+            <AppIcon name="EllipsisVertical" color={isDark ? '#E5E7EB' : '#424242'} size={22} />
           </View>
         </View>
 
@@ -336,8 +341,10 @@ const focus = () => {
           {!isBreak
             ? <View className='items-center'>
               <TouchableOpacity onPress={() => setShowFocusTaskModal(true)} className='flex-row items-center gap-x-2 mb-16'>
-                <Text className='text-[16px] text-[#6B7280]'>{focusedTask ? focusedTask.taskname : 'Focus'}</Text>
-                <AppIcon name='chevronRight' color='#C5C9D3' size={16} />
+                <Text className='text-[16px]' style={{ color: isDark ? '#D1D5DB' : '#6B7280' }}>
+                  {focusedTask ? focusedTask.taskname : 'Focus'}
+                </Text>
+                <AppIcon name='chevronRight' color={isDark ? '#6B7280' : '#C5C9D3'} size={16} />
               </TouchableOpacity>
 
               <View className='items-center justify-center relative' style={{ width: size, height: size }}>
@@ -346,7 +353,7 @@ const focus = () => {
                     cx={size / 2}
                     cy={size / 2}
                     r={radius}
-                    stroke='#E5E7EB'
+                    stroke={isDark ? '#1F2937' : '#E5E7EB'}
                     strokeWidth={strokeWidth}
                     fill='none'
                   />
@@ -354,7 +361,7 @@ const focus = () => {
                     cx={size / 2}
                     cy={size / 2}
                     r={radius}
-                    stroke='#4772FA'
+                    stroke={isDark ? colorTheme : '#4772FA'}
                     strokeWidth={strokeWidth}
                     fill='none'
                     strokeDasharray={`${circumference} ${circumference}`}
@@ -372,7 +379,7 @@ const focus = () => {
                     }
                     setShowFocusTimeModal(true)
                   }}>
-                    <Text className='text-[42px] text-[#111827]'>{displayTime}</Text>
+                    <Text className='text-[42px]' style={{ color: isDark ? '#F9FAFB' : '#111827' }}>{displayTime}</Text>
                   </TouchableWithoutFeedback>
                 </View>
               </View>
@@ -381,7 +388,8 @@ const focus = () => {
                 {!isRunning && status === 'end'
                   ? <TouchableOpacity
                     onPress={() => startFocusSession()}
-                    className='bg-[#4772FA] px-12 py-3 rounded-full w-[165px] h-[47px]'
+                    className='px-12 py-3 rounded-full w-[165px] h-[47px]'
+                    style={{ backgroundColor: isDark ? colorTheme : '#4772FA' }}
                   >
                     <Text className='text-white text-[16px] text-center'>Start</Text>
                   </TouchableOpacity>
@@ -396,7 +404,8 @@ const focus = () => {
                           startFocusSession(remainingSeconds);
                         }
                       }}
-                      className='bg-[#4772FA] rounded-full w-[63px] h-[63px] justify-center items-center'
+                      className='rounded-full w-[63px] h-[63px] justify-center items-center'
+                      style={{ backgroundColor: isDark ? colorTheme : '#4772FA' }}
                     >
                       {isRunning ? <Pause color={'white'} size={30} fill={'white'} strokeWidth={1} /> : <Play color={'white'} size={30} fill={'white'} />}
                     </TouchableOpacity>
@@ -430,9 +439,10 @@ const focus = () => {
                           ],
                         );
                       }}
-                      className='border border-gray-400 rounded-full w-[50px] h-[50px] justify-center items-center'
+                      className='rounded-full w-[50px] h-[50px] justify-center items-center'
+                      style={{ borderWidth: 1, borderColor: isDark ? '#374151' : '#9CA3AF' }}
                     >
-                      <Square color={'#BDBDBD'} size={19} fill={'#BDBDBD'} />
+                      <Square color={isDark ? '#6B7280' : '#BDBDBD'} size={19} fill={isDark ? '#6B7280' : '#BDBDBD'} />
                     </TouchableOpacity>
                   </View>
                 }
@@ -440,7 +450,9 @@ const focus = () => {
 
               {!isRunning && status === 'end'
                 ? <View className='mt-5'>
-                  <Text className='text-gray-500 text-[14px]'>Today: {pomos} Pomo . {time || '0 minutes'}</Text>
+                  <Text className='text-[14px]' style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}>
+                    Today: {pomos} Pomo . {time || '0 minutes'}
+                  </Text>
                 </View>
                 : ''}
             </View>
@@ -454,7 +466,7 @@ const focus = () => {
                         cx={sizeBreak / 2}
                         cy={sizeBreak / 2}
                         r={radiusBreak}
-                        stroke='#E5E7EB'
+                        stroke={isDark ? '#1F2937' : '#E5E7EB'}
                         strokeWidth={strokeWidthBreak}
                         fill='none'
                       />
@@ -462,7 +474,7 @@ const focus = () => {
                         cx={sizeBreak / 2}
                         cy={sizeBreak / 2}
                         r={radiusBreak}
-                        stroke='#66BB6A'
+                        stroke={isDark ? '#3B82F6' : '#66BB6A'}
                         strokeWidth={strokeWidthBreak}
                         fill='none'
                         strokeDasharray={`${circumferenceBreak} ${circumferenceBreak}`}
@@ -475,15 +487,15 @@ const focus = () => {
                     </Svg>
                     <View className='absolute inset-0 items-center justify-center'>
                       <TouchableWithoutFeedback>
-                        <Text className='text-[42px] text-[#111827]'>{displayTimeBreak}</Text>
+                        <Text className='text-[42px]' style={{ color: isDark ? '#F9FAFB' : '#111827' }}>{displayTimeBreak}</Text>
                       </TouchableWithoutFeedback>
                     </View>
                   </View>
                   : <View>
                     <Image source={require('./../../assets/images/pomodoro-technique.png')} style={{ width: 180, height: 180, marginTop: 18 }} />
                     <View className='mt-6 items-center'>
-                      <Text className='text-[22px] font-bold text-center mb-2'>You've got a pomo</Text>
-                      <Text className='text-[14px] text-center'>Relax for 5 minutes.</Text>
+                      <Text className='text-[22px] font-bold text-center mb-2' style={{ color: isDark ? '#E5E7EB' : '#111827' }}>You've got a pomo</Text>
+                      <Text className='text-[14px] text-center' style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}>Relax for 5 minutes.</Text>
                     </View>
                   </View>
                 }
@@ -493,7 +505,8 @@ const focus = () => {
                 {!isRunningBreak && statusBreak === 'end'
                   ? <TouchableOpacity
                     onPress={() => startBreakSession()}
-                    className='bg-[#66BB6A] px-12 py-3 rounded-full w-[165px] h-[47px]'
+                    className='px-12 py-3 rounded-full w-[165px] h-[47px]'
+                    style={{ backgroundColor: isDark ? colorTheme : '#66BB6A' }}
                   >
                     <Text className='text-white text-[16px] text-center'>Start Break</Text>
                   </TouchableOpacity>
@@ -508,7 +521,8 @@ const focus = () => {
                           startBreakSession();
                         }
                       }}
-                      className='bg-[#66BB6A] rounded-full w-[63px] h-[63px] justify-center items-center'
+                      className='rounded-full w-[63px] h-[63px] justify-center items-center'
+                      style={{ backgroundColor: isDark ? colorTheme : '#66BB6A' }}
                     >
                       {isRunningBreak ? <Pause color={'white'} size={30} fill={'white'} strokeWidth={1} /> : <Play color={'white'} size={30} fill={'white'} />}
                     </TouchableOpacity>
@@ -521,9 +535,10 @@ const focus = () => {
                         setIsBreak(false);
                         resetFocusSession();
                       }}
-                      className='border border-gray-400 rounded-full w-[50px] h-[50px] justify-center items-center'
+                      className='rounded-full w-[50px] h-[50px] justify-center items-center'
+                      style={{ borderWidth: 1, borderColor: isDark ? '#374151' : '#9CA3AF' }}
                     >
-                      <Square color={'#BDBDBD'} size={19} fill={'#BDBDBD'} />
+                      <Square color={isDark ? '#6B7280' : '#BDBDBD'} size={19} fill={isDark ? '#6B7280' : '#BDBDBD'} />
                     </TouchableOpacity>
                   </View>
                 }

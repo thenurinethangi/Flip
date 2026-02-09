@@ -1,8 +1,10 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { ColorContext } from "@/context/colorContext";
+import { ThemeContext } from "@/context/themeContext";
+import { Check, Clock, X } from "lucide-react-native";
+import React, { useContext, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Modal from "react-native-modal";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { X, Check, Clock } from "lucide-react-native";
 
 interface Props {
     visible: boolean;
@@ -11,6 +13,12 @@ interface Props {
 }
 
 const TimePickerModal: React.FC<Props> = ({ visible, onClose, onConfirm }) => {
+    const { currentTheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ColorContext);
+    const isDark = currentTheme === "dark";
+    const cardBg = isDark ? "#1B1B1B" : "#fff";
+    const textPrimary = isDark ? "#E5E7EB" : "#111827";
+    const textSecondary = isDark ? "#9CA3AF" : "#666";
 
     const [time, setTime] = useState<Date | null>(null);
     const [showPicker, setShowPicker] = useState(false);
@@ -35,20 +43,20 @@ const TimePickerModal: React.FC<Props> = ({ visible, onClose, onConfirm }) => {
             onBackdropPress={onClose}
             backdropOpacity={0.3}
         >
-            <View style={styles.container}>
+            <View style={[styles.container, { backgroundColor: cardBg }] }>
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={onClose}>
-                        <X size={22} />
+                        <X size={22} color={textPrimary} />
                     </TouchableOpacity>
 
-                    <Text style={styles.title}>Pick Time</Text>
+                    <Text style={[styles.title, { color: textPrimary }]}>Pick Time</Text>
 
                     <TouchableOpacity
                         disabled={!time}
                         onPress={() => time && onConfirm(formatTime(time))}
                     >
-                        <Check size={22} color="#4772FA" />
+                        <Check size={22} color={colorTheme} />
                     </TouchableOpacity>
                 </View>
 
@@ -57,8 +65,8 @@ const TimePickerModal: React.FC<Props> = ({ visible, onClose, onConfirm }) => {
                     style={styles.timeRow}
                     onPress={() => setShowPicker(true)}
                 >
-                    <Clock size={20} color="#666" />
-                    <Text style={styles.timeText}>
+                    <Clock size={20} color={textSecondary} />
+                    <Text style={[styles.timeText, { color: textPrimary }]}>
                         {time ? formatTime(time) : "Select time"}
                     </Text>
                 </TouchableOpacity>
@@ -73,11 +81,11 @@ const TimePickerModal: React.FC<Props> = ({ visible, onClose, onConfirm }) => {
                         setShowPicker(false);
                     }}
                     onCancel={() => setShowPicker(false)}
-                    accentColor="#4772FA"
+                    accentColor={colorTheme}
                 />
 
                 <TouchableOpacity onPress={() => setTime(null)}>
-                    <Text style={styles.clear}>Clear</Text>
+                    <Text style={[styles.clear, { color: isDark ? "#FCA5A5" : "red" }]}>Clear</Text>
                 </TouchableOpacity>
             </View>
         </Modal>

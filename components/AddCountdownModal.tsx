@@ -1,6 +1,9 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
-import { Bookmark, ChevronRight, HelpCircle, Pencil, X } from "lucide-react-native";
-import React, { useState } from "react";
+import { ColorContext } from "@/context/colorContext";
+import { ThemeContext } from "@/context/themeContext";
+import { add } from "@/services/countdownService";
+import { ChevronRight, Pencil, X } from "lucide-react-native";
+import React, { useContext, useState } from "react";
 import {
     Alert,
     Modal,
@@ -15,7 +18,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { CountdownTypeId } from "./CountdownTypeModal";
 import DatePickerMinimalModal from "./DatePickerMinimalModal";
 import SelectionModal from "./SelectionModal";
-import { add } from "@/services/countdownService";
 
 interface AddCountdownModalProps {
     visible: boolean;
@@ -63,6 +65,14 @@ export const formatDateShort = (dateStr: string): string => {
 
 const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose, type, }) => {
     if (!visible) return null;
+
+    const { currentTheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ColorContext);
+    const isDark = currentTheme === "dark";
+    const cardBg = isDark ? "#1B1B1B" : "#FFFFFF";
+    const textPrimary = isDark ? "#E5E7EB" : "#111827";
+    const textSecondary = isDark ? "#9CA3AF" : "#9CA3AF";
+    const divider = isDark ? "#1F2937" : "#F1F2F5";
 
     const todayStr = new Date().toLocaleDateString("en-CA");
 
@@ -130,13 +140,13 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                 statusBarTranslucent
                 onRequestClose={onClose}
             >
-                <SafeAreaView className="flex-1 bg-[#F5F6F8]">
+                <SafeAreaView className={`flex-1 ${isDark ? "bg-[#0B0F0E]" : "bg-[#F5F6F8]"}`}>
                     <View className="px-5 pt-2">
                         <View className="flex-row items-center gap-x-4">
                             <Pressable onPress={onClose} className="p-1">
-                                <X size={22} color="#111827" />
+                                <X size={22} color={textPrimary} />
                             </Pressable>
-                            <Text className="text-[18px] font-semibold text-[#111827]">Add</Text>
+                            <Text className="text-[18px] font-semibold" style={{ color: textPrimary }}>Add</Text>
                         </View>
                     </View>
 
@@ -145,70 +155,71 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                             <View className="w-[72px] h-[72px] rounded-full items-center justify-center" style={{ backgroundColor: iconBgColor }}>
                                 <AppIcon name={`${resolvedType === 'countdown' ? 'Hourglass' : resolvedType === 'anniversary' ? 'Heart' : resolvedType === 'birthday' ? 'Cake' : 'Balloon'}`} size={28} color={iconColor} />
                             </View>
-                            <View className="absolute bottom-0 right-0 w-[22px] h-[22px] rounded-full bg-white items-center justify-center shadow-lg shadow-black/10">
-                                <Pencil size={12} color="#6B7280" />
+                            <View className="absolute bottom-0 right-0 w-[22px] h-[22px] rounded-full items-center justify-center shadow-lg shadow-black/10" style={{ backgroundColor: isDark ? "#111827" : "#FFFFFF" }}>
+                                <Pencil size={12} color={textSecondary} />
                             </View>
                         </View>
                     </View>
 
                     <View className="px-5 mt-6">
-                        <View className="bg-white rounded-[16px] px-4 py-3 flex-row items-center justify-between">
+                        <View className="rounded-[16px] px-4 py-3 flex-row items-center justify-between" style={{ backgroundColor: cardBg }}>
                             <TextInput
                                 onChangeText={setCountdownName}
                                 placeholder="Name"
-                                placeholderTextColor="#C5C9D3"
-                                className="flex-1 text-[15px] text-[#111827]"
+                                placeholderTextColor={isDark ? "#6B7280" : "#C5C9D3"}
+                                className="flex-1 text-[15px]"
+                                style={{ color: textPrimary }}
                             />
                             {/* <Bookmark size={18} color="#9CA3AF" /> */}
                         </View>
 
-                        <View className="bg-white rounded-[16px] mt-4 overflow-hidden">
+                        <View className="rounded-[16px] mt-4 overflow-hidden" style={{ backgroundColor: cardBg }}>
                             <View className="flex-row items-center justify-between px-4 py-[14px]">
-                                <Text className="text-[15px] text-[#111827]">Date</Text>
+                                <Text className="text-[15px]" style={{ color: textPrimary }}>Date</Text>
                                 <View className="flex-row items-center gap-x-2">
                                     <TouchableWithoutFeedback onPress={() => setShowDate(true)}>
-                                        <Text className="text-[15px] text-[#9CA3AF]">{formatDateShort(selectedDate)}</Text>
+                                        <Text className="text-[15px]" style={{ color: textSecondary }}>{formatDateShort(selectedDate)}</Text>
                                     </TouchableWithoutFeedback>
-                                    <ChevronRight size={18} color="#C5C9D3" />
+                                    <ChevronRight size={18} color={isDark ? "#6B7280" : "#C5C9D3"} />
                                 </View>
                             </View>
-                            <View className="h-[1px] bg-[#F1F2F5]" />
+                            <View className="h-[1px]" style={{ backgroundColor: divider }} />
                             <View className="flex-row items-center justify-between px-4 py-[14px]">
-                                <Text className="text-[15px] text-[#111827]">Reminder</Text>
+                                <Text className="text-[15px]" style={{ color: textPrimary }}>Reminder</Text>
                                 <View className="flex-row items-center gap-x-2">
                                     <TouchableWithoutFeedback onPress={() => setActiveSubModal('reminder')}>
-                                        <Text className="text-[15px] text-[#9CA3AF]">{selectedReminder}</Text>
+                                        <Text className="text-[15px]" style={{ color: textSecondary }}>{selectedReminder}</Text>
                                     </TouchableWithoutFeedback>
-                                    <X size={16} color="#C5C9D3" />
+                                    <X size={16} color={isDark ? "#6B7280" : "#C5C9D3"} />
                                 </View>
                             </View>
-                            <View className="h-[1px] bg-[#F1F2F5]" />
+                            <View className="h-[1px]" style={{ backgroundColor: divider }} />
                             <View className="flex-row items-center justify-between px-4 py-[14px]">
-                                <Text className="text-[15px] text-[#111827]">Repeat</Text>
+                                <Text className="text-[15px]" style={{ color: textPrimary }}>Repeat</Text>
                                 <View className="flex-row items-center gap-x-2">
                                     <TouchableWithoutFeedback onPress={() => setActiveSubModal('repeat')}>
-                                        <Text className="text-[15px] text-[#9CA3AF]">{selectedRepeat}</Text>
+                                        <Text className="text-[15px]" style={{ color: textSecondary }}>{selectedRepeat}</Text>
                                     </TouchableWithoutFeedback>
-                                    <ChevronRight size={18} color="#C5C9D3" />
+                                    <ChevronRight size={18} color={isDark ? "#6B7280" : "#C5C9D3"} />
                                 </View>
                             </View>
                         </View>
 
-                        <View className="bg-white rounded-[16px] mt-4 overflow-hidden">
+                        <View className="rounded-[16px] mt-4 overflow-hidden" style={{ backgroundColor: cardBg }}>
                             <View className="flex-row items-center justify-between px-4 py-[14px]">
-                                <Text className="text-[15px] text-[#111827]">Type</Text>
+                                <Text className="text-[15px]" style={{ color: textPrimary }}>Type</Text>
                                 <View className="flex-row items-center gap-x-2">
-                                    <Text className="text-[15px] text-[#9CA3AF]">
+                                    <Text className="text-[15px]" style={{ color: textSecondary }}>
                                         {type ? typeLabelMap[type] : "Countdown"}
                                     </Text>
-                                    <ChevronRight size={18} color="#C5C9D3" />
+                                    <ChevronRight size={18} color={isDark ? "#6B7280" : "#C5C9D3"} />
                                 </View>
                             </View>
                         </View>
                     </View>
 
                     <View className="mt-auto px-5 pb-6">
-                        <TouchableOpacity onPress={handleAddNewCountdown} className="bg-[#4772FA] items-center" style={{ borderRadius: 15, paddingBlock: 13 }}>
+                        <TouchableOpacity onPress={handleAddNewCountdown} className="items-center" style={{ borderRadius: 15, paddingBlock: 13, backgroundColor: colorTheme }}>
                             <Text className="text-white text-[16px] font-semibold">Save</Text>
                         </TouchableOpacity>
                     </View>

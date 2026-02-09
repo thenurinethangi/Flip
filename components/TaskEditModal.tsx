@@ -1,8 +1,11 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
+import { ColorContext } from "@/context/colorContext";
+import { ThemeContext } from "@/context/themeContext";
 import {
   addAttachmentsForTask,
   getAttachmentsByTaskId,
 } from "@/services/attachmentsService";
+import { getFocusTimeAndPomoCountByTask } from "@/services/focusService";
 import {
   AddOrEditNotesByTaskId,
   getNotesByTaskId,
@@ -27,7 +30,7 @@ import {
   Timer,
   X
 } from "lucide-react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -55,8 +58,6 @@ import PriorityModal from "./PriorityModal";
 import SubtaskEditModal from "./SubtaskEditModel";
 import TaskTypeModal from "./TaskTypeModal";
 import Spinner from "./spinner";
-import { getFocusTimeAndPomoCountByTask } from "@/services/focusService";
-import { count } from "firebase/firestore";
 
 type TaskEditModalProps = {
   visible: boolean;
@@ -137,6 +138,13 @@ export default function TaskEditModal({
   onClose,
   onAddSubtask,
 }: TaskEditModalProps) {
+  const { currentTheme } = useContext(ThemeContext);
+  const { colorTheme } = useContext(ColorContext);
+  const isDark = currentTheme === "dark";
+  const cardBg = isDark ? "#000000" : "#FFFFFF";
+  const textPrimary = isDark ? "#E5E7EB" : "#111111";
+  const textSecondary = isDark ? "#9CA3AF" : "#6B7280";
+  const divider = isDark ? "#1F2937" : "#E5E7EB";
 
   const [isloading, setIsloading] = useState(true);
 
@@ -623,7 +631,7 @@ export default function TaskEditModal({
         statusBarTranslucent
         onRequestClose={onClose}
       >
-        <View className="flex-1 bg-white items-center justify-center">
+        <View className="flex-1 items-center justify-center" style={{ backgroundColor: isDark ? "#000000" : "#FFFFFF" }}>
           <Spinner />
         </View>
       </Modal>
@@ -634,18 +642,18 @@ export default function TaskEditModal({
         statusBarTranslucent
         onRequestClose={onClose}
       >
-        <SafeAreaView className="flex-1 bg-white" style={{ paddingTop: 0 }}>
+        <SafeAreaView className="flex-1" style={{ paddingTop: 0, backgroundColor: isDark ? "#000000" : "#FFFFFF" }}>
           <KeyboardAvoidingView
             className="flex-1"
             behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
-            <View className="px-4 pt-3 pb-3 border-b border-gray-100">
+            <View className="px-4 pt-3 pb-3">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-x-4">
                   <TouchableOpacity onPress={editTask}>
                     <ArrowLeft
                       size={22}
-                      color="#222"
+                      color={isDark ? "#E5E7EB" : "#222"}
                       strokeWidth={2}
                       className="opacity-70"
                     />
@@ -653,11 +661,12 @@ export default function TaskEditModal({
                   <View className="flex-row items-center gap-x-1">
                     <Text
                       onPress={() => setTaskTypeVisible(true)}
-                      className="text-[16.5px] font-semibold text-[#222]"
+                      className="text-[16.5px] font-semibold"
+                      style={{ color: textPrimary }}
                     >
                       {taskTypeLabel}
                     </Text>
-                    <ChevronsUpDown size={16} color="#6b7280" />
+                    <ChevronsUpDown size={16} color={isDark ? "#9CA3AF" : "#6b7280"} />
                   </View>
                 </View>
                 <View className="flex-row items-center gap-x-5">
@@ -670,7 +679,7 @@ export default function TaskEditModal({
                     />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => setShowDeleteModal(true)}>
-                    <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
+                    <AppIcon name="EllipsisVertical" color={isDark ? "#9CA3AF" : "#6b7280"} size={21} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -701,7 +710,7 @@ export default function TaskEditModal({
                         }))
                       }
                       color={
-                        taskForm.status !== "pending" ? "#4772FA" : "transparent"
+                        taskForm.status !== "pending" ? colorTheme : "transparent"
                       }
                       style={{ width: 18, height: 18, borderRadius: 4 }}
                     />
@@ -710,20 +719,21 @@ export default function TaskEditModal({
                     <View className="flex-row gap-x-[5px]">
                       <Text
                         onPress={() => setShowDate(true)}
-                        className={`text-[15.5px] ${taskDate && isNotPastDate(taskDate) ? "text-primary" : "text-red-500"} ${taskDate && !isNotPastDate(taskDate) && task?.status === 'complete' ? "text-[#9BA2AB]" : ""}`}
+                        className={`text-[15.5px] ${taskDate && !isNotPastDate(taskDate) ? "text-red-500" : ""} ${taskDate && !isNotPastDate(taskDate) && task?.status === 'complete' ? "text-[#9BA2AB]" : ""}`}
+                        style={{ color: taskDate && isNotPastDate(taskDate) ? colorTheme : undefined }}
                       >
                         {headerDate}
                         {taskForm.time != "None" ? "," : ""}{" "}
                         {taskForm.time != "None" ? taskForm.time : ""}
                       </Text>
-                      {taskForm.reminder !== 'None' ? <AlarmClock color={'#4772FA'} size={17} strokeWidth={1.7}></AlarmClock> : ''}
+                      {taskForm.reminder !== 'None' ? <AlarmClock color={colorTheme} size={17} strokeWidth={1.7}></AlarmClock> : ''}
                     </View>
                     {taskForm.repeat != "None" ? (
                       <View className="flex-row items-center gap-x-1">
-                        <Text className="text-gray-500 text-[11px]">
+                        <Text className="text-[11px]" style={{ color: textSecondary }}>
                           {taskForm.repeat}
                         </Text>
-                        <Repeat size={11} color="#9E9E9E" />
+                        <Repeat size={11} color={isDark ? "#9CA3AF" : "#9E9E9E"} />
                       </View>
                     ) : null}
                   </View>
@@ -739,14 +749,14 @@ export default function TaskEditModal({
               {focusAndPomos.count > 0 ? (
                 <View className="flex-row items-center gap-x-2 px-[5px] mb-2">
                   <View className="flex-row items-center gap-x-1">
-                    <CircleCheckBig size={18} color="#9E9E9E" />
-                    <Text className="text-gray-500 text-[11px]">
+                    <CircleCheckBig size={18} color={isDark ? "#9CA3AF" : "#9E9E9E"} />
+                    <Text className="text-[11px]" style={{ color: textSecondary }}>
                       {focusAndPomos.count}
                     </Text>
                   </View>
                   <View className="flex-row items-center gap-x-1">
-                    <Timer size={19} color="#9E9E9E" />
-                    <Text className="text-gray-500 text-[11px]">
+                    <Timer size={19} color={isDark ? "#9CA3AF" : "#9E9E9E"} />
+                    <Text className="text-[11px]" style={{ color: textSecondary }}>
                       {focusAndPomos.totalMinutes}m
                     </Text>
                   </View>
@@ -754,13 +764,14 @@ export default function TaskEditModal({
               ) : null}
 
               <TextInput
-                className="text-[22px] font-semibold text-[#111]"
+                className="text-[22px] font-semibold"
                 placeholder="Task name"
                 placeholderTextColor="#9ca3af"
                 value={taskForm.taskname}
                 onChangeText={(value) =>
                   setTaskForm((prev) => ({ ...prev, taskname: value }))
                 }
+                style={{ color: textPrimary }}
               />
 
               <View className="-translate-y-1">
@@ -773,8 +784,8 @@ export default function TaskEditModal({
                   }
                   editorInitializedCallback={disableSpellcheck}
                   editorStyle={{
-                    backgroundColor: "#fff",
-                    color: "#222",
+                    backgroundColor: cardBg,
+                    color: textPrimary,
                     contentCSSText: `
       body {
         font-size: 16px;
@@ -794,20 +805,21 @@ export default function TaskEditModal({
               </View>
 
               {subTasks.length > 0 && (
-                <View className="bg-[#F4F8FF] rounded-2xl px-2 py-1 pt-[5px] mt-3">
+                <View className="rounded-2xl px-2 py-1 pt-[5px] mt-3" style={{ backgroundColor: isDark ? "#1B1B1B" : "#F4F8FF" }}>
                   {subTasks.map((item, index) => {
                     const isComplete = item.status !== "pending";
                     const isLate = item.date ? !isNotPastDate(item.date) : false;
                     return (
                       <TouchableOpacity
+                        key={item.id ?? `${item.taskname}-${index}`}
                         onPress={() => {
                           setactiveSubtask(item);
                           setShowSubtaskEdit(true);
                         }}
                       >
                         <View
-                          key={item.id ?? `${item.taskname}-${index}`}
-                          className="bg-[#F4F8FF] rounded-[10px] pl-[3px] pr-4 py-3 flex-row items-center justify-between mb-1"
+                          className="rounded-[10px] pl-[3px] pr-4 py-3 flex-row items-center justify-between mb-1"
+                          style={{ backgroundColor: isDark ? "#1B1B1B" : "#F4F8FF" }}
                         >
                           <View className="flex-row items-center gap-x-3">
                             <View>
@@ -833,7 +845,8 @@ export default function TaskEditModal({
                             </View>
                             <View>
                               <Text
-                                className={`text-[15.5px] ${isComplete ? "text-gray-400 line-through" : ""}`}
+                                className={`text-[15.5px] ${isComplete ? "line-through" : ""}`}
+                                style={{ color: isComplete ? "#6B7280" : textPrimary }}
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                               >
@@ -843,7 +856,8 @@ export default function TaskEditModal({
                           </View>
                           <View>
                             <Text
-                              className={`text-[13px] ${isComplete ? "text-gray-400" : isLate ? "text-red-500" : "text-primary"}`}
+                              className="text-[13px]"
+                              style={{ color: isComplete ? "#6B7280" : isLate ? "#EF4444" : colorTheme }}
                             >
                               {item.date ? formatTaskDate(item.date) : ""}
                             </Text>
@@ -860,8 +874,8 @@ export default function TaskEditModal({
                   onPress={onAddSubtask}
                   className="flex-row items-center gap-x-2 py-2"
                 >
-                  <AppIcon name="Plus" size={19} color="#4772FA" />
-                  <Text className="text-[16px] text-primary">Add Subtask</Text>
+                  <AppIcon name="Plus" size={19} color={colorTheme} />
+                  <Text className="text-[16px]" style={{ color: colorTheme }}>Add Subtask</Text>
                 </TouchableOpacity>
               </View>
 
@@ -876,12 +890,13 @@ export default function TaskEditModal({
                       /^https?:\/\//i.test(note.content);
                     return (
                       <TouchableWithoutFeedback
+                        key={note.id}
                         onPress={() =>
                           openFile(note.content, note.name, note.contentType)
                         }
                       >
-                        <View key={note.id} className="mb-4">
-                          <View className="bg-gray-100 rounded-2xl p-3">
+                        <View className="mb-4">
+                          <View className="rounded-2xl p-3" style={{ backgroundColor: isDark ? "#1B1B1B" : "#F3F4F6" }}>
                             {isImage && note.content ? (
                               <View className="mb-2 overflow-hidden rounded-xl">
                                 <Image
@@ -894,12 +909,13 @@ export default function TaskEditModal({
                             <View className="flex-row items-center justify-between">
                               <View style={{ flex: 1, paddingRight: 8 }}>
                                 <Text
-                                  className="text-[14px] text-[#111]"
+                                  className="text-[14px]"
+                                  style={{ color: textPrimary }}
                                   numberOfLines={1}
                                 >
                                   {note.name || "Attachment"}
                                 </Text>
-                                <Text className="text-[12px] text-gray-500">
+                                <Text className="text-[12px]" style={{ color: textSecondary }}>
                                   {note.contentType || "file"}
                                   {typeof note.size === "number"
                                     ? ` • ${formatBytes(note.size)}`
@@ -910,7 +926,7 @@ export default function TaskEditModal({
                                 </Text>
                               </View>
                               {note.isUploading ? (
-                                <Text className="text-[12px] text-primary">
+                                <Text className="text-[12px]" style={{ color: colorTheme }}>
                                   Uploading...
                                 </Text>
                               ) : null}
@@ -924,7 +940,7 @@ export default function TaskEditModal({
                                   onPress={() => removeNote(note.id)}
                                   hitSlop={8}
                                 >
-                                  <X size={16} color="#9CA3AF" />
+                                  <X size={16} color={isDark ? "#6B7280" : "#9CA3AF"} />
                                 </Pressable>
                               ) : null}
                             </View>
@@ -955,7 +971,8 @@ export default function TaskEditModal({
                         };
                       });
                     }}
-                    className="text-[12px] text-[#374151] bg-[#F3F4F6] px-2 py-1 rounded-full min-w-[30px]"
+                    className="text-[12px] px-2 py-1 rounded-full min-w-[30px]"
+                    style={{ color: textPrimary, backgroundColor: isDark ? "#111827" : "#F3F4F6" }}
                     placeholder="#tag"
                     placeholderTextColor="#9CA3AF"
                   />
@@ -963,7 +980,7 @@ export default function TaskEditModal({
               </View>
             </ScrollView>
 
-            <View className="absolute bottom-0 left-0 right-0 bg-white px-4 py-3">
+            <View className="absolute bottom-0 left-0 right-0 px-4 py-3" style={{ backgroundColor: cardBg }}>
               <View className="flex-row items-center gap-x-5">
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <RichToolbar
@@ -986,8 +1003,8 @@ export default function TaskEditModal({
                       actions.heading6,
                     ]}
                     onInsertLink={openLinkModal}
-                    iconTint="#7E8591"
-                    selectedIconTint="#222"
+                    iconTint={isDark ? "#9CA3AF" : "#7E8591"}
+                    selectedIconTint={isDark ? "#E5E7EB" : "#222"}
                     iconMap={{
                       [actions.heading1]: ({
                         tintColor,
@@ -1084,10 +1101,10 @@ export default function TaskEditModal({
                   />
                 </View>
                 <Pressable onPress={pickFile}>
-                  <Paperclip size={18} color="#7E8591" />
+                  <Paperclip size={18} color={isDark ? "#9CA3AF" : "#7E8591"} />
                 </Pressable>
                 <Pressable onPress={() => setShowCameraModel(true)}>
-                  <Camera size={18} color="#7E8591" />
+                  <Camera size={18} color={isDark ? "#9CA3AF" : "#7E8591"} />
                 </Pressable>
               </View>
             </View>
@@ -1100,19 +1117,21 @@ export default function TaskEditModal({
               onRequestClose={closeLinkModal}
             >
               <View className="flex-1 items-center justify-center bg-black/40 px-6">
-                <View className="w-full rounded-3xl bg-white px-6 pt-7 pb-6">
-                  <Text className="text-[17px] font-semibold text-[#111]">
+                <View className="w-full rounded-3xl px-6 pt-7 pb-6" style={{ backgroundColor: cardBg }}>
+                  <Text className="text-[17px] font-semibold" style={{ color: textPrimary }}>
                     Add URL
                   </Text>
                   <TextInput
-                    className="mt-4 rounded-xl bg-gray-100 px-4 py-4 text-[15px] text-[#111]"
+                    className="mt-4 rounded-xl px-4 py-4 text-[15px]"
+                    style={{ backgroundColor: isDark ? "#111827" : "#F3F4F6", color: textPrimary }}
                     placeholder="Title (optional)"
                     placeholderTextColor="#9ca3af"
                     value={linkTitle}
                     onChangeText={setLinkTitle}
                   />
                   <TextInput
-                    className="mt-3 rounded-xl bg-gray-100 px-4 py-4 text-[15px] text-[#111]"
+                    className="mt-3 rounded-xl px-4 py-4 text-[15px]"
+                    style={{ backgroundColor: isDark ? "#111827" : "#F3F4F6", color: textPrimary }}
                     placeholder="https://example.com"
                     placeholderTextColor="#9ca3af"
                     keyboardType="url"
@@ -1123,10 +1142,10 @@ export default function TaskEditModal({
                   />
                   <View className="mt-5 flex-row items-center justify-end gap-x-1">
                     <Pressable onPress={closeLinkModal} className="px-3 py-2">
-                      <Text className="text-[16px] text-gray-400">Cancel</Text>
+                      <Text className="text-[16px]" style={{ color: textSecondary }}>Cancel</Text>
                     </Pressable>
                     <Pressable onPress={handleInsertLink} className="px-2 py-2">
-                      <Text className="text-[16px] font-semibold text-primary">
+                      <Text className="text-[16px] font-semibold" style={{ color: colorTheme }}>
                         Insert
                       </Text>
                     </Pressable>

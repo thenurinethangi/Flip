@@ -1,6 +1,7 @@
+import { ThemeContext } from "@/context/themeContext";
 import { deleteCountdown } from "@/services/countdownService";
 import { Pencil, Trash2 } from "lucide-react-native";
-import React from "react";
+import React, { useContext } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface DeleteModalProps {
@@ -11,6 +12,10 @@ interface DeleteModalProps {
 }
 
 const CountdownOptionModal: React.FC<DeleteModalProps> = ({ visible, onClose, countdown, onShowEdit }) => {
+    const { currentTheme } = useContext(ThemeContext);
+    const isDark = currentTheme === "dark";
+    const textPrimary = isDark ? "#E5E7EB" : "#2B2B2B";
+    const iconColor = isDark ? "#E5E7EB" : "#2B2B2B";
 
     async function handleDeleteCountdown() {
         if (countdown?.id) {
@@ -32,21 +37,21 @@ const CountdownOptionModal: React.FC<DeleteModalProps> = ({ visible, onClose, co
             onRequestClose={onClose}
         >
             <View style={styles.overlay} pointerEvents="box-none">
-                <Pressable style={styles.backdrop} onPress={onClose} />
-                <View style={styles.card}>
+                <Pressable style={[styles.backdrop, { backgroundColor: isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.12)" }]} onPress={onClose} />
+                <View style={[styles.card, { backgroundColor: isDark ? "#1B1B1B" : "#fff" }] }>
                     <Pressable onPress={onShowEdit} style={styles.row}>
                         {({ pressed }) => (
-                            <View style={[styles.rowContent, pressed && styles.rowPressed]}>
-                                <Pencil size={20} color="#2B2B2B" />
-                                <Text style={styles.text}>Edit</Text>
+                            <View style={[styles.rowContent, pressed && styles.rowPressed, pressed && isDark && styles.rowPressedDark]}>
+                                <Pencil size={20} color={iconColor} />
+                                <Text style={[styles.text, { color: textPrimary }]}>Edit</Text>
                             </View>
                         )}
                     </Pressable>
                     <Pressable onPress={handleDeleteCountdown} style={styles.row}>
                         {({ pressed }) => (
-                            <View style={[styles.rowContent, pressed && styles.rowPressed]}>
-                                <Trash2 size={20} color="#2B2B2B" />
-                                <Text style={styles.text}>Delete</Text>
+                            <View style={[styles.rowContent, pressed && styles.rowPressed, pressed && isDark && styles.rowPressedDark]}>
+                                <Trash2 size={20} color={iconColor} />
+                                <Text style={[styles.text, { color: textPrimary }]}>Delete</Text>
                             </View>
                         )}
                     </Pressable>
@@ -67,11 +72,9 @@ const styles = StyleSheet.create({
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "rgba(0,0,0,0.12)",
     },
     card: {
         width: 192,
-        backgroundColor: "#fff",
         borderRadius: 20,
         shadowColor: "#000",
         shadowOpacity: 0.05,
@@ -94,9 +97,11 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#E5E7EB",
     },
+    rowPressedDark: {
+        backgroundColor: "#111827",
+    },
     text: {
         fontSize: 16,
-        color: "#2B2B2B",
         fontWeight: "400",
     },
 });

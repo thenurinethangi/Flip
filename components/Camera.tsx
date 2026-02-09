@@ -1,8 +1,7 @@
 import { BarcodeScanningResult, CameraType, CameraView, useCameraPermissions } from "expo-camera"
-import * as MediaLibrary from "expo-media-library"
 import { StatusBar } from "expo-status-bar"
 import { Check, RefreshCcw, X } from "lucide-react-native"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useRef, useState } from "react"
 import { Alert, Image, Modal, Pressable, Text, View } from "react-native"
 
 interface CameraModelProps {
@@ -15,18 +14,14 @@ interface CameraModelProps {
 const CameraModel = ({ visible, uploadImage, removeImage, onClose }: CameraModelProps) => {
 
   const [permissions, requestPermissions] = useCameraPermissions();
-  const [mediaPermission, requestMediaPermission] = MediaLibrary.usePermissions();
+  // Media library permissions are not required unless saving to library.
 
   const [facing, setFacing] = useState<CameraType>("back")
   const [photo, setPhoto] = useState<string | null>(null)
 
   const cameraRef = useRef<CameraView>(null);
 
-  useEffect(() => {
-    if (!mediaPermission?.granted) {
-      requestMediaPermission();
-    }
-  }, [])
+  // Note: no MediaLibrary permission request since we don't save to the library.
 
   const takePhoto = async () => {
     if (!cameraRef.current) {

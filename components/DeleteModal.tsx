@@ -1,7 +1,8 @@
+import { ThemeContext } from "@/context/themeContext";
 import { deleteSubtaskBySubtaskId } from "@/services/subtaskService";
 import { deleteTaskByTaskId } from "@/services/taskService";
 import { Trash2 } from "lucide-react-native";
-import React from "react";
+import React, { useContext } from "react";
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export type DeleteTargetType = "task" | "subtask";
@@ -24,6 +25,11 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
     if (!visible) {
         return null;
     }
+
+    const { currentTheme } = useContext(ThemeContext);
+    const isDark = currentTheme === "dark";
+    const cardBg = isDark ? "#1B1B1B" : "#fff";
+    const textPrimary = isDark ? "#E5E7EB" : "#1A1A1A";
 
     const label = targetType === "task" ? "Delete task" : "Delete subtask";
 
@@ -50,11 +56,11 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
 
     return (
         <View style={styles.overlay} pointerEvents="box-none">
-            <Pressable style={styles.backdrop} onPress={onClose} />
-            <TouchableOpacity onPress={handleDeleteTask} style={styles.card}>
+            <Pressable style={[styles.backdrop, { backgroundColor: isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.12)" }]} onPress={onClose} />
+            <TouchableOpacity onPress={handleDeleteTask} style={[styles.card, { backgroundColor: cardBg }] }>
                 <View style={styles.row}>
                     <Trash2 size={20} color="#E24A4A" />
-                    <Text style={styles.text}>{label}</Text>
+                    <Text style={[styles.text, { color: textPrimary }]}>{label}</Text>
                 </View>
             </TouchableOpacity>
         </View>
@@ -72,7 +78,6 @@ const styles = StyleSheet.create({
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "rgba(0,0,0,0.12)",
     },
     card: {
         width: 192,

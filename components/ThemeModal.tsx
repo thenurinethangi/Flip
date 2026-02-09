@@ -51,6 +51,12 @@ const ThemeModal: React.FC<ThemeModalProps> = ({ visible, onClose }) => {
   }
 
 
+  const isDark = currentTheme === "dark";
+  const cardBg = isDark ? "#1B1B1B" : "#FFFFFF";
+  const textPrimary = isDark ? "#E5E7EB" : "#111827";
+  const textSecondary = isDark ? "#9CA3AF" : "#9CA3AF";
+  const borderColor = isDark ? "#374151" : "#CBD5E1";
+
   return (
     <Modal
       visible={visible}
@@ -59,65 +65,68 @@ const ThemeModal: React.FC<ThemeModalProps> = ({ visible, onClose }) => {
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <SafeAreaView className="flex-1 bg-[#F5F6F8]">
+      <SafeAreaView className={`flex-1 ${isDark ? "bg-[#0B0F0E]" : "bg-[#F5F6F8]"}`}>
         <View className="px-4 pt-3 flex-row items-center gap-x-4">
           <TouchableOpacity onPress={onClose}>
-            <ArrowLeft size={22} color="#222" strokeWidth={2} />
+            <ArrowLeft size={22} color={isDark ? "#E5E7EB" : "#222"} strokeWidth={2} />
           </TouchableOpacity>
           <View className="flex-row items-center gap-x-5">
-            <Text className="text-[18px] font-semibold text-[#111827]">Theme</Text>
+            <Text className="text-[18px] font-semibold" style={{ color: textPrimary }}>Theme</Text>
           </View>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} className="mt-4">
           <View className="px-4">
-            <View className="bg-white rounded-[16px] px-4 py-4 shadow-xl shadow-black/10">
+            <View className="rounded-[16px] px-4 py-4 shadow-xl shadow-black/10" style={{ backgroundColor: cardBg }}>
               <View className="flex-row items-center justify-between py-4">
-                <Text className="text-[15px] text-[#111827] font-medium">
+                <Text className="text-[15px] font-medium" style={{ color: textPrimary }}>
                   Light Mode
                 </Text>
                 <Pressable
                   onPress={() => handleChangeMode('light')}
-                  className="w-[19px] h-[19px] rounded-full border border-[#CBD5E1] items-center justify-center"
+                  className="w-[19px] h-[19px] rounded-full items-center justify-center"
+                  style={{ borderWidth: 1, borderColor }}
                 >
                   {mode === 'light' ? (
-                    <View className="w-[12px] h-[12px] rounded-full bg-[#4F6EF7]" />
+                    <View className="w-[12px] h-[12px] rounded-full" style={{ backgroundColor: colorTheme }} />
                   ) : null}
                 </Pressable>
               </View>
 
               <View className="flex-row items-center justify-between py-4">
-                <Text className="text-[15px] text-[#111827] font-medium">
+                <Text className="text-[15px] font-medium" style={{ color: textPrimary }}>
                   Dark Mode
                 </Text>
                 <Pressable
                   onPress={() => handleChangeMode('dark')}
-                  className="w-[19px] h-[19px] rounded-full border border-[#CBD5E1] items-center justify-center"
+                  className="w-[19px] h-[19px] rounded-full items-center justify-center"
+                  style={{ borderWidth: 1, borderColor }}
                 >
                   {mode === 'dark' ? (
-                    <View className="w-[12px] h-[12px] rounded-full bg-[#4F6EF7]" />
+                    <View className="w-[12px] h-[12px] rounded-full" style={{ backgroundColor: colorTheme }} />
                   ) : null}
                 </Pressable>
               </View>
 
               <View className="flex-row items-center justify-between py-4">
-                <Text className="text-[15px] text-[#111827] font-medium">
+                <Text className="text-[15px] font-medium" style={{ color: textPrimary }}>
                   System
                 </Text>
                 <Pressable
                   onPress={() => handleChangeMode('system')}
-                  className="w-[19px] h-[19px] rounded-full border border-[#CBD5E1] items-center justify-center"
+                  className="w-[19px] h-[19px] rounded-full items-center justify-center"
+                  style={{ borderWidth: 1, borderColor }}
                 >
                   {mode === 'system' ? (
-                    <View className="w-[12px] h-[12px] rounded-full bg-[#4F6EF7]" />
+                    <View className="w-[12px] h-[12px] rounded-full" style={{ backgroundColor: colorTheme }} />
                   ) : null}
                 </Pressable>
               </View>
 
             </View>
 
-            <View className="bg-white rounded-[18px] mt-4 px-4 py-4 shadow-xl shadow-black/10">
-              <Text className="text-[15px] font-semibold text-[#111827] mb-3">Color Series</Text>
+            <View className="rounded-[18px] mt-4 px-4 py-4 shadow-xl shadow-black/10" style={{ backgroundColor: cardBg }}>
+              <Text className="text-[15px] font-semibold mb-3" style={{ color: textPrimary }}>Color Series</Text>
               <View className="flex-row flex-wrap justify-between">
                 {COLOR_SERIES.map((item) => (
                   <TouchableOpacity
@@ -129,11 +138,11 @@ const ThemeModal: React.FC<ThemeModalProps> = ({ visible, onClose }) => {
                     <View className="w-[64px] h-[64px] rounded-[14px] items-center justify-center" style={{ backgroundColor: item.color }}>
                       {color === item.color ? (
                         <View className="w-[18px] h-[18px] rounded-full bg-white items-center justify-center">
-                          <Text className="text-[12px] text-[#4F6EF7]">✓</Text>
+                          <Text className="text-[12px]" style={{ color: colorTheme }}>✓</Text>
                         </View>
                       ) : null}
                     </View>
-                    <Text className="text-[12px] text-[#9CA3AF] mt-2">{item.label}</Text>
+                    <Text className="text-[12px] mt-2" style={{ color: textSecondary }}>{item.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>

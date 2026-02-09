@@ -1,23 +1,25 @@
+import { ColorContext } from "@/context/colorContext";
+import { ThemeContext } from "@/context/themeContext";
 import {
-  BookOpen,
-  Briefcase,
-  Calendar,
-  FileText,
-  Flag,
-  Home,
-  MoveRight,
-  SendHorizontal,
-  Tag
+    BookOpen,
+    Briefcase,
+    Calendar,
+    FileText,
+    Flag,
+    Home,
+    MoveRight,
+    SendHorizontal,
+    Tag
 } from "lucide-react-native";
-import React, { useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import Modal from "react-native-modal";
 import PriorityModal from "./../components/PriorityModal";
@@ -69,6 +71,12 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   setTags,
   onAddTask,
 }) => {
+  const { currentTheme } = useContext(ThemeContext);
+  const { colorTheme } = useContext(ColorContext);
+  const isDark = currentTheme === "dark";
+  const cardBg = isDark ? "#1B1B1B" : "#fff";
+  const textPrimary = isDark ? "#E5E7EB" : "#000";
+  const textSecondary = isDark ? "#9CA3AF" : "#999";
 
   const [text, setText] = useState<string>("");
   const [height, setHeight] = useState<number>(70);
@@ -146,28 +154,28 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={styles.sheet}
         >
-          <View style={styles.container}>
+          <View style={[styles.container, { backgroundColor: cardBg }] }>
             {/* Input */}
             <TextInput
               ref={inputRef}
               className="-translate-y-1.5"
               placeholder="What would you like to do?"
-              placeholderTextColor="#999"
+              placeholderTextColor={textSecondary}
               multiline
               value={text}
               onChangeText={setText}
               onContentSizeChange={(e) =>
                 setHeight(e.nativeEvent.contentSize.height)
               }
-              style={[styles.input, { height: Math.max(70, height) }]}
+              style={[styles.input, { height: Math.max(70, height), color: textPrimary }]}
             />
 
             {/* Bottom Row */}
             <View style={styles.bottomRow}>
               <View style={styles.iconRow}>
                 <TouchableOpacity onPress={onOpenCalendar} className="flex-row items-center">
-                  <Calendar size={22} color="#4772FA" />
-                  <Text className="text-primary ml-2">{formatTaskDate(selectedDate)}{selectedTime !== 'None' ? ',' : ''} {selectedTime !== 'None' ? selectedTime : ''}</Text>
+                  <Calendar size={22} color={colorTheme} />
+                  <Text className="ml-2" style={{ color: colorTheme }}>{formatTaskDate(selectedDate)}{selectedTime !== 'None' ? ',' : ''} {selectedTime !== 'None' ? selectedTime : ''}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => setPriorityVisible(true)}>
@@ -175,11 +183,11 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => setText((prev) => prev + ' #')}>
-                  <Tag size={22} color="#9BA2AB" />
+                  <Tag size={22} color={isDark ? "#6B7280" : "#9BA2AB"} />
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => setTaskTypeVisible(true)}>
-                  {selectedTaskType === 'none' && <MoveRight size={22} color="#9BA2AB" />}
+                  {selectedTaskType === 'none' && <MoveRight size={22} color={isDark ? "#6B7280" : "#9BA2AB"} />}
                   {selectedTaskType === 'work' && <Briefcase size={22} color="#8B5E3C" />}
                   {selectedTaskType === 'personal' && <Home size={22} color="#D47C2C" />}
                   {selectedTaskType === 'note' && <FileText size={22} color="#66BB6A" />}
@@ -191,7 +199,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                                 </TouchableOpacity> */}
               </View>
               <TouchableOpacity
-                style={styles.addBtn}
+                style={[styles.addBtn, { backgroundColor: colorTheme }]}
                 onPress={handleAddTask}
               >
                 <SendHorizontal color="#fff" fill="#fff" size={21} />

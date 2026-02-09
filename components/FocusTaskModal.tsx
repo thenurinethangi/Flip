@@ -1,12 +1,14 @@
 import { FocusedTask } from "@/app/(tabs)/focus";
 import { AppIcon } from "@/components/ui/icon-symbol";
+import { ColorContext } from "@/context/colorContext";
+import { ThemeContext } from "@/context/themeContext";
 import { subscribeSubTasksByTaskId } from "@/services/subtaskService";
 import {
     subscribeOverdueTasks,
     subscribePendingTasksByDate,
 } from "@/services/taskService";
 import Checkbox from "expo-checkbox";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
     Modal,
     Pressable,
@@ -49,6 +51,12 @@ const FocusTaskModal: React.FC<FocusTaskModalProps> = ({
     onClose,
     onSelect,
 }) => {
+    const { currentTheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ColorContext);
+    const isDark = currentTheme === "dark";
+    const cardBg = isDark ? "#1B1B1B" : "#FFFFFF";
+    const textPrimary = isDark ? "#E5E7EB" : "#111827";
+    const textSecondary = isDark ? "#9CA3AF" : "#9CA3AF";
     const todayStr = new Date().toLocaleDateString("en-CA");
 
     const [todayIncompleteTasks, setTodayIncompleteTasks] = useState<any[]>([]);
@@ -134,7 +142,7 @@ const FocusTaskModal: React.FC<FocusTaskModalProps> = ({
     }
 
     const renderTaskRow = (item: any, index: number) => (
-        <View key={index} className={`mb-1 bg-white`}>
+        <View key={index} className={`mb-1`} style={{ backgroundColor: cardBg }}>
             <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => onSelect(item.task.id)}
@@ -143,7 +151,8 @@ const FocusTaskModal: React.FC<FocusTaskModalProps> = ({
                     layout={Layout.springify().damping(18).stiffness(180)}
                     entering={FadeInDown.duration(200)}
                     exiting={FadeOutUp.duration(150)}
-                    className={`w-full box-content bg-white rounded-[10px] pl-[5px] py-4 h-[48px] flex-row items-center justify-between`}
+                    className={`w-full box-content rounded-[10px] pl-[5px] py-4 h-[48px] flex-row items-center justify-between`}
+                    style={{ backgroundColor: cardBg }}
                 >
                     <View
                         className="flex-row items-center gap-x-3 flex-1"
@@ -163,6 +172,7 @@ const FocusTaskModal: React.FC<FocusTaskModalProps> = ({
                         <View className="w-[82%]">
                             <Text
                                 className="text-[15.5px] flex-1"
+                                style={{ color: textPrimary }}
                                 numberOfLines={1}
                                 ellipsizeMode="tail"
                                 onPress={() => {
@@ -183,7 +193,7 @@ const FocusTaskModal: React.FC<FocusTaskModalProps> = ({
                                     name={
                                         expandedTaskIds[item.task.id] ? "ChevronDown" : "chevronRight"
                                     }
-                                    color="#9ca3af"
+                                    color={isDark ? "#6B7280" : "#9ca3af"}
                                     size={15}
                                 />
                             </TouchableOpacity>
@@ -201,7 +211,8 @@ const FocusTaskModal: React.FC<FocusTaskModalProps> = ({
                                 entering={FadeInDown.duration(200)}
                                 exiting={FadeOutUp.duration(150)}
                                 key={subtask.id}
-                                className="w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2"
+                                className="w-full box-content rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2"
+                                style={{ backgroundColor: cardBg }}
                             >
                                 <TouchableWithoutFeedback
                                     onPress={() => {
@@ -232,6 +243,7 @@ const FocusTaskModal: React.FC<FocusTaskModalProps> = ({
                                             >
                                                 <Text
                                                     className={`text-[14.5px] ${subtask.status !== "pending" ? "text-gray-400 line-through" : ""}`}
+                                                    style={{ color: subtask.status !== "pending" ? "#9CA3AF" : textPrimary }}
                                                     numberOfLines={1}
                                                     ellipsizeMode="tail"
                                                 >
@@ -256,16 +268,16 @@ const FocusTaskModal: React.FC<FocusTaskModalProps> = ({
             statusBarTranslucent
             onRequestClose={onClose}
         >
-            <SafeAreaView className="flex-1 bg-[#F5F6F8]">
+            <SafeAreaView className={`flex-1 ${isDark ? 'bg-[#000000]' : 'bg-[#F5F6F8]'}`}>
                 <View className="px-4 pt-2 flex-row items-center gap-x-4">
                     <Pressable
                         onPress={onClose}
                         className="w-[32px] h-[32px] rounded-full items-center justify-center"
                     >
-                        <AppIcon name="X" color={"#111827"} size={21} />
+                        <AppIcon name="X" color={isDark ? "#E5E7EB" : "#111827"} size={21} />
                     </Pressable>
                     <View className="flex-row items-center gap-x-6">
-                        <Text className="text-[17px] font-semibold text-[#9CA3AF]">
+                        <Text className="text-[17px] font-semibold" style={{ color: textSecondary }}>
                             Task
                         </Text>
                     </View>
@@ -273,45 +285,46 @@ const FocusTaskModal: React.FC<FocusTaskModalProps> = ({
 
                 <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
                     <View className="px-4">
-                        <View className="bg-[#EEEEEE] rounded-[16px] px-4 py-1 flex-row items-center gap-x-2">
-                            <AppIcon name="search" size={18} color="#9CA3AF" />
+                        <View className="rounded-[16px] px-4 py-1 flex-row items-center gap-x-2" style={{ backgroundColor: isDark ? "#1B1B1B" : "#EEEEEE" }}>
+                            <AppIcon name="search" size={18} color={isDark ? "#9CA3AF" : "#9CA3AF"} />
                             <TextInput
                                 placeholder="Search"
                                 placeholderTextColor="#9CA3AF"
-                                className="flex-1 text-[15px] text-[#111827]"
+                                className="flex-1 text-[15px]"
+                                style={{ color: textPrimary }}
                             />
                         </View>
 
                         <View className="px-1 mt-4 flex-row items-center gap-x-[5px]">
-                            <View className="w-[22px] h-[22px] rounded-[6px] bg-[#EEF2FF] items-center justify-center">
-                                <AppIcon name="Calendar" color={"#9CA3AF"} size={16} />
+                            <View className="w-[22px] h-[22px] rounded-[6px] items-center justify-center" style={{ backgroundColor: isDark ? "#111827" : "#EEF2FF" }}>
+                                <AppIcon name="Calendar" color={isDark ? "#9CA3AF" : "#9CA3AF"} size={16} />
                             </View>
-                            <Text className="text-[15px] text-[#111827] font-semibold">
+                            <Text className="text-[15px] font-semibold" style={{ color: textPrimary }}>
                                 Today
                             </Text>
-                            <AppIcon name="chevronRight" size={16} color="#C5C9D3" />
+                            <AppIcon name="chevronRight" size={16} color={isDark ? "#6B7280" : "#C5C9D3"} />
                         </View>
 
-                        <Text className="px-2 mt-2 text-[13px] text-[#9CA3AF]">
+                        <Text className="px-2 mt-2 text-[13px]" style={{ color: textSecondary }}>
                             You can select a task to start a pomo to keep focused.
                         </Text>
 
-                        <View className="mt-4 bg-white rounded-[16px] px-4 py-2">
+                        <View className="mt-4 rounded-[16px] px-4 py-2" style={{ backgroundColor: cardBg }}>
                             <View className="flex-row items-center justify-between py-2">
-                                <Text className="text-[14px] tracking-widest text-[#111827] font-semibold">
+                                <Text className="text-[14px] tracking-widest font-semibold" style={{ color: textPrimary }}>
                                     TODAY
                                 </Text>
-                                <AppIcon name="ChevronDown" size={18} color="#C5C9D3" />
+                                <AppIcon name="ChevronDown" size={18} color={isDark ? "#6B7280" : "#C5C9D3"} />
                             </View>
                             {todayIncompleteTasks.map(renderTaskRow)}
                         </View>
 
-                        <View className="mt-4 bg-white rounded-[16px] px-4 py-2 mb-6">
+                        <View className="mt-4 rounded-[16px] px-4 py-2 mb-6" style={{ backgroundColor: cardBg }}>
                             <View className="flex-row items-center justify-between py-2">
-                                <Text className="text-[14px] tracking-widest text-[#111827] font-semibold">
+                                <Text className="text-[14px] tracking-widest font-semibold" style={{ color: textPrimary }}>
                                     OVERDUE
                                 </Text>
-                                <AppIcon name="ChevronDown" size={18} color="#C5C9D3" />
+                                <AppIcon name="ChevronDown" size={18} color={isDark ? "#6B7280" : "#C5C9D3"} />
                             </View>
                             {overdueTasks.map(renderTaskRow)}
                         </View>

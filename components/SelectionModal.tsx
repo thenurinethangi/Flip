@@ -1,13 +1,14 @@
-import React from "react";
+import { ThemeContext } from "@/context/themeContext";
+import { Check, X } from "lucide-react-native";
+import React, { useContext } from "react";
 import {
-    View,
+    FlatList,
+    StyleSheet,
     Text,
     TouchableOpacity,
-    StyleSheet,
-    FlatList,
+    View,
 } from "react-native";
 import Modal from "react-native-modal";
-import { X, Check, Crown } from "lucide-react-native";
 
 interface Item {
     id: string;
@@ -25,6 +26,12 @@ interface ListProps {
 }
 
 const SelectionModal: React.FC<ListProps> = ({ visible, title, data, selectedValue, onClose, onSelect, }) => {
+    const { currentTheme } = useContext(ThemeContext);
+    const isDark = currentTheme === "dark";
+    const textPrimary = isDark ? "#E5E7EB" : "#333";
+    const textSecondary = isDark ? "#9CA3AF" : "#999";
+    const cardBg = isDark ? "#1B1B1B" : "#fff";
+    const divider = isDark ? "#1F2937" : "#EEE";
 
     return (
         <Modal
@@ -32,12 +39,12 @@ const SelectionModal: React.FC<ListProps> = ({ visible, title, data, selectedVal
             style={{ margin: 0, justifyContent: "flex-end" }}
             onBackdropPress={onClose}
         >
-            <View style={styles.container}>
-                <View style={styles.header}>
+            <View style={[styles.container, { backgroundColor: cardBg }]}>
+                <View style={[styles.header, { borderBottomColor: divider }]}>
                     <TouchableOpacity onPress={onClose}>
-                        <X size={22} />
+                        <X size={22} color={textPrimary} />
                     </TouchableOpacity>
-                    <Text style={styles.headerTitle}>{title}</Text>
+                    <Text style={[styles.headerTitle, { color: textPrimary }]}>{title}</Text>
                     <TouchableOpacity onPress={onClose}>
                         <Check size={22} color="#4772FA" />
                     </TouchableOpacity>
@@ -59,6 +66,7 @@ const SelectionModal: React.FC<ListProps> = ({ visible, title, data, selectedVal
                                 className={item.isAvailable ? "" : "line-through"}
                                 style={[
                                     styles.itemText,
+                                    { color: textPrimary },
                                     selectedValue === item.label && styles.selectedText,
                                 ]}
                             >
@@ -72,6 +80,7 @@ const SelectionModal: React.FC<ListProps> = ({ visible, title, data, selectedVal
                                         styles.radio,
                                         item.isAvailable ? styles.radio : styles.radioInActive,
                                         selectedValue === item.label && styles.radioActive,
+                                        isDark && { borderColor: "#374151" },
                                     ]}
                                 >
                                     {selectedValue === item.label && (
@@ -83,7 +92,7 @@ const SelectionModal: React.FC<ListProps> = ({ visible, title, data, selectedVal
                     )}
                 />
                 <TouchableOpacity>
-                    <Text style={styles.clear} onPress={() => onSelect('None')}>Clear</Text>
+                    <Text style={[styles.clear, { color: isDark ? "#FCA5A5" : "red" }]} onPress={() => onSelect('None')}>Clear</Text>
                 </TouchableOpacity>
             </View>
         </Modal>
@@ -94,7 +103,6 @@ export default SelectionModal;
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#fff",
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         paddingBottom: 20,

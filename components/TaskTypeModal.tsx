@@ -1,3 +1,5 @@
+import { ColorContext } from "@/context/colorContext";
+import { ThemeContext } from "@/context/themeContext";
 import {
     BookOpen,
     Briefcase,
@@ -6,7 +8,7 @@ import {
     Home,
     Inbox
 } from "lucide-react-native";
-import React from "react";
+import React, { useContext } from "react";
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export type TaskTypeId = "none" | "work" | "personal" | "note" | "welcome" | "study";
@@ -37,6 +39,11 @@ const TaskTypeModal: React.FC<TaskTypeModalProps> = ({
     onClose,
     onSelect,
 }) => {
+    const { currentTheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ColorContext);
+    const isDark = currentTheme === "dark";
+    const cardBg = isDark ? "#1B1B1B" : "#fff";
+    const textPrimary = isDark ? "#E5E7EB" : "#1A1A1A";
 
     const handleSelect = (type: TaskTypeId) => {
         onSelect?.(type);
@@ -49,8 +56,8 @@ const TaskTypeModal: React.FC<TaskTypeModalProps> = ({
 
     return (
         <View style={styles.overlay} pointerEvents="box-none">
-            <Pressable style={styles.backdrop} onPress={onClose} />
-            <View style={styles.card}>
+            <Pressable style={[styles.backdrop, { backgroundColor: isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.12)" }]} onPress={onClose} />
+            <View style={[styles.card, { backgroundColor: cardBg }]}>
                 {taskTypeOptions.map((option, index) => (
                     <TouchableOpacity
                         key={option.id}
@@ -61,9 +68,9 @@ const TaskTypeModal: React.FC<TaskTypeModalProps> = ({
                         onPress={() => handleSelect(option.id)}
                     >
                         <option.Icon size={20} color={option.color} />
-                        <Text style={styles.text}>{option.label}</Text>
+                        <Text style={[styles.text, { color: textPrimary }]}>{option.label}</Text>
                         {selectedTaskType === option.id && (
-                            <Check size={18} color="#2F6BFF" style={styles.check} />
+                            <Check size={18} color={colorTheme} style={styles.check} />
                         )}
                     </TouchableOpacity>
                 ))}
@@ -83,7 +90,6 @@ const styles = StyleSheet.create({
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "rgba(0,0,0,0.12)",
     },
     card: {
         width: 190,

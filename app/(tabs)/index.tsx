@@ -4,10 +4,14 @@ import CustomCalendarModal from '@/components/DatePickerModal';
 import SubtaskEditModal from '@/components/SubtaskEditModel';
 import { AppIcon } from '@/components/ui/icon-symbol';
 import { requestNotificationPermission } from '@/config/notificationConfig';
+import { useAuth } from '@/context/authContext';
+import { ColorContext } from '@/context/colorContext';
+import { ThemeContext } from '@/context/themeContext';
 import { addNewSubTask, subscribeSubTasksByTaskId, updateSubtaskStatusBySubtaskId } from '@/services/subtaskService';
 import { add, postponeTasksByTaskIds, subscribeCompleteTasksByDate, subscribeOverdueTasks, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
-import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Text, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatlist';
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
@@ -15,6 +19,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import TaskEditModal from './../../components/TaskEditModal';
 
 export default function HomeScreen() {
+
+  const { user, loading } = useAuth();
+  const { currentTheme } = useContext(ThemeContext);
+  const { colorTheme } = useContext(ColorContext);
+  const router = useRouter();
+  const isDark = currentTheme === 'dark';
+  const textPrimary = isDark ? '#E5E7EB' : '#111827';
+  const textSecondary = isDark ? '#9CA3AF' : '#6B7280';
+  const cardBg = isDark ? '#1E1E1E' : '#FFFFFF';
 
   const [showAdd, setShowAdd] = useState<boolean>(false);
   const [showDate, setShowDate] = useState<boolean>(false);
@@ -41,6 +54,12 @@ export default function HomeScreen() {
   const [todayCompleteTasks, setTodayCompleteTasks] = useState<any[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<any[]>([]);
   const [expandedTaskIds, setExpandedTaskIds] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/");
+    }
+  }, [user, loading]);
 
   useEffect(() => {
     requestNotificationPermission();
@@ -298,7 +317,7 @@ export default function HomeScreen() {
 
   return (
     <>
-      <SafeAreaView className='bg-[#F5F6F8] flex-1'>
+      <SafeAreaView className={`${currentTheme === 'light' ? 'bg-[#F5F6F8]' : 'bg-[#000000]' } flex-1`}>
 
         <TouchableOpacity
           onPress={() => {
@@ -311,10 +330,10 @@ export default function HomeScreen() {
             width: 57,
             height: 57,
             borderRadius: 32,
-            backgroundColor: '#4772FA',
+            backgroundColor: colorTheme,
             alignItems: 'center',
             justifyContent: 'center',
-            shadowColor: '#4772FA',
+            shadowColor: colorTheme,
             shadowOpacity: 0.3,
             shadowRadius: 16,
             zIndex: 999,
@@ -326,11 +345,11 @@ export default function HomeScreen() {
 
         <View className='mt-[17px] flex-row justify-between items-center px-4'>
           <View className='flex-row items-center gap-x-4'>
-            <AppIcon name="Menu" color="#222" />
-            <Text className='text-[20.5px] font-semibold'>Today</Text>
+            <AppIcon name="Menu" color={isDark ? '#E5E7EB' : '#222'} />
+            <Text className='text-[20.5px] font-semibold' style={{ color: textPrimary }}>Today</Text>
           </View>
           <View className=''>
-            <AppIcon name="EllipsisVertical" color="#424242" size={22} />
+            <AppIcon name="EllipsisVertical" color={isDark ? '#E5E7EB' : '#424242'} size={22} />
           </View>
         </View>
 
@@ -346,12 +365,13 @@ export default function HomeScreen() {
             onDragEnd={({ data }) => setTodayIncompleteTasks(data)}
             renderItem={({ item, drag, isActive }) => (
               <ScaleDecorator>
-                <View className={`mb-2 bg-white`} style={{ opacity: isActive ? 0.9 : 1 }}>
+                <View className={`mb-2`} style={{ opacity: isActive ? 0.9 : 1, backgroundColor: cardBg, borderRadius: 10 }}>
                   <Animated.View
                     layout={Layout.springify().damping(18).stiffness(180)}
                     entering={FadeInDown.duration(200)}
                     exiting={FadeOutUp.duration(150)}
-                    className={`w-full box-content bg-white rounded-[10px] pl-[21px] py-4 h-[48px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} ${expandedTaskIds[item.task.id] && item.subtasks?.length > 0 ? '' : 'shadow-lg shadow-black/0.05'} flex-row items-center justify-between`}
+                    className={`w-full box-content rounded-[10px] pl-[21px] py-4 h-[48px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} ${expandedTaskIds[item.task.id] && item.subtasks?.length > 0 ? '' : 'shadow-lg shadow-black/0.05'} flex-row items-center justify-between`}
+                    style={{ backgroundColor: cardBg }}
                   >
                     <View className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
                       <View pointerEvents="auto">
@@ -365,6 +385,7 @@ export default function HomeScreen() {
                       <View className='w-[82%]'>
                         <Text
                           className='text-[15.5px] flex-1'
+                          style={{ color: textPrimary }}
                           numberOfLines={1}
                           ellipsizeMode="tail"
                           onPress={() => {
@@ -384,7 +405,12 @@ export default function HomeScreen() {
                     >
                       <View>
                         <View>
-                          <Text className={`text-primary text-[13px] ${item.subtasks?.length > 0 ? 'translate-x-[13px] ' : 'translate-x-2'}`}>{item.task.time !== 'None' ? item.task.time : formatTaskDate(item.task.date)}</Text>
+                          <Text
+                            className={`text-[13px] ${item.subtasks?.length > 0 ? 'translate-x-[13px] ' : 'translate-x-2'}`}
+                            style={{ color: colorTheme }}
+                          >
+                            {item.task.time !== 'None' ? item.task.time : formatTaskDate(item.task.date)}
+                          </Text>
                         </View>
                         <View></View>
                       </View>
@@ -411,7 +437,8 @@ export default function HomeScreen() {
                           entering={FadeInDown.duration(200)}
                           exiting={FadeOutUp.duration(150)}
                           key={subtask.id}
-                          className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
+                          className='w-full box-content rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
+                          style={{ backgroundColor: cardBg }}
                         >
                           <TouchableWithoutFeedback onPress={() => {
                             setactiveSubtask(subtask);
@@ -430,11 +457,13 @@ export default function HomeScreen() {
                                   setactiveSubtask(subtask);
                                   setShowSubtaskEdit(true);
                                 }}>
-                                  <Text className={`text-[14.5px] ${subtask.status !== 'pending' ? 'text-gray-400 line-through' : ''}`} numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                  <Text className={`text-[14.5px] ${subtask.status !== 'pending' ? 'text-gray-400 line-through' : ''}`} style={{ color: subtask.status !== 'pending' ? '#9CA3AF' : textPrimary }} numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
                                 </TouchableNativeFeedback>
                               </View>
                               <View>
-                                <Text className={`text-[12.5px] ${subtask.status !== 'pending' ? 'text-gray-400 opacity-90' : subtask.time === 'None' && !isNotPastDate(subtask.date) ? 'text-red-500' : 'text-primary'}`}>{subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}</Text>
+                                <Text className={`text-[12.5px] ${subtask.status !== 'pending' ? 'text-gray-400 opacity-90' : subtask.time === 'None' && !isNotPastDate(subtask.date) ? 'text-red-500' : 'text-primary'}`} style={{ color: subtask.status !== 'pending' ? '#9CA3AF' : undefined }}>
+                                  {subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}
+                                </Text>
                               </View>
                             </View>
                           </TouchableWithoutFeedback>
@@ -453,12 +482,13 @@ export default function HomeScreen() {
                     layout={Layout.springify().damping(18).stiffness(180)}
                     entering={FadeIn.duration(200)}
                     exiting={FadeOut.duration(150)}
-                    className='bg-white py-[12px] shadow-lg shadow-black/0.05 rounded-[10px] mb-2'
+                    className='py-[12px] shadow-lg shadow-black/0.05 rounded-[10px] mb-2'
+                    style={{ backgroundColor: cardBg }}
                   >
                     <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
                       <View className='flex-row items-center gap-x-3'>
-                        <Text className='text-[16px] font-medium text-[#222]'>Overdue</Text>
-                        <Text className='text-[14px] text-gray-400'>{overdueTasks.length}</Text>
+                        <Text className='text-[16px] font-medium' style={{ color: textPrimary }}>Overdue</Text>
+                        <Text className='text-[14px]' style={{ color: textSecondary }}>{overdueTasks.length}</Text>
                       </View>
                       <View className='flex-row items-center gap-x-3'>
                         <TouchableOpacity onPress={handlePostpone} className='flex-row items-center gap-x-1'>
@@ -481,12 +511,13 @@ export default function HomeScreen() {
                           data={overdueTasks}
                           keyExtractor={(item) => item.task.id}
                           renderItem={({ item }) => (
-                            <View className='mb-2 bg-white'>
+                            <View className='mb-2' style={{ backgroundColor: cardBg }}>
                               <Animated.View
                                 layout={Layout.springify().damping(18).stiffness(180)}
                                 entering={FadeInDown.duration(200)}
                                 exiting={FadeOutUp.duration(150)}
-                                className={`bg-white rounded-[10px] pl-[21px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} py-4 flex-row items-center justify-between`}
+                                className={`rounded-[10px] pl-[21px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} py-4 flex-row items-center justify-between`}
+                                style={{ backgroundColor: cardBg }}
                               >
                                 <View className='flex-row items-center justify-between w-full'>
                                   <TouchableOpacity
@@ -507,7 +538,7 @@ export default function HomeScreen() {
                                         />
                                       </View>
                                       <View className='w-[72%]'>
-                                        <Text className='text-[15.5px]' numberOfLines={1} ellipsizeMode="tail">{item.task.taskname}</Text>
+                                        <Text className='text-[15.5px]' style={{ color: textPrimary }} numberOfLines={1} ellipsizeMode="tail">{item.task.taskname}</Text>
                                       </View>
                                     </View>
                                     <View>
@@ -536,7 +567,8 @@ export default function HomeScreen() {
                                   {item.subtasks.map((subtask: any) => (
                                     <View
                                       key={subtask.id}
-                                      className='w-full box-content bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
+                                      className='w-full box-content rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
+                                      style={{ backgroundColor: cardBg }}
                                     >
                                       <TouchableWithoutFeedback onPress={() => {
                                         setactiveSubtask(subtask);
@@ -586,7 +618,8 @@ export default function HomeScreen() {
                     layout={Layout.springify().damping(18).stiffness(180)}
                     entering={FadeIn.duration(200)}
                     exiting={FadeOut.duration(150)}
-                    className={`bg-white py-[12.5px] shadow-lg shadow-black/0.05 mb-2 rounded-[10px] ${todayCompleteTasks.length > 0 ? 'visible' : 'invisible'}`}
+                      className={`py-[12.5px] shadow-lg shadow-black/0.05 mb-2 rounded-[10px] ${todayCompleteTasks.length > 0 ? 'visible' : 'invisible'}`}
+                      style={{ backgroundColor: cardBg }}
                   >
                     <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
                       <View className='flex-row items-center gap-x-3'>
@@ -617,7 +650,8 @@ export default function HomeScreen() {
                               layout={Layout.springify().damping(18).stiffness(180)}
                               entering={FadeInDown.duration(200)}
                               exiting={FadeOutUp.duration(150)}
-                              className={`bg-white rounded-[10px] pl-[21px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} py-4 flex-row items-center justify-between`}
+                              className={`rounded-[10px] pl-[21px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} py-4 flex-row items-center justify-between`}
+                              style={{ backgroundColor: cardBg }}
                             >
                               <View className='flex-row items-center justify-between w-full'>
                                 <TouchableOpacity
@@ -667,7 +701,8 @@ export default function HomeScreen() {
                                 {item.subtasks.map((subtask: any) => (
                                   <View
                                     key={subtask.id}
-                                    className='bg-white rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
+                                    className='rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
+                                    style={{ backgroundColor: cardBg }}
                                   >
                                     <TouchableWithoutFeedback onPress={() => {
                                       setactiveSubtask(subtask);

@@ -2,8 +2,10 @@ import AddCountdownModal from '@/components/AddCountdownModal'
 import CountdownTypeModal, { CountdownTypeId } from '@/components/CountdownTypeModal'
 import CountdownViewModal from '@/components/CountdownViewModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
+import { ColorContext } from '@/context/colorContext'
+import { ThemeContext } from '@/context/themeContext'
 import { subscribeCountdown } from '@/services/countdownService'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { FlatList, Image, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import Animated, { FadeInDown, FadeOutUp, Layout } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -51,6 +53,13 @@ const typeColorMap: Record<CountdownType, string> = {
 };
 
 const Countdown = () => {
+  const { currentTheme } = useContext(ThemeContext);
+  const { colorTheme } = useContext(ColorContext);
+  const isDark = currentTheme === 'dark';
+  const cardBg = isDark ? '#1B1B1B' : '#FFFFFF';
+  const textPrimary = isDark ? '#E5E7EB' : '#111827';
+  const textSecondary = isDark ? '#9CA3AF' : '#6B7280';
+
   const [showCountdownTypeModal, setShowCountdownTypeModal] = useState(false);
   const [showAddCountdownModal, setShowAddCountdownModal] = useState(false);
   const [showViewCountdownModal, setShowViewCountdownModal] = useState(false);
@@ -70,7 +79,7 @@ const Countdown = () => {
 
   return (
     <>
-      <SafeAreaView className='bg-[#F5F6F8] flex-1'>
+      <SafeAreaView className={`flex-1 ${isDark ? 'bg-[#000000]' : 'bg-[#F5F6F8]'}`}>
 
         <TouchableOpacity
           onPress={() => {
@@ -83,10 +92,10 @@ const Countdown = () => {
             width: 57,
             height: 57,
             borderRadius: 32,
-            backgroundColor: '#4772FA',
+            backgroundColor: colorTheme,
             alignItems: 'center',
             justifyContent: 'center',
-            shadowColor: '#4772FA',
+            shadowColor: colorTheme,
             shadowOpacity: 0.3,
             shadowRadius: 16,
             zIndex: 999,
@@ -99,10 +108,10 @@ const Countdown = () => {
         <View className='mt-[17px] flex-row justify-between items-center px-4'>
           <View className='flex-row items-center gap-x-4'>
             {/* <AppIcon name="Menu" color="#222" /> */}
-            <Text className='text-[20.5px] font-semibold'>Countdown</Text>
+            <Text className='text-[20.5px] font-semibold' style={{ color: textPrimary }}>Countdown</Text>
           </View>
           <View className=''>
-            <AppIcon name="EllipsisVertical" color="#424242" size={22} />
+            <AppIcon name="EllipsisVertical" color={isDark ? '#E5E7EB' : '#424242'} size={22} />
           </View>
         </View>
 
@@ -115,12 +124,13 @@ const Countdown = () => {
             showsVerticalScrollIndicator={false}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View className={`mb-[8px] bg-white rounded-[10px]`}>
+              <View className={`mb-[8px] rounded-[10px]`} style={{ backgroundColor: cardBg }}>
                 <Animated.View
                   layout={Layout.springify().damping(18).stiffness(180)}
                   entering={FadeInDown.duration(200)}
                   exiting={FadeOutUp.duration(150)}
-                  className={`w-full box-content bg-white rounded-[10px] py-4 px-5 flex-row items-center justify-between shadow-md shadow-black/0.05`}
+                  className={`w-full box-content rounded-[10px] py-4 px-5 flex-row items-center justify-between shadow-md shadow-black/0.05`}
+                  style={{ backgroundColor: cardBg }}
                 >
                   <Pressable onPress={() => { setActiveCountdowns(item); setShowViewCountdownModal(true); }} className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
                     <View
@@ -130,17 +140,17 @@ const Countdown = () => {
                       <Image source={countdownTypeImageMap[item.type as CountdownType] ?? countdownTypeImageMap.Countdown} className='w-[22px] h-[22px]'></Image>
                     </View>
                     <View className='flex-1 justify-center'>
-                      <Text className='text-[16px] font-semibold' numberOfLines={1} ellipsizeMode="tail">
+                      <Text className='text-[16px] font-semibold' style={{ color: textPrimary }} numberOfLines={1} ellipsizeMode="tail">
                         {item.countdownName}
                       </Text>
                     </View>
                   </Pressable>
                   <View className='justify-center items-end'>
                     <View>
-                      <Text className={`text-primary text-[22px] font-semibold`}>{getDaysLeftFromToday(item.date)}</Text>
+                      <Text className='text-[22px] font-semibold' style={{ color: colorTheme }}>{getDaysLeftFromToday(item.date)}</Text>
                     </View>
                     <View>
-                      <Text className='text-primary text-[12px]'>Days left</Text>
+                      <Text className='text-[12px]' style={{ color: colorTheme }}>Days left</Text>
                     </View>
                   </View>
                 </Animated.View>

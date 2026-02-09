@@ -1,5 +1,6 @@
-import { Cake, Gift, Heart, Hourglass, Balloon } from "lucide-react-native";
-import React from "react";
+import { ThemeContext } from "@/context/themeContext";
+import { Balloon, Cake, Gift, Heart, Hourglass } from "lucide-react-native";
+import React, { useContext } from "react";
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export type CountdownTypeId = "holiday" | "birthday" | "anniversary" | "countdown";
@@ -29,9 +30,15 @@ const CountdownTypeModal: React.FC<CountdownTypeModalProps> = ({
 }) => {
     if (!visible) return null;
 
+    const { currentTheme } = useContext(ThemeContext);
+    const isDark = currentTheme === "dark";
+    const labelColor = isDark ? "#E5E7EB" : "#111827";
+    const iconBg = isDark ? "#1B1B1B" : "#FFFFFF";
+    const backdropColor = isDark ? "#0B0F0E" : "#F5F6F8";
+
     return (
         <View style={styles.overlay} pointerEvents="box-none">
-            <Pressable style={styles.backdrop} onPress={onClose} />
+            <Pressable style={[styles.backdrop, { backgroundColor: backdropColor }]} onPress={onClose} />
             <View className="items-center gap-y-4">
                 {options.map((option) => (
                     <TouchableOpacity
@@ -43,8 +50,8 @@ const CountdownTypeModal: React.FC<CountdownTypeModalProps> = ({
                         }}
                         activeOpacity={0.8}
                     >
-                        <Text style={styles.label}>{option.label}</Text>
-                        <View style={styles.iconWrap}>
+                        <Text style={[styles.label, { color: labelColor }]}>{option.label}</Text>
+                        <View style={[styles.iconWrap, { backgroundColor: iconBg }] }>
                             <option.Icon size={21} color={option.color} />
                         </View>
                     </TouchableOpacity>
@@ -66,7 +73,6 @@ const styles = StyleSheet.create({
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "#F5F6F8",
         opacity: 0.95,
     },
     container: {

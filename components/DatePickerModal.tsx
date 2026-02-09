@@ -1,5 +1,7 @@
+import { ColorContext } from "@/context/colorContext";
+import { ThemeContext } from "@/context/themeContext";
 import { Bell, Check, Clock, Repeat, X } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import Modal from "react-native-modal";
@@ -32,6 +34,12 @@ const CustomCalendarModal: React.FC<Props> = ({
     setSelectedRepeat,
 }) => {
     const todayStr = new Date().toLocaleDateString("en-CA");
+    const { currentTheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ColorContext);
+    const isDark = currentTheme === "dark";
+    const textPrimary = isDark ? "#E5E7EB" : "#374151";
+    const textSecondary = isDark ? "#9CA3AF" : "#999";
+    const cardBg = isDark ? "#1B1B1B" : "#fff";
 
     const [activeSubModal, setActiveSubModal] = useState<"time" | "reminder" | "repeat" | null>(null);
 
@@ -59,18 +67,18 @@ const CustomCalendarModal: React.FC<Props> = ({
             backdropOpacity={0.3}
             onBackdropPress={onClose}
         >
-            <View style={styles.container}>
+            <View style={[styles.container, { backgroundColor: cardBg }] }>
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={onClose}>
-                        <X size={22} />
+                        <X size={22} color={textPrimary} />
                     </TouchableOpacity>
 
                     <View style={styles.tabs}>
-                        <Text style={styles.activeTab}>Date</Text>
+                        <Text style={[styles.activeTab, { color: textPrimary }]}>Date</Text>
                     </View>
 
-                    <Check onPress={onClose} size={22} color="#4772FA" />
+                    <Check onPress={onClose} size={22} color={colorTheme} />
                 </View>
 
                 {/* Calendar */}
@@ -82,14 +90,18 @@ const CustomCalendarModal: React.FC<Props> = ({
                     markedDates={{
                         [date]: {
                             selected: true,
-                            selectedColor: "#4772FA",
+                            selectedColor: colorTheme,
                         },
                     }}
                     theme={{
-                        selectedDayBackgroundColor: "#4772FA",
-                        todayTextColor: "#4772FA",
-                        arrowColor: "#4772FA",
-                        monthTextColor: "#222",
+                        selectedDayBackgroundColor: colorTheme,
+                        todayTextColor: colorTheme,
+                        arrowColor: colorTheme,
+                        monthTextColor: isDark ? "#E5E7EB" : "#222",
+                        dayTextColor: isDark ? "#E5E7EB" : "#111827",
+                        textDisabledColor: isDark ? "#4B5563" : "#9CA3AF",
+                        calendarBackground: cardBg,
+                        textSectionTitleColor: isDark ? "#9CA3AF" : "#6B7280",
                         textDayFontSize: 14,
                         textMonthFontSize: 16,
                     }}
@@ -101,9 +113,9 @@ const CustomCalendarModal: React.FC<Props> = ({
                     style={styles.option}
                     onPress={() => setActiveSubModal("time")}
                 >
-                    <Clock size={20} color="#666" />
-                    <Text style={styles.optionText}>Time</Text>
-                    <Text style={[styles.optionValue, selectedTime !== "None" && { color: "#4772FA" }]}>
+                    <Clock size={20} color={isDark ? "#9CA3AF" : "#666"} />
+                    <Text style={[styles.optionText, { color: textPrimary }]}>Time</Text>
+                    <Text style={[styles.optionValue, { color: selectedTime !== "None" ? colorTheme : textSecondary }]}> 
                         {selectedTime}
                     </Text>
                 </TouchableOpacity>
@@ -112,9 +124,9 @@ const CustomCalendarModal: React.FC<Props> = ({
                     style={styles.option}
                     onPress={() => setActiveSubModal("reminder")}
                 >
-                    <Bell size={20} color="#666" />
-                    <Text style={styles.optionText}>Reminder</Text>
-                    <Text style={[styles.optionValue, selectedReminder !== "None" && { color: "#4772FA" }]}>
+                    <Bell size={20} color={isDark ? "#9CA3AF" : "#666"} />
+                    <Text style={[styles.optionText, { color: textPrimary }]}>Reminder</Text>
+                    <Text style={[styles.optionValue, { color: selectedReminder !== "None" ? colorTheme : textSecondary }]}> 
                         {selectedReminder}
                     </Text>
                 </TouchableOpacity>
@@ -123,16 +135,16 @@ const CustomCalendarModal: React.FC<Props> = ({
                     style={styles.option}
                     onPress={() => setActiveSubModal("repeat")}
                 >
-                    <Repeat size={20} color="#666" />
-                    <Text style={styles.optionText}>Repeat</Text>
-                    <Text style={[styles.optionValue, selectedRepeat !== "None" && { color: "#4772FA" }]}>
+                    <Repeat size={20} color={isDark ? "#9CA3AF" : "#666"} />
+                    <Text style={[styles.optionText, { color: textPrimary }]}>Repeat</Text>
+                    <Text style={[styles.optionValue, { color: selectedRepeat !== "None" ? colorTheme : textSecondary }]}> 
                         {selectedRepeat}
                     </Text>
                 </TouchableOpacity>
 
                 {/* Clear */}
                 <TouchableOpacity onPress={() => choooseDate(todayStr)}>
-                    <Text style={styles.clear}>Clear</Text>
+                    <Text style={[styles.clear, { color: isDark ? "#FCA5A5" : "red" }]}>Clear</Text>
                 </TouchableOpacity>
             </View>
 

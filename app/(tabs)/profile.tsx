@@ -1,15 +1,22 @@
 import AccountModal from '@/components/AccountModal'
 import ThemeModal from '@/components/ThemeModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
+import { ThemeContext } from '@/context/themeContext'
 import { auth } from '@/services/firebase'
 import { subscribeUser, UserProfile } from '@/services/userService'
 import { router } from 'expo-router'
 import { onAuthStateChanged, signOut } from 'firebase/auth'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const profile = () => {
+  const { currentTheme } = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
+  const cardBg = isDark ? '#1B1B1B' : '#FFFFFF';
+  const textPrimary = isDark ? '#E5E7EB' : '#111827';
+  const textSecondary = isDark ? '#9CA3AF' : '#6B7280';
+  const borderColor = isDark ? '#111827' : '#F3F4F6';
 
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
@@ -80,31 +87,35 @@ const profile = () => {
 
   return (
     <>
-      <SafeAreaView className='bg-[#F5F6F8] flex-1 pb-0 mb-0'>
+      <SafeAreaView className={`flex-1 pb-0 mb-0 ${isDark ? 'bg-[#0B0F0E]' : 'bg-[#F5F6F8]'}`}>
 
         <View className='mt-[17px] flex-row justify-between items-center px-4'>
           <View className='flex-row items-center gap-x-4'>
             {/* <AppIcon name="Menu" color="#222" /> */}
-            <Text className='text-[20.5px] font-semibold'>Settings</Text>
+            <Text className='text-[20.5px] font-semibold' style={{ color: textPrimary }}>Settings</Text>
           </View>
         </View>
 
         <ScrollView className='mt-4 flex-1' contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
 
           {/* Profile card */}
-          <TouchableOpacity onPress={() => setShowAccountModal(true)} className='bg-white rounded-[18px] px-4 py-4 flex-row items-center justify-between shadow-xl shadow-black/15 border border-gray-100'>
+          <TouchableOpacity
+            onPress={() => setShowAccountModal(true)}
+            className='rounded-[18px] px-4 py-4 flex-row items-center justify-between shadow-xl shadow-black/15 border'
+            style={{ backgroundColor: cardBg, borderColor }}
+          >
             <View className='flex-row items-center gap-x-4'>
               {userData.avatar === ''
-                ? <View className='w-[59px] h-[59px] rounded-full bg-[#E6E9F4] items-center justify-center'>
-                  <AppIcon name='user' color='#9CA3AF' size={22} />
+                ? <View className='w-[59px] h-[59px] rounded-full items-center justify-center' style={{ backgroundColor: isDark ? '#111827' : '#E6E9F4' }}>
+                  <AppIcon name='user' color={isDark ? '#6B7280' : '#9CA3AF'} size={22} />
                 </View>
                 : <Image source={{ uri: userData.avatar }} className='w-[59px] h-[59px] rounded-full object-center object-cover'></Image>
               }
               <View>
-                <Text className='text-[17.5px] font-semibold text-[#111827]'>{userData.name}</Text>
+                <Text className='text-[17.5px] font-semibold' style={{ color: textPrimary }}>{userData.name}</Text>
                 <View className='flex-row items-center gap-x-2 mt-1'>
-                  <View className='px-2 py-[2px] rounded-full bg-[#E6F7EE] flex-row items-center gap-x-1'>
-                    <Text className='text-[11px] text-[#22C55E] font-semibold'>Free</Text>
+                  <View className='px-2 py-[2px] rounded-full flex-row items-center gap-x-1' style={{ backgroundColor: isDark ? '#0F2E23' : '#E6F7EE' }}>
+                    <Text className='text-[11px] font-semibold' style={{ color: '#22C55E' }}>Free</Text>
                   </View>
                   {/* <View className='px-2 py-[2px] rounded-full bg-[#E9ECF8] flex-row items-center gap-x-1'>
                     <Text className='text-[11px] text-[#64748B] font-semibold'>15 Badges</Text>
@@ -112,46 +123,46 @@ const profile = () => {
                 </View>
               </View>
             </View>
-            <AppIcon name='chevronRight' color='#C5C9D3' size={20} />
+            <AppIcon name='chevronRight' color={isDark ? '#6B7280' : '#C5C9D3'} size={20} />
           </TouchableOpacity>
 
           {/* Settings list */}
-          <View className='bg-white rounded-[18px] mt-4 shadow-xl shadow-black/15 border border-gray-100 overflow-hidden'>
+          <View className='rounded-[18px] mt-4 shadow-xl shadow-black/15 border overflow-hidden' style={{ backgroundColor: cardBg, borderColor }}>
             {settingsItems.map((item, index) => (
               <TouchableOpacity onPress={item.fuc} key={item.label} className='flex-row items-center justify-between px-4 py-4'>
                 <View className='flex-row items-center gap-x-3'>
                   <View className='w-[30px] h-[30px] rounded-[10px] bg-[#EEF2FF] items-center justify-center'>
                     <AppIcon name={item.icon} size={18} color='#4F6EF7' />
                   </View>
-                  <Text className='text-[15px] text-[#000000]'>{item.label}</Text>
+                  <Text className='text-[15px]' style={{ color: textPrimary }}>{item.label}</Text>
                 </View>
-                <AppIcon name='chevronRight' color='#C5C9D3' size={18} />
+                <AppIcon name='chevronRight' color={isDark ? '#6B7280' : '#C5C9D3'} size={18} />
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Integrations */}
-          <View className='bg-white rounded-[18px] mt-4 shadow-xl shadow-black/15 border border-gray-100'>
+          <View className='rounded-[18px] mt-4 shadow-xl shadow-black/15 border' style={{ backgroundColor: cardBg, borderColor }}>
             <TouchableOpacity className='flex-row items-center justify-between px-4 py-4'>
               <View className='flex-row items-center gap-x-3'>
                 <View className='w-[30px] h-[30px] rounded-[10px] bg-[#E6FAF1] items-center justify-center'>
                   <AppIcon name='send' size={18} color='#22C55E' />
                 </View>
-                <Text className='text-[15px] text-[#000000]'>Integrations & Import</Text>
+                <Text className='text-[15px]' style={{ color: textPrimary }}>Integrations & Import</Text>
               </View>
-              <AppIcon name='chevronRight' color='#C5C9D3' size={18} />
+              <AppIcon name='chevronRight' color={isDark ? '#6B7280' : '#C5C9D3'} size={18} />
             </TouchableOpacity>
           </View>
 
           {/* More */}
-          <View className='bg-white rounded-[18px] mt-4 shadow-xl shadow-black/15 overflow-hidden border border-gray-100'>
+          <View className='rounded-[18px] mt-4 shadow-xl shadow-black/15 overflow-hidden border' style={{ backgroundColor: cardBg, borderColor }}>
             {moreItems.map((item) => (
               <TouchableOpacity key={item.label} className='flex-row items-center justify-between px-4 py-4'>
                 <View className='flex-row items-center gap-x-3 flex-1'>
                   <View className='w-[30px] h-[30px] rounded-[10px] bg-[#FFF7E6] items-center justify-center'>
                     <AppIcon name={item.icon} size={18} color='#F59E0B' />
                   </View>
-                  <Text className='text-[15px] text-[#000000]'>{item.label}</Text>
+                  <Text className='text-[15px]' style={{ color: textPrimary }}>{item.label}</Text>
                 </View>
                 {item.hasSocial ? (
                   <View className='flex-row items-center gap-x-2'>
@@ -161,15 +172,15 @@ const profile = () => {
                     <View className='w-[20px] h-[20px] rounded-full items-center justify-center'><Image source={require('./../../assets/images/social.png')} className='w-6 h-6 rounded-full'></Image></View>
                   </View>
                 ) : (
-                  <AppIcon name='chevronRight' color='#C5C9D3' size={18} />
+                  <AppIcon name='chevronRight' color={isDark ? '#6B7280' : '#C5C9D3'} size={18} />
                 )}
               </TouchableOpacity>
             ))}
           </View>
 
           {/* Sign out */}
-          <TouchableOpacity onPress={handleLogout} className='bg-white rounded-[18px] mt-4 px-4 py-4 items-center shadow-xl shadow-black/15 border border-gray-100'>
-            <Text className='text-[#E94E4E] text-[15px] font-medium'>Sign Out</Text>
+          <TouchableOpacity onPress={handleLogout} className='rounded-[18px] mt-4 px-4 py-4 items-center shadow-xl shadow-black/15 border' style={{ backgroundColor: cardBg, borderColor }}>
+            <Text className='text-[15px] font-medium' style={{ color: '#E94E4E' }}>Sign Out</Text>
           </TouchableOpacity>
 
         </ScrollView>

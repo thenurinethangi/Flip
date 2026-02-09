@@ -1,26 +1,16 @@
+import { ColorContext } from "@/context/colorContext";
+import { ThemeContext } from "@/context/themeContext";
 import {
     FocusType,
     getFocusRecordsByRange,
     getFocusSummaryByDate,
     getTotalFocusSummary,
 } from "@/services/focusService";
-import {
-    ChevronLeft,
-    ChevronRight,
-    Plus,
-    Share2,
-    X,
-} from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, Share2, X } from "lucide-react-native";
+import React, { useContext, useEffect, useState } from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, {
-    Circle,
-    Defs,
-    LinearGradient,
-    Path,
-    Stop,
-} from "react-native-svg";
+import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 interface FocusStatsModalProps {
     visible: boolean;
@@ -46,17 +36,17 @@ export function formatRelativeDate(date: Date): string {
 }
 
 export function formatTime(date: Date | any): string {
-    if (!date) return '';
+    if (!date) return "";
     const value = date?.toDate ? date.toDate() : new Date(date);
-    return value.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
+    return value.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
         hour12: true,
     });
 }
 
 export function formatMinutesToHours(minutes: number): string {
-    if (minutes <= 0) return '0 min';
+    if (minutes <= 0) return "0 min";
 
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
@@ -72,10 +62,14 @@ export function formatMinutesToHours(minutes: number): string {
     return `${remainingMinutes}m`;
 }
 
-const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
-    visible,
-    onClose,
-}) => {
+const FocusStatsModal: React.FC<FocusStatsModalProps> = ({ visible, onClose }) => {
+    const { currentTheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ColorContext);
+    const isDark = currentTheme === "dark";
+    const cardBg = isDark ? "#1B1B1B" : "#FFFFFF";
+    const textPrimary = isDark ? "#E5E7EB" : "#111827";
+    const textSecondary = isDark ? "#9CA3AF" : "#6B7280";
+
     const [totalPomos, setTotalPomos] = useState(0);
     const [todayPomos, setTodayPomos] = useState(0);
     const [yesterdayPomos, setYesterdayPomos] = useState(0);
@@ -138,9 +132,7 @@ const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
             month: "short",
             day: "numeric",
         });
-        return sameMonth
-            ? `${startLabel} - ${end.getDate()}`
-            : `${startLabel} - ${endLabel}`;
+        return sameMonth ? `${startLabel} - ${end.getDate()}` : `${startLabel} - ${endLabel}`;
     };
 
     const getWeekSeries = (start: Date, docs: FocusType[]) => {
@@ -254,74 +246,64 @@ const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
             statusBarTranslucent
             onRequestClose={onClose}
         >
-            <SafeAreaView className="flex-1 bg-[#F5F6F8]">
+            <SafeAreaView className={`flex-1 ${isDark ? "bg-[#000000]" : "bg-[#F5F6F8]"}`}>
                 <View className="px-4 pt-3">
                     <View className="flex-row items-center justify-between">
-                        <TouchableOpacity
-                            onPress={onClose}
-                            className="w-10 h-10 rounded-full items-center justify-center"
-                        >
-                            <X size={20} color="#111827" />
+                        <TouchableOpacity onPress={onClose} className="w-10 h-10 rounded-full items-center justify-center">
+                            <X size={20} color={isDark ? "#E5E7EB" : "#111827"} />
                         </TouchableOpacity>
-                        <Text className="text-[18px] font-semibold">Focus Statistics</Text>
+                        <Text className="text-[18px] font-semibold" style={{ color: textPrimary }}>
+                            Focus Statistics
+                        </Text>
                         <TouchableOpacity className="w-10 h-10 rounded-full items-center justify-center">
-                            <Share2 size={18} color="#111827" />
+                            <Share2 size={18} color={isDark ? "#E5E7EB" : "#111827"} />
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                <ScrollView
-                    className="flex-1"
-                    contentContainerStyle={{ padding: 16, paddingBottom: 28 }}
-                >
+                <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 28 }}>
                     <View className="flex-row gap-x-4">
-                        <View className="flex-1 bg-white rounded-2xl p-4 shadow-sm">
-                            <Text className="text-[14px] text-[#111827] font-semibold">
+                        <View className="flex-1 rounded-2xl p-4 shadow-sm" style={{ backgroundColor: cardBg }}>
+                            <Text className="text-[14px] font-semibold" style={{ color: textPrimary }}>
                                 Today's Pomos
                             </Text>
                             <View className="flex-row items-center mt-1">
-                                <Text className="text-[12px] text-[#9CA3AF]">
+                                <Text className="text-[12px]" style={{ color: textSecondary }}>
                                     {yesterdayPomos > todayPomos
                                         ? yesterdayPomos - todayPomos
-                                        : todayPomos - yesterdayPomos}{" "}
-                                    from yesterday
+                                        : todayPomos - yesterdayPomos} from yesterday
                                 </Text>
-                                <Text
-                                    className={`text-[13px] ${yesterdayPomos > todayPomos ? "text-[#EF4444]" : "text-green-500"} ml-2`}
-                                >
+                                <Text className={`text-[13px] ${yesterdayPomos > todayPomos ? "text-[#EF4444]" : "text-green-500"} ml-2`}>
                                     {yesterdayPomos > todayPomos ? "↓" : "↑"}
                                 </Text>
                             </View>
-                            <Text className="text-[32px] text-primary font-semibold mt-3">
+                            <Text className="text-[32px] font-semibold mt-3" style={{ color: colorTheme }}>
                                 {todayPomos}
                             </Text>
                         </View>
-                        <View className="flex-1 bg-white rounded-2xl p-4 shadow-sm">
-                            <Text className="text-[14px] text-[#111827] font-semibold">
+                        <View className="flex-1 rounded-2xl p-4 shadow-sm" style={{ backgroundColor: cardBg }}>
+                            <Text className="text-[14px] font-semibold" style={{ color: textPrimary }}>
                                 Today's Focus (h)
                             </Text>
                             <View className="flex-row items-center mt-1">
-                                <Text className="text-[12px] text-[#9CA3AF]">
-                                    {formatDiff(Math.abs(todayMinutes - yesterdayMinutes))} from
-                                    yesterday
+                                <Text className="text-[12px]" style={{ color: textSecondary }}>
+                                    {formatDiff(Math.abs(todayMinutes - yesterdayMinutes))} from yesterday
                                 </Text>
-                                <Text
-                                    className={`text-[12px] ml-2 ${todayMinutes >= yesterdayMinutes ? "text-green-500" : "text-[#EF4444]"}`}
-                                >
+                                <Text className={`text-[12px] ml-2 ${todayMinutes >= yesterdayMinutes ? "text-green-500" : "text-[#EF4444]"}`}>
                                     {todayMinutes >= yesterdayMinutes ? "↑" : "↓"}
                                 </Text>
                             </View>
                             <View className="flex-row items-end mt-3">
-                                <Text className="text-[30px] text-primary font-semibold">
+                                <Text className="text-[30px] font-semibold" style={{ color: colorTheme }}>
                                     {todayTime[0]}
                                 </Text>
-                                <Text className="text-[14px] text-primary font-semibold ml-1">
+                                <Text className="text-[14px] font-semibold ml-1" style={{ color: colorTheme }}>
                                     h
                                 </Text>
-                                <Text className="text-[30px] text-primary font-semibold ml-3">
+                                <Text className="text-[30px] font-semibold ml-3" style={{ color: colorTheme }}>
                                     {todayTime[1]}
                                 </Text>
-                                <Text className="text-[14px] text-primary font-semibold ml-1">
+                                <Text className="text-[14px] font-semibold ml-1" style={{ color: colorTheme }}>
                                     m
                                 </Text>
                             </View>
@@ -329,38 +311,38 @@ const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
                     </View>
 
                     <View className="flex-row gap-x-4 mt-4">
-                        <View className="flex-1 bg-white rounded-2xl p-4 shadow-sm">
-                            <Text className="text-[14px] text-[#111827] font-semibold">
+                        <View className="flex-1 rounded-2xl p-4 shadow-sm" style={{ backgroundColor: cardBg }}>
+                            <Text className="text-[14px] font-semibold" style={{ color: textPrimary }}>
                                 Total Pomos
                             </Text>
-                            <Text className="text-[28px] text-primary font-semibold mt-3">
+                            <Text className="text-[28px] font-semibold mt-3" style={{ color: colorTheme }}>
                                 {totalPomos}
                             </Text>
                         </View>
-                        <View className="flex-1 bg-white rounded-2xl p-4 shadow-sm">
-                            <Text className="text-[14px] text-[#111827] font-semibold">
+                        <View className="flex-1 rounded-2xl p-4 shadow-sm" style={{ backgroundColor: cardBg }}>
+                            <Text className="text-[14px] font-semibold" style={{ color: textPrimary }}>
                                 Total Focus Dur...
                             </Text>
                             <View className="flex-row items-end mt-3">
-                                <Text className="text-[24px] text-primary font-semibold">
+                                <Text className="text-[24px] font-semibold" style={{ color: colorTheme }}>
                                     {totalTime[0]}
                                 </Text>
-                                <Text className="text-[12px] text-primary font-semibold ml-1">
+                                <Text className="text-[12px] font-semibold ml-1" style={{ color: colorTheme }}>
                                     h
                                 </Text>
-                                <Text className="text-[24px] text-primary font-semibold ml-2">
+                                <Text className="text-[24px] font-semibold ml-2" style={{ color: colorTheme }}>
                                     {totalTime[1]}
                                 </Text>
-                                <Text className="text-[12px] text-primary font-semibold ml-1">
+                                <Text className="text-[12px] font-semibold ml-1" style={{ color: colorTheme }}>
                                     m
                                 </Text>
                             </View>
                         </View>
                     </View>
 
-                    <View className="bg-white rounded-2xl p-4 mt-4 shadow-sm">
+                    <View className="rounded-2xl p-4 mt-4 shadow-sm" style={{ backgroundColor: cardBg }}>
                         <View className="flex-row items-center justify-between">
-                            <Text className="text-[15px] font-semibold text-[#111827]">
+                            <Text className="text-[15px] font-semibold" style={{ color: textPrimary }}>
                                 Details
                             </Text>
                             <View className="flex-row items-center gap-x-2">
@@ -373,9 +355,9 @@ const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
                                         });
                                     }}
                                 >
-                                    <ChevronLeft size={18} color="#9CA3AF" />
+                                    <ChevronLeft size={18} color={isDark ? "#6B7280" : "#9CA3AF"} />
                                 </TouchableOpacity>
-                                <Text className="text-[12px] text-[#111827]">
+                                <Text className="text-[12px]" style={{ color: textPrimary }}>
                                     {formatRelativeDate(detailDate)}
                                 </Text>
                                 <TouchableOpacity
@@ -389,57 +371,52 @@ const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
                                     }}
                                     disabled={!canGoForward}
                                 >
-                                    <ChevronRight
-                                        size={18}
-                                        color={canGoForward ? "#9CA3AF" : "#E5E7EB"}
-                                    />
+                                    <ChevronRight size={18} color={canGoForward ? (isDark ? "#6B7280" : "#9CA3AF") : "#E5E7EB"} />
                                 </TouchableOpacity>
                             </View>
                         </View>
 
                         <View className="items-center mt-6">
-                            <View className="w-[170px] h-[170px] rounded-full border-[10px] border-primary items-center justify-center">
-                                <Text className="text-[20px] font-semibold text-[#111827]">
+                            <View className="w-[170px] h-[170px] rounded-full border-[10px] items-center justify-center" style={{ borderColor: colorTheme }}>
+                                <Text className="text-[20px] font-semibold" style={{ color: textPrimary }}>
                                     {focus.time[0]}h{focus.time[1]}m
                                 </Text>
                             </View>
                             <View className="mt-4 items-center">
-                                <Text className="text-[12px] text-[#111827]">
+                                <Text className="text-[12px]" style={{ color: textPrimary }}>
                                     {focus.time[0]}h{focus.time[1]}m
                                 </Text>
-                                <Text className="text-[12px] text-[#9CA3AF]">Unclass...</Text>
+                                <Text className="text-[12px]" style={{ color: textSecondary }}>Unclass...</Text>
                             </View>
                         </View>
 
                         <View className="mt-6">
                             <View className="flex-row items-center justify-between">
-                                <Text className="text-[15px] font-semibold text-[#111827]">
+                                <Text className="text-[15px] font-semibold" style={{ color: textPrimary }}>
                                     Focus Ranking
                                 </Text>
                                 <View className="flex-row items-center gap-x-2">
-                                    <Text className="text-[12px] text-[#6B7280]">List</Text>
-                                    <ChevronRight size={16} color="#9CA3AF" />
+                                    <Text className="text-[12px]" style={{ color: textSecondary }}>List</Text>
+                                    <ChevronRight size={16} color={isDark ? "#6B7280" : "#9CA3AF"} />
                                 </View>
                             </View>
                             <View className="mt-3">
                                 <View className="flex-row items-center justify-between">
-                                    <Text className="text-[12px] text-[#6B7280]">
-                                        Unclassified
-                                    </Text>
-                                    <Text className="text-[12px] text-[#6B7280]">
+                                    <Text className="text-[12px]" style={{ color: textSecondary }}>Unclassified</Text>
+                                    <Text className="text-[12px]" style={{ color: textSecondary }}>
                                         {focus.time[0]}h{focus.time[1]}m • 100%
                                     </Text>
                                 </View>
-                                <View className="h-[6px] bg-[#E5E7EB] rounded-full mt-2">
-                                    <View className="h-[6px] bg-primary rounded-full w-full" />
+                                <View className="h-[6px] rounded-full mt-2" style={{ backgroundColor: isDark ? "#1F2937" : "#E5E7EB" }}>
+                                    <View className="h-[6px] rounded-full w-full" style={{ backgroundColor: colorTheme }} />
                                 </View>
                             </View>
                         </View>
                     </View>
 
-                    <View className="bg-white rounded-2xl p-4 mt-4 shadow-sm">
+                    <View className="rounded-2xl p-4 mt-4 shadow-sm" style={{ backgroundColor: cardBg }}>
                         <View className="flex-row items-center justify-between">
-                            <Text className="text-[15px] font-semibold text-[#111827]">
+                            <Text className="text-[15px] font-semibold" style={{ color: textPrimary }}>
                                 Trends
                             </Text>
                             <View className="flex-row items-center gap-x-2">
@@ -452,9 +429,9 @@ const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
                                         });
                                     }}
                                 >
-                                    <ChevronLeft size={18} color="#9CA3AF" />
+                                    <ChevronLeft size={18} color={isDark ? "#6B7280" : "#9CA3AF"} />
                                 </TouchableOpacity>
-                                <Text className="text-[12px] text-[#111827]">
+                                <Text className="text-[12px]" style={{ color: textPrimary }}>
                                     {formatWeekRange(weekStartDate)}
                                 </Text>
                                 <TouchableOpacity
@@ -468,30 +445,17 @@ const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
                                     }}
                                     disabled={!canGoForwardWeek}
                                 >
-                                    <ChevronRight
-                                        size={18}
-                                        color={canGoForwardWeek ? "#9CA3AF" : "#E5E7EB"}
-                                    />
+                                    <ChevronRight size={18} color={canGoForwardWeek ? (isDark ? "#6B7280" : "#9CA3AF") : "#E5E7EB"} />
                                 </TouchableOpacity>
                             </View>
                         </View>
                         <View className="mt-6">
-                            <View className="h-[160px] rounded-2xl bg-[#F7F8FA] px-2 py-3">
+                            <View className="h-[160px] rounded-2xl px-2 py-3" style={{ backgroundColor: isDark ? "#111827" : "#F7F8FA" }}>
                                 <Svg width="100%" height="100%" viewBox="0 0 320 140">
                                     <Defs>
-                                        <LinearGradient
-                                            id="trendGradient"
-                                            x1="0"
-                                            y1="0"
-                                            x2="0"
-                                            y2="1"
-                                        >
-                                            <Stop
-                                                offset="0%"
-                                                stopColor="#3B82F6"
-                                                stopOpacity="0.35"
-                                            />
-                                            <Stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+                                        <LinearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <Stop offset="0%" stopColor={colorTheme} stopOpacity="0.35" />
+                                            <Stop offset="100%" stopColor={colorTheme} stopOpacity="0" />
                                         </LinearGradient>
                                     </Defs>
                                     {(() => {
@@ -514,20 +478,9 @@ const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
                                         return (
                                             <>
                                                 <Path d={areaPath} fill="url(#trendGradient)" />
-                                                <Path
-                                                    d={linePath}
-                                                    stroke="#4772FA"
-                                                    strokeWidth={3}
-                                                    fill="none"
-                                                />
+                                                <Path d={linePath} stroke={colorTheme} strokeWidth={3} fill="none" />
                                                 {points.map((p, idx) => (
-                                                    <Circle
-                                                        key={idx}
-                                                        cx={p.x}
-                                                        cy={p.y}
-                                                        r={4}
-                                                        fill="#4772FA"
-                                                    />
+                                                    <Circle key={idx} cx={p.x} cy={p.y} r={4} fill={colorTheme} />
                                                 ))}
                                             </>
                                         );
@@ -535,37 +488,39 @@ const FocusStatsModal: React.FC<FocusStatsModalProps> = ({
                                 </Svg>
                             </View>
                             <View className="flex-row justify-between mt-2 px-1">
-                                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                                    (label) => (
-                                        <Text key={label} className="text-[11px] text-[#9CA3AF]">
-                                            {label}
-                                        </Text>
-                                    ),
-                                )}
+                                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => (
+                                    <Text key={label} className="text-[11px]" style={{ color: textSecondary }}>
+                                        {label}
+                                    </Text>
+                                ))}
                             </View>
                         </View>
                     </View>
 
-                    <View className="bg-white rounded-2xl p-4 mt-4 shadow-sm">
+                    <View className="rounded-2xl p-4 mt-4 shadow-sm" style={{ backgroundColor: cardBg }}>
                         <View className="flex-row items-center justify-between">
-                            <Text className="text-[15px] font-semibold text-[#111827]">
+                            <Text className="text-[15px] font-semibold" style={{ color: textPrimary }}>
                                 Focus Record
                             </Text>
                             <TouchableOpacity className="w-8 h-8 rounded-full items-center justify-center">
-                                <Plus size={18} color="#3B82F6" />
+                                <Plus size={18} color={colorTheme} />
                             </TouchableOpacity>
                         </View>
                         {thisWeekDocs.map((x: any) => (
-                            <View key={x.id} className="mt-3 bg-[#F7F8FA] rounded-2xl p-3">
+                            <View key={x.id} className="mt-3 rounded-2xl p-3" style={{ backgroundColor: isDark ? "#111827" : "#F7F8FA" }}>
                                 <View className="flex-row items-center justify-between">
                                     <View>
-                                        <Text className="text-[14px] text-[#111827]">{formatRelativeDate(x.date)}</Text>
-                                        <Text className="text-[12px] text-[#9CA3AF] mt-1">
+                                        <Text className="text-[14px]" style={{ color: textPrimary }}>
+                                            {formatRelativeDate(x.date)}
+                                        </Text>
+                                        <Text className="text-[12px] mt-1" style={{ color: textSecondary }}>
                                             {formatTime(x.startTime)} - {formatTime(x.endTime)}
                                         </Text>
-                                        {x.taskId && <Text>{x.taskName}</Text>}
+                                        {x.taskId && <Text style={{ color: textSecondary }}>{x.taskName}</Text>}
                                     </View>
-                                    <Text className="text-[12px] text-[#6B7280]">{formatMinutesToHours(x.focusDuration)}</Text>
+                                    <Text className="text-[12px]" style={{ color: textSecondary }}>
+                                        {formatMinutesToHours(x.focusDuration)}
+                                    </Text>
                                 </View>
                             </View>
                         ))}

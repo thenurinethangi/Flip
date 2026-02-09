@@ -1,14 +1,14 @@
+import { ThemeContext } from '@/context/themeContext';
 import { useCountdown } from '@/hooks/useCountdown';
 import { ArrowLeft } from 'lucide-react-native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { ImageBackground, Modal, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
 import CountdownOptionModal from './CoundownOptionModal';
 import EditCountdownModal from './EditCountdownModal';
-import Spinner from './spinner';
-import { AppIcon } from './ui/icon-symbol';
 import SpinnerTwo from './SpinnerTwo';
+import { AppIcon } from './ui/icon-symbol';
 
 interface ViewCountdownModalProps {
     visible: boolean;
@@ -17,6 +17,8 @@ interface ViewCountdownModalProps {
 }
 
 const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClose, countdown }) => {
+    const { currentTheme } = useContext(ThemeContext);
+    const isDark = currentTheme === "dark";
 
     const [isLoading, setIsLoading] = useState(true);
 
@@ -57,13 +59,13 @@ const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClos
                 statusBarTranslucent
                 onRequestClose={onClose}
             >
-                <SafeAreaView className="flex-1 bg-[#DDE4FF]">
+                <SafeAreaView className={`flex-1 ${isDark ? 'bg-[#0B0F0E]' : 'bg-[#DDE4FF]'}`}>
                     <View className="px-4 pt-2 flex-row items-center justify-between">
                         <View className="flex-row items-center gap-x-4">
                             <TouchableOpacity onPress={onClose}>
                                 <ArrowLeft
                                     size={22}
-                                    color="#222"
+                                    color={isDark ? "#E5E7EB" : "#222"}
                                     strokeWidth={2}
                                     className="opacity-70"
                                 />
@@ -71,7 +73,7 @@ const CountdownViewModal: React.FC<ViewCountdownModalProps> = ({ visible, onClos
                         </View>
                         <View className="flex-row items-center gap-x-5">
                             <TouchableOpacity onPress={() => setShowOptionModal(true)}>
-                                <AppIcon name="EllipsisVertical" color="#6b7280" size={21} />
+                                <AppIcon name="EllipsisVertical" color={isDark ? "#E5E7EB" : "#6b7280"} size={21} />
                             </TouchableOpacity>
                         </View>
                     </View>

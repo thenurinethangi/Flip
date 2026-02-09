@@ -1,10 +1,11 @@
 import { AppIcon } from "@/components/ui/icon-symbol";
+import { ThemeContext } from "@/context/themeContext";
 import { auth } from "@/services/firebase";
 import { createUser, deleteUserProfile, subscribeUser, updateUser, UserProfile } from "@/services/userService";
 import * as DocumentPicker from "expo-document-picker";
 import { deleteUser, onAuthStateChanged, signOut } from "firebase/auth";
 import { ArrowLeft } from "lucide-react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Alert, BackHandler, Image, Modal, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NicknameModal from "./NicknameModal";
@@ -27,6 +28,12 @@ type Avatar = {
 };
 
 const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) => {
+  const { currentTheme } = useContext(ThemeContext);
+  const isDark = currentTheme === "dark";
+  const cardBg = isDark ? "#1B1B1B" : "#FFFFFF";
+  const textPrimary = isDark ? "#E5E7EB" : "#111827";
+  const textSecondary = isDark ? "#9CA3AF" : "#9CA3AF";
+  const divider = isDark ? "#1F2937" : "#EEF0F5";
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData>({
     id: '',
@@ -188,23 +195,23 @@ const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) => {
         statusBarTranslucent
         onRequestClose={handleSaveAndClose}
       >
-        <SafeAreaView className="flex-1 bg-[#F5F6F8]">
+        <SafeAreaView className={`flex-1 ${isDark ? "bg-[#0B0F0E]" : "bg-[#F5F6F8]"}`}>
           <View className="px-4 pt-4 flex-row items-center gap-x-4">
             <TouchableOpacity onPress={handleSaveAndClose}>
-              <ArrowLeft size={22} color="#222" strokeWidth={2} />
+              <ArrowLeft size={22} color={isDark ? "#E5E7EB" : "#222"} strokeWidth={2} />
             </TouchableOpacity>
-            <Text className="text-[18px] font-semibold text-[#111827]">
+            <Text className="text-[18px] font-semibold" style={{ color: textPrimary }}>
               Account
             </Text>
           </View>
 
           <View className="mt-6 px-4">
-            <View className="bg-white rounded-[18px] overflow-hidden">
+            <View className="rounded-[18px] overflow-hidden" style={{ backgroundColor: cardBg }}>
               <TouchableOpacity
                 onPress={pickFile}
                 className="px-4 py-4 flex-row items-center justify-between"
               >
-                <Text className="text-[15px] text-[#111827]">Avatar</Text>
+                <Text className="text-[15px]" style={{ color: textPrimary }}>Avatar</Text>
                 {avatar === null || avatar.url === "" ? (
                   <View className="w-[36px] h-[36px] rounded-full bg-[#4F6EF7]" />
                 ) : (
@@ -219,27 +226,27 @@ const AccountModal: React.FC<AccountModalProps> = ({ visible, onClose }) => {
                   />
                 )}
               </TouchableOpacity>
-              <View className="h-[1px] bg-[#EEF0F5]" />
+              <View className="h-[1px]" style={{ backgroundColor: divider }} />
               <TouchableOpacity
                 className="px-4 py-4 flex-row items-center justify-between"
                 onPress={() => setShowNicknameModal(true)}
               >
-                <Text className="text-[15px] text-[#111827]">Nickname</Text>
+                <Text className="text-[15px]" style={{ color: textPrimary }}>Nickname</Text>
                 <View className="flex-row items-center gap-x-2">
-                  <Text className="text-[14px] text-[#9CA3AF]">
+                  <Text className="text-[14px]" style={{ color: textSecondary }}>
                     {userData?.name}
                   </Text>
-                  <AppIcon name="chevronRight" color="#C5C9D3" size={18} />
+                  <AppIcon name="chevronRight" color={isDark ? "#6B7280" : "#C5C9D3"} size={18} />
                 </View>
               </TouchableOpacity>
-              <View className="h-[1px] bg-[#EEF0F5]" />
+              <View className="h-[1px]" style={{ backgroundColor: divider }} />
               <TouchableOpacity className="px-4 py-4 flex-row items-center justify-between">
-                <Text className="text-[15px] text-[#111827]">Email</Text>
+                <Text className="text-[15px]" style={{ color: textPrimary }}>Email</Text>
                 <View className="flex-row items-center gap-x-2">
-                  <Text className="text-[14px] text-[#9CA3AF]">
+                  <Text className="text-[14px]" style={{ color: textSecondary }}>
                     {user?.email}
                   </Text>
-                  <AppIcon name="chevronRight" color="#C5C9D3" size={18} />
+                  <AppIcon name="chevronRight" color={isDark ? "#6B7280" : "#C5C9D3"} size={18} />
                 </View>
               </TouchableOpacity>
               {/* <View className="h-[1px] bg-[#EEF0F5]" />

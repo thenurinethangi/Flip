@@ -1,10 +1,9 @@
-import { Bell, Check, Clock, Repeat, X } from "lucide-react-native";
-import React, { useState } from "react";
+import { ThemeContext } from "@/context/themeContext";
+import { Check, X } from "lucide-react-native";
+import React, { useContext } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import Modal from "react-native-modal";
-import SelectionModal from "./SelectionModal";
-import TimePickerModal from "./TimePickerModal";
 
 interface Props {
     visible: boolean;
@@ -20,6 +19,10 @@ const DatePickerMinimalModal: React.FC<Props> = ({
     onClose,
 }) => {
     const todayStr = new Date().toLocaleDateString("en-CA");
+    const { currentTheme } = useContext(ThemeContext);
+    const isDark = currentTheme === "dark";
+    const textPrimary = isDark ? "#E5E7EB" : "#374151";
+    const cardBg = isDark ? "#1B1B1B" : "#fff";
 
     return (
         <Modal
@@ -28,15 +31,15 @@ const DatePickerMinimalModal: React.FC<Props> = ({
             backdropOpacity={0.3}
             onBackdropPress={onClose}
         >
-            <View style={styles.container}>
+            <View style={[styles.container, { backgroundColor: cardBg }] }>
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={onClose}>
-                        <X size={22} />
+                        <X size={22} color={textPrimary} />
                     </TouchableOpacity>
 
                     <View style={styles.tabs}>
-                        <Text style={styles.activeTab}>Date</Text>
+                        <Text style={[styles.activeTab, { color: textPrimary }]}>Date</Text>
                     </View>
 
                     <Check onPress={onClose} size={22} color="#4772FA" />
@@ -58,7 +61,11 @@ const DatePickerMinimalModal: React.FC<Props> = ({
                         selectedDayBackgroundColor: "#4772FA",
                         todayTextColor: "#4772FA",
                         arrowColor: "#4772FA",
-                        monthTextColor: "#222",
+                        monthTextColor: isDark ? "#E5E7EB" : "#222",
+                        dayTextColor: isDark ? "#E5E7EB" : "#111827",
+                        textDisabledColor: isDark ? "#4B5563" : "#9CA3AF",
+                        calendarBackground: cardBg,
+                        textSectionTitleColor: isDark ? "#9CA3AF" : "#6B7280",
                         textDayFontSize: 14,
                         textMonthFontSize: 16,
                     }}
@@ -66,7 +73,7 @@ const DatePickerMinimalModal: React.FC<Props> = ({
 
                 {/* Clear */}
                 <TouchableOpacity onPress={() => choooseDate(todayStr)}>
-                    <Text style={styles.clear}>Clear</Text>
+                    <Text style={[styles.clear, { color: isDark ? "#FCA5A5" : "red" }]}>Clear</Text>
                 </TouchableOpacity>
             </View>
         </Modal>
