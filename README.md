@@ -1,54 +1,72 @@
-<<<<<<< HEAD
-# Welcome to your Expo app 👋
+# Flip
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Flip is a production‑grade personal productivity suite that unifies planning, focus, and follow‑through in one polished mobile experience. It combines task execution, calendar context, countdowns, and focus workflows so users can plan, act, and stay consistent without app‑hopping.
 
-## Get started
+## Key functionality
 
-1. Install dependencies
+- **Task management**: Create, edit, complete, postpone, and reschedule tasks with priorities, tags, reminders, and repeat options.
+- **Subtasks**: Add and manage subtasks with independent status, notes, and attachments.
+- **Focus & Pomodoro**: Dedicated focus sessions with break guidance to improve deep‑work routines.
+- **Notification scheduling**: Reminders and time‑based prompts to stay on track.
+- **Calendar view**: Navigate by date and see tasks scoped to a selected day.
+- **Countdowns**: Create countdown items by type (Holiday, Birthday, Anniversary, Countdown).
+- **Repeat rules**: Daily, weekly (Monday), and monthly (1st) repeat generation with duplication safety guards.
+- **Notes and attachments**: Rich‑text notes and file attachments on tasks/subtasks.
+- **Real‑time updates**: UI reflects changes instantly via Firestore subscriptions.
 
-   ```bash
-   npm install
-   ```
+## Tech stack
 
-2. Start the app
+- **React Native** with **Expo**
+- **TypeScript**
+- **Expo Router** (file-based routing)
+- **Firebase Firestore** (tasks, subtasks, notes, attachments)
+- **Local notifications** (scheduled reminders)
+- **AsyncStorage** (repeat guards)
+- **NativeWind/Tailwind** for styling
+- **react-native-calendars** for calendar UI
 
-   ```bash
-   npx expo start
-   ```
+## Getting started
 
-In the output, you'll find options to open the app in a
+### Prerequisites
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Node.js (LTS recommended)
+- npm
+- Expo CLI (optional, `npx` works without global install)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Install dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Run the app
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Open with:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- **Expo Go** (quick preview)
+- **Android emulator**
+- **iOS simulator**
+- **Development build** (recommended for native modules)
 
-## Join the community
+## Project structure
 
-Join our community of developers creating universal apps.
+```
+app/                # Screens (Expo Router)
+components/         # Reusable UI and modals
+services/           # Firestore + data access
+assets/             # Images and static assets
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-=======
-# Flip
->>>>>>> 9296c00e24e75d9ce56fc72e595c990ee7a1d718
+## Notes
+
+- Firebase configuration is located in services/firebase.ts.
+- Repeat generation runs when subscribing to daily tasks/subtasks for the current date.
+
+## Scripts
+
+- `npx expo start` — start the dev server
+- `npm run reset-project` — reset Expo starter structure (optional)
