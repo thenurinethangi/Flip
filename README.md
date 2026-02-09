@@ -1,18 +1,24 @@
 # Flip
 
-Flip is a production‑grade personal productivity suite that unifies planning, focus, and follow‑through in one polished mobile experience. It combines task execution, calendar context, countdowns, and focus workflows so users can plan, act, and stay consistent without app‑hopping.
+Flip is a production‑grade personal productivity suite that unifies planning, focus, and follow‑through in one polished mobile experience. It’s inspired by the workflow clarity of TickTick and the flexible knowledge style of Notion—combining daily execution, rich notes, and structured scheduling so users can plan, act, and stay consistent without app‑hopping. Flip is designed for real‑world use at scale: fast interactions, live data updates, and repeat‑aware scheduling that keeps routines accurate over time.
 
 ## Key functionality
 
-- **Task management**: Create, edit, complete, postpone, and reschedule tasks with priorities, tags, reminders, and repeat options.
-- **Subtasks**: Add and manage subtasks with independent status, notes, and attachments.
-- **Focus & Pomodoro**: Dedicated focus sessions with break guidance to improve deep‑work routines.
-- **Notification scheduling**: Reminders and time‑based prompts to stay on track.
-- **Calendar view**: Navigate by date and see tasks scoped to a selected day.
-- **Countdowns**: Create countdown items by type (Holiday, Birthday, Anniversary, Countdown).
+Below is a comprehensive view of the core features currently supported by Flip:
+
+- **Tasks**: Create, edit, complete, postpone, and reschedule tasks with priorities, tags, reminders, and repeat options.
+- **Subtasks**: Add subtasks with independent status and scheduling, including their own notes and attachments.
+- **Rich notes**: Attach rich‑text notes to tasks and subtasks (Notion‑style note blocks).
+- **Attachments**: Add files, images, and links to both tasks and subtasks.
+- **Focus & Pomodoro**: Dedicated focus sessions with break guidance to build consistent deep‑work routines.
+- **Notification scheduling**: Reminders and time‑based prompts to keep momentum without missing deadlines.
+- **Calendar view**: Navigate by date and view tasks scoped to a selected day.
+- **Countdowns**: Create countdowns by type (Holiday, Birthday, Anniversary, Countdown) for long‑range planning.
 - **Repeat rules**: Daily, weekly (Monday), and monthly (1st) repeat generation with duplication safety guards.
-- **Notes and attachments**: Rich‑text notes and file attachments on tasks/subtasks.
 - **Real‑time updates**: UI reflects changes instantly via Firestore subscriptions.
+- **Prioritization**: Visual priority indicators for immediate task triage.
+- **Tagging & categorization**: Organize tasks by type and tags.
+- **Rescheduling**: Move tasks forward with single‑tap date adjustments.
 
 ## Tech stack
 
@@ -24,6 +30,7 @@ Flip is a production‑grade personal productivity suite that unifies planning, 
 - **AsyncStorage** (repeat guards)
 - **NativeWind/Tailwind** for styling
 - **react-native-calendars** for calendar UI
+- **Rich text editor** (notes and formatting)
 
 ## Getting started
 
