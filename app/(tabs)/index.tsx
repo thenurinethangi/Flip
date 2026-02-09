@@ -3,6 +3,7 @@ import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
 import SubtaskEditModal from '@/components/SubtaskEditModel';
 import { AppIcon } from '@/components/ui/icon-symbol';
+import { requestNotificationPermission } from '@/config/notificationConfig';
 import { addNewSubTask, subscribeSubTasksByTaskId, updateSubtaskStatusBySubtaskId } from '@/services/subtaskService';
 import { add, postponeTasksByTaskIds, subscribeCompleteTasksByDate, subscribeOverdueTasks, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
@@ -12,7 +13,6 @@ import DraggableFlatList, { ScaleDecorator } from 'react-native-draggable-flatli
 import Animated, { FadeIn, FadeInDown, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import TaskEditModal from './../../components/TaskEditModal';
-import { requestNotificationPermission } from '@/config/notificationConfig';
 
 export default function HomeScreen() {
 
@@ -42,7 +42,9 @@ export default function HomeScreen() {
   const [overdueTasks, setOverdueTasks] = useState<any[]>([]);
   const [expandedTaskIds, setExpandedTaskIds] = useState<Record<string, boolean>>({});
 
-  requestNotificationPermission();
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   const subtaskUnsubscribers = useRef<Record<string, () => void>>({});
 

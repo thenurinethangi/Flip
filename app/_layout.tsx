@@ -3,11 +3,12 @@ import "react-native-reanimated";
 import "./../global.css";
 
 import { CustomToast } from "@/components/custom-toast";
+import { initNotifications } from "@/config/notificationConfig";
 import { AuthProvider } from "@/context/authContext";
 import ColorProvider from "@/context/colorContext";
 import ThemeProvider, { ThemeContext } from "@/context/themeContext";
 import { useNotificationTapHandler } from "@/hooks/useNotificationTapHandler";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast, { ToastConfig } from "react-native-toast-message";
@@ -16,6 +17,9 @@ function RootLayoutContent() {
   const { currentTheme } = useContext(ThemeContext);
 
   useNotificationTapHandler();
+  useEffect(() => {
+    initNotifications();
+  }, []);
 
   const toastConfig: ToastConfig = {
     success: ({ text1, text2 }) => (

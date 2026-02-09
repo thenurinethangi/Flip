@@ -24,6 +24,7 @@ import {
   Balloon,
   ChartPie,
   Play,
+  X,
 } from "lucide-react-native";
 
 type LucideIcon = React.ComponentType<{
@@ -57,7 +58,8 @@ const ICONS = {
   Gift: Gift,
   Balloon: Balloon,
   ChartPie: ChartPie,
-  Play: Play
+  Play: Play,
+  X: X
 };
 
 export type IconName = keyof typeof ICONS;

@@ -14,7 +14,7 @@ const FocusTimeModal: React.FC<FocusTimeModalProps> = ({
     onClose,
     onSave,
 }) => {
-    
+
     const [minutes, setMinutes] = useState(String(initialMinutes));
 
     useEffect(() => {
@@ -57,7 +57,7 @@ const FocusTimeModal: React.FC<FocusTimeModalProps> = ({
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => {
-                                const value = Math.max(6, Number(minutes));
+                                const value = Math.max(1, Number(minutes));
                                 if (!Number.isNaN(value) && value > 180) {
                                     Alert.alert('Focus time must be under 180 minutes!');
                                 }
