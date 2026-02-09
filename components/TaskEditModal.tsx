@@ -20,9 +20,11 @@ import {
   ArrowLeft,
   Camera,
   ChevronsUpDown,
+  CircleCheckBig,
   Flag,
   Paperclip,
   Repeat,
+  Timer,
   X
 } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -53,6 +55,8 @@ import PriorityModal from "./PriorityModal";
 import SubtaskEditModal from "./SubtaskEditModel";
 import TaskTypeModal from "./TaskTypeModal";
 import Spinner from "./spinner";
+import { getFocusTimeAndPomoCountByTask } from "@/services/focusService";
+import { count } from "firebase/firestore";
 
 type TaskEditModalProps = {
   visible: boolean;
@@ -175,6 +179,30 @@ export default function TaskEditModal({
   const [subTasksLoaded, setSubTasksLoaded] = useState(false);
 
   const [image, setImage] = useState<string>("");
+
+  const [focusAndPomos, setFocusAndPomos] = useState({
+    count: 0,
+    totalMinutes: 0
+  });
+
+  useEffect(() => {
+    const checkFocusTimeAndPomos = async () => {
+      if (!task?.id) {
+        return;
+      }
+      try {
+        const { count, totalMinutes } = await getFocusTimeAndPomoCountByTask(task?.id);
+        setFocusAndPomos({
+          count,
+          totalMinutes
+        });
+      }
+      catch (e) {
+        console.log(e);
+      }
+    }
+    checkFocusTimeAndPomos();
+  }, [task]);
 
   useEffect(() => {
     if (!visible) {
@@ -707,6 +735,24 @@ export default function TaskEditModal({
               className="flex-1 px-4 pt-2"
               contentContainerStyle={{ paddingBottom: 140 }}
             >
+
+              {focusAndPomos.count > 0 ? (
+                <View className="flex-row items-center gap-x-2 px-[5px] mb-2">
+                  <View className="flex-row items-center gap-x-1">
+                    <CircleCheckBig size={18} color="#9E9E9E" />
+                    <Text className="text-gray-500 text-[11px]">
+                      {focusAndPomos.count}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center gap-x-1">
+                    <Timer size={19} color="#9E9E9E" />
+                    <Text className="text-gray-500 text-[11px]">
+                      {focusAndPomos.totalMinutes}m
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+
               <TextInput
                 className="text-[22px] font-semibold text-[#111]"
                 placeholder="Task name"

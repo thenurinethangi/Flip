@@ -269,3 +269,22 @@ export const getFocusRecordsByRange = async (start: Date, end: Date) => {
         };
     }) as FocusType[];
 };
+
+
+export const getFocusTimeAndPomoCountByTask = async (id: string) => {
+
+    const focusRef = collection(db, "focus");
+    const q = query(focusRef, where("taskId", "==", id));
+    const docsRef = await getDocs(q);
+
+    let countTotal = 0;
+    let sumMinutes = 0;
+
+    docsRef.docs.forEach((docSnap) => {
+        const data: any = docSnap.data();
+        countTotal += 1;
+        sumMinutes += data?.focusDuration ?? 0;
+    });
+
+    return { count: countTotal, totalMinutes: sumMinutes };
+};
