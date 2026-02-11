@@ -1,5 +1,6 @@
 import { addDoc, collection, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, Timestamp, where } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { registerListener } from "./listenerRegistry";
 
 export type AddFocus = {
     focusDuration: number;
@@ -95,7 +96,7 @@ export const subscribeFocusByDate = (
         where("userId", "==", user.uid),
     );
 
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
             const items = snapshot.docs
@@ -111,6 +112,11 @@ export const subscribeFocusByDate = (
             if (onError) onError(error);
         },
     );
+    const unregister = registerListener(unsubscribe);
+    return () => {
+        unsubscribe();
+        unregister();
+    };
 };
 
 export const subscribeAllFocus = (
@@ -128,7 +134,7 @@ export const subscribeAllFocus = (
         where("userId", "==", user.uid),
     );
 
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
         q,
         (snapshot) => {
             const items = snapshot.docs
@@ -139,6 +145,11 @@ export const subscribeAllFocus = (
             if (onError) onError(error);
         },
     );
+    const unregister = registerListener(unsubscribe);
+    return () => {
+        unsubscribe();
+        unregister();
+    };
 };
 
 const getDayRange = (date: Date) => {
@@ -272,6 +283,11 @@ export const getFocusRecordsByRange = async (start: Date, end: Date) => {
 
 
 export const getFocusTimeAndPomoCountByTask = async (id: string) => {
+
+    const user = auth.currentUser;
+    if (!user) {
+        return { count: 0, totalMinutes: 0 };
+    }
 
     const focusRef = collection(db, "focus");
     const q = query(focusRef, where("taskId", "==", id));

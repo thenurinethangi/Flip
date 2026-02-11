@@ -2,60 +2,60 @@ import { AppIcon } from "@/components/ui/icon-symbol";
 import { ColorContext } from "@/context/colorContext";
 import { ThemeContext } from "@/context/themeContext";
 import {
-  addAttachmentsForTask,
-  getAttachmentsByTaskId,
+    addAttachmentsForTask,
+    getAttachmentsByTaskId,
 } from "@/services/attachmentsService";
 import { getFocusTimeAndPomoCountByTask } from "@/services/focusService";
 import {
-  AddOrEditNotesByTaskId,
-  getNotesByTaskId,
+    AddOrEditNotesByTaskId,
+    getNotesByTaskId,
 } from "@/services/noteService";
 import {
-  subscribeSubTasksByTaskId,
-  updateSubTaskStatusByTaskId,
+    subscribeSubTasksByTaskId,
+    updateSubTaskStatusByTaskId,
 } from "@/services/subtaskService";
 import { update } from "@/services/taskService";
 import Checkbox from "expo-checkbox";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import {
-  AlarmClock,
-  ArrowLeft,
-  Camera,
-  ChevronsUpDown,
-  CircleCheckBig,
-  Flag,
-  Paperclip,
-  Repeat,
-  Timer,
-  X
+    AlarmClock,
+    ArrowLeft,
+    Camera,
+    ChevronsUpDown,
+    CircleCheckBig,
+    Flag,
+    Paperclip,
+    Repeat,
+    Timer,
+    X
 } from "lucide-react-native";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Image,
-  KeyboardAvoidingView,
-  Linking,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Image,
+    Keyboard,
+    KeyboardAvoidingView,
+    Linking,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 import {
-  RichEditor,
-  RichToolbar,
-  actions,
+    RichEditor,
+    RichToolbar,
+    actions,
 } from "react-native-pell-rich-editor";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CameraModel from "./Camera";
 import CustomCalendarModal from "./DatePickerModal";
 import DeleteModal from "./DeleteModal";
 import PriorityModal from "./PriorityModal";
-import SubtaskEditModal from "./SubtaskEditModel";
 import TaskTypeModal from "./TaskTypeModal";
 import Spinner from "./spinner";
 
@@ -64,6 +64,7 @@ type TaskEditModalProps = {
   task: any | null;
   onClose: () => void;
   onAddSubtask: () => void;
+  onOpenSubtaskEdit?: (subtask: any) => void;
 };
 
 type BlockType = "note" | "bullet" | "number" | "link" | "document" | "image";
@@ -137,6 +138,7 @@ export default function TaskEditModal({
   task,
   onClose,
   onAddSubtask,
+  onOpenSubtaskEdit,
 }: TaskEditModalProps) {
   const { currentTheme } = useContext(ThemeContext);
   const { colorTheme } = useContext(ColorContext);
@@ -166,21 +168,21 @@ export default function TaskEditModal({
     subtaskId: "",
     note: "",
   });
-  const editorRef = useRef<RichEditor | null>(null);
-  const prevTaskIdRef = useRef<string | null>(null);
+  const editorRef = useRef<any>(null);
   const [linkModalVisible, setLinkModalVisible] = useState(false);
   const [linkTitle, setLinkTitle] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
+  const prevTaskIdRef = useRef<string | null>(null);
+  const [isEditorReady, setIsEditorReady] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const [priorityVisible, setPriorityVisible] = useState(false);
   const [taskTypeVisible, setTaskTypeVisible] = useState(false);
   const [showDate, setShowDate] = useState(false);
-  const [showSubtaskEdit, setShowSubtaskEdit] = useState(false);
   const [showCameraModel, setShowCameraModel] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [subTasks, setSubTasks] = useState<any[]>([]);
-  const [activeSubtask, setactiveSubtask] = useState<{} | null>(null);
 
   const [attachmentsLoaded, setAttachmentsLoaded] = useState(false);
   const [notesLoaded, setNotesLoaded] = useState(false);
@@ -213,6 +215,20 @@ export default function TaskEditModal({
   }, [task]);
 
   useEffect(() => {
+    if (Platform.OS !== "android") return;
+    const show = Keyboard.addListener("keyboardDidShow", (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hide = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!visible) {
       prevTaskIdRef.current = null;
       return;
@@ -228,6 +244,7 @@ export default function TaskEditModal({
       setAttachmentsLoaded(false);
       setNotesLoaded(false);
       setSubTasksLoaded(false);
+      setIsEditorReady(false);
       if (editorRef.current) {
         editorRef.current.setContentHTML("");
       }
@@ -270,7 +287,6 @@ export default function TaskEditModal({
           else if (editorRef.current) {
             editorRef.current.setContentHTML("");
           }
-
         }
         else {
           setAttachments([]);
@@ -684,7 +700,7 @@ export default function TaskEditModal({
                 </View>
               </View>
 
-              <View className="flex-row items-center gap-x-2 mt-[23px]">
+              <View className="flex-row items-center gap-x-2 mt-[23px] px-1">
                 <View className="flex-row items-center gap-x-[14px]">
                   <View
                     className={`${taskForm.repeat !== 'None' ? '-translate-y-2' : ''}`}
@@ -779,10 +795,13 @@ export default function TaskEditModal({
                   ref={editorRef}
                   placeholder="Write Note ..."
                   initialContentHTML={notes.note}
-                  onChange={(value) =>
+                  onChange={(value: string) =>
                     setNotes((prev) => ({ ...prev, note: value }))
                   }
-                  editorInitializedCallback={disableSpellcheck}
+                  editorInitializedCallback={() => {
+                    disableSpellcheck();
+                    setIsEditorReady(true);
+                  }}
                   editorStyle={{
                     backgroundColor: cardBg,
                     color: textPrimary,
@@ -813,8 +832,7 @@ export default function TaskEditModal({
                       <TouchableOpacity
                         key={item.id ?? `${item.taskname}-${index}`}
                         onPress={() => {
-                          setactiveSubtask(item);
-                          setShowSubtaskEdit(true);
+                          onOpenSubtaskEdit?.(item);
                         }}
                       >
                         <View
@@ -980,125 +998,131 @@ export default function TaskEditModal({
               </View>
             </ScrollView>
 
-            <View className="absolute bottom-0 left-0 right-0 px-4 py-3" style={{ backgroundColor: cardBg }}>
+            <View
+              className="absolute bottom-0 left-0 right-0 px-4 py-3"
+              style={{ backgroundColor: cardBg, paddingBottom: 12 + (Platform.OS === "android" ? keyboardHeight : 0) }}
+            >
               <View className="flex-row items-center gap-x-5">
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <RichToolbar
-                    editor={editorRef}
-                    actions={[
-                      actions.setBold,
-                      actions.setItalic,
-                      actions.setUnderline,
-                      actions.insertOrderedList,
-                      actions.insertBulletsList,
-                      actions.insertLink,
-                      actions.alignRight,
-                      actions.alignLeft,
-                      actions.alignCenter,
-                      actions.heading1,
-                      actions.heading2,
-                      actions.heading3,
-                      actions.heading4,
-                      actions.heading5,
-                      actions.heading6,
-                    ]}
-                    onInsertLink={openLinkModal}
-                    iconTint={isDark ? "#9CA3AF" : "#7E8591"}
-                    selectedIconTint={isDark ? "#E5E7EB" : "#222"}
-                    iconMap={{
-                      [actions.heading1]: ({
-                        tintColor,
-                      }: {
-                        tintColor?: string;
-                      }) => (
-                        <Text
-                          style={{
-                            color: tintColor,
-                            fontSize: 13,
-                            fontWeight: "400",
-                          }}
-                        >
-                          H1
-                        </Text>
-                      ),
-                      [actions.heading2]: ({
-                        tintColor,
-                      }: {
-                        tintColor?: string;
-                      }) => (
-                        <Text
-                          style={{
-                            color: tintColor,
-                            fontSize: 13,
-                            fontWeight: "400",
-                          }}
-                        >
-                          H2
-                        </Text>
-                      ),
-                      [actions.heading3]: ({
-                        tintColor,
-                      }: {
-                        tintColor?: string;
-                      }) => (
-                        <Text
-                          style={{
-                            color: tintColor,
-                            fontSize: 13,
-                            fontWeight: "400",
-                          }}
-                        >
-                          H3
-                        </Text>
-                      ),
-                      [actions.heading4]: ({
-                        tintColor,
-                      }: {
-                        tintColor?: string;
-                      }) => (
-                        <Text
-                          style={{
-                            color: tintColor,
-                            fontSize: 13,
-                            fontWeight: "400",
-                          }}
-                        >
-                          H4
-                        </Text>
-                      ),
-                      [actions.heading5]: ({
-                        tintColor,
-                      }: {
-                        tintColor?: string;
-                      }) => (
-                        <Text
-                          style={{
-                            color: tintColor,
-                            fontSize: 13,
-                            fontWeight: "400",
-                          }}
-                        >
-                          H5
-                        </Text>
-                      ),
-                      [actions.heading6]: ({
-                        tintColor,
-                      }: {
-                        tintColor?: string;
-                      }) => (
-                        <Text
-                          style={{
-                            color: tintColor,
-                            fontSize: 13,
-                            fontWeight: "400",
-                          }}
-                        >
-                          H6
-                        </Text>
-                      ),
-                    }}
-                    style={{ backgroundColor: "transparent", borderWidth: 0 }}
-                  />
+                  {isEditorReady ? (
+                    <RichToolbar
+                      editor={editorRef}
+                      getEditor={() => editorRef.current}
+                      actions={[
+                        actions.setBold,
+                        actions.setItalic,
+                        actions.setUnderline,
+                        actions.insertOrderedList,
+                        actions.insertBulletsList,
+                        actions.insertLink,
+                        actions.alignRight,
+                        actions.alignLeft,
+                        actions.alignCenter,
+                        actions.heading1,
+                        actions.heading2,
+                        actions.heading3,
+                        actions.heading4,
+                        actions.heading5,
+                        actions.heading6,
+                      ]}
+                      onInsertLink={openLinkModal}
+                      iconTint={isDark ? "#9CA3AF" : "#7E8591"}
+                      selectedIconTint={isDark ? "#E5E7EB" : "#222"}
+                      iconMap={{
+                        [actions.heading1]: ({
+                          tintColor,
+                        }: {
+                          tintColor?: string;
+                        }) => (
+                          <Text
+                            style={{
+                              color: tintColor,
+                              fontSize: 13,
+                              fontWeight: "400",
+                            }}
+                          >
+                            H1
+                          </Text>
+                        ),
+                        [actions.heading2]: ({
+                          tintColor,
+                        }: {
+                          tintColor?: string;
+                        }) => (
+                          <Text
+                            style={{
+                              color: tintColor,
+                              fontSize: 13,
+                              fontWeight: "400",
+                            }}
+                          >
+                            H2
+                          </Text>
+                        ),
+                        [actions.heading3]: ({
+                          tintColor,
+                        }: {
+                          tintColor?: string;
+                        }) => (
+                          <Text
+                            style={{
+                              color: tintColor,
+                              fontSize: 13,
+                              fontWeight: "400",
+                            }}
+                          >
+                            H3
+                          </Text>
+                        ),
+                        [actions.heading4]: ({
+                          tintColor,
+                        }: {
+                          tintColor?: string;
+                        }) => (
+                          <Text
+                            style={{
+                              color: tintColor,
+                              fontSize: 13,
+                              fontWeight: "400",
+                            }}
+                          >
+                            H4
+                          </Text>
+                        ),
+                        [actions.heading5]: ({
+                          tintColor,
+                        }: {
+                          tintColor?: string;
+                        }) => (
+                          <Text
+                            style={{
+                              color: tintColor,
+                              fontSize: 13,
+                              fontWeight: "400",
+                            }}
+                          >
+                            H5
+                          </Text>
+                        ),
+                        [actions.heading6]: ({
+                          tintColor,
+                        }: {
+                          tintColor?: string;
+                        }) => (
+                          <Text
+                            style={{
+                              color: tintColor,
+                              fontSize: 13,
+                              fontWeight: "400",
+                            }}
+                          >
+                            H6
+                          </Text>
+                        ),
+                      }}
+                      style={{ backgroundColor: "transparent", borderWidth: 0 }}
+                    />
+                  ) : null}
                 </View>
                 <Pressable onPress={pickFile}>
                   <Paperclip size={18} color={isDark ? "#9CA3AF" : "#7E8591"} />
@@ -1118,9 +1142,7 @@ export default function TaskEditModal({
             >
               <View className="flex-1 items-center justify-center bg-black/40 px-6">
                 <View className="w-full rounded-3xl px-6 pt-7 pb-6" style={{ backgroundColor: cardBg }}>
-                  <Text className="text-[17px] font-semibold" style={{ color: textPrimary }}>
-                    Add URL
-                  </Text>
+                  <Text className="text-[17px] font-semibold" style={{ color: textPrimary }}>Add URL</Text>
                   <TextInput
                     className="mt-4 rounded-xl px-4 py-4 text-[15px]"
                     style={{ backgroundColor: isDark ? "#111827" : "#F3F4F6", color: textPrimary }}
@@ -1144,10 +1166,11 @@ export default function TaskEditModal({
                     <Pressable onPress={closeLinkModal} className="px-3 py-2">
                       <Text className="text-[16px]" style={{ color: textSecondary }}>Cancel</Text>
                     </Pressable>
-                    <Pressable onPress={handleInsertLink} className="px-2 py-2">
-                      <Text className="text-[16px] font-semibold" style={{ color: colorTheme }}>
-                        Insert
-                      </Text>
+                    <Pressable
+                      onPress={handleInsertLink}
+                      className="px-2 py-2"
+                    >
+                      <Text className="text-[16px] font-semibold" style={{ color: colorTheme }}>Insert</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -1172,16 +1195,13 @@ export default function TaskEditModal({
               onSelect={(t) => setTaskForm((prev) => ({ ...prev, taskType: t }))}
             />
 
-            {/* calender model */}
             <CustomCalendarModal
               visible={showDate}
               date={taskForm.date}
               choooseDate={(d) => setTaskForm((prev) => ({ ...prev, date: d }))}
               onClose={() => setShowDate(false)}
               selectedTime={taskForm.time}
-              setSelectedTime={(t) =>
-                setTaskForm((prev) => ({ ...prev, time: t }))
-              }
+              setSelectedTime={(t) => setTaskForm((prev) => ({ ...prev, time: t }))}
               selectedReminder={taskForm.reminder}
               setSelectedReminder={(r) =>
                 setTaskForm((prev) => ({ ...prev, reminder: r }))
@@ -1192,13 +1212,6 @@ export default function TaskEditModal({
               }
             />
 
-            {/* Subtask edit model */}
-            <SubtaskEditModal
-              visible={showSubtaskEdit}
-              task={activeSubtask}
-              onClose={() => setShowSubtaskEdit(false)}
-            />
-
             {/* Camera */}
             <CameraModel
               visible={showCameraModel}
@@ -1207,9 +1220,7 @@ export default function TaskEditModal({
                 handleAddClickedImageToNote(url);
               }}
               removeImage={() => setImage("")}
-              onClose={() => {
-                setShowCameraModel(false);
-              }}
+              onClose={() => setShowCameraModel(false)}
             />
 
             <DeleteModal
@@ -1219,6 +1230,7 @@ export default function TaskEditModal({
               targetId={task?.id ?? null}
               targetType="task"
             />
+
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>

@@ -1,6 +1,7 @@
 import AccountModal from '@/components/AccountModal'
 import ThemeModal from '@/components/ThemeModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
+import { useAuth } from '@/context/authContext'
 import { ThemeContext } from '@/context/themeContext'
 import { auth } from '@/services/firebase'
 import { subscribeUser, UserProfile } from '@/services/userService'
@@ -11,6 +12,7 @@ import { Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const profile = () => {
+  const { user, loading } = useAuth();
   const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === 'dark';
   const cardBg = isDark ? '#1B1B1B' : '#FFFFFF';
@@ -43,6 +45,12 @@ const profile = () => {
     { label: 'Follow Us', icon: 'user' as const, hasSocial: true },
     { label: 'About', icon: 'code' as const },
   ]
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/(auth)");
+    }
+  }, [user, loading]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {

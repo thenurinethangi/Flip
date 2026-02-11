@@ -2,9 +2,11 @@ import AddCountdownModal from '@/components/AddCountdownModal'
 import CountdownTypeModal, { CountdownTypeId } from '@/components/CountdownTypeModal'
 import CountdownViewModal from '@/components/CountdownViewModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
+import { useAuth } from '@/context/authContext'
 import { ColorContext } from '@/context/colorContext'
 import { ThemeContext } from '@/context/themeContext'
 import { subscribeCountdown } from '@/services/countdownService'
+import { useRouter } from 'expo-router'
 import React, { useContext, useEffect, useState } from 'react'
 import { FlatList, Image, Pressable, Text, TouchableOpacity, View } from 'react-native'
 import Animated, { FadeInDown, FadeOutUp, Layout } from 'react-native-reanimated'
@@ -53,8 +55,10 @@ const typeColorMap: Record<CountdownType, string> = {
 };
 
 const Countdown = () => {
+  const { user, loading } = useAuth();
   const { currentTheme } = useContext(ThemeContext);
   const { colorTheme } = useContext(ColorContext);
+  const router = useRouter();
   const isDark = currentTheme === 'dark';
   const cardBg = isDark ? '#1B1B1B' : '#FFFFFF';
   const textPrimary = isDark ? '#E5E7EB' : '#111827';
@@ -69,12 +73,19 @@ const Countdown = () => {
   const [activeCountdowns, setActiveCountdowns] = useState<any | null>(null);
 
   useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/(auth)");
+    }
+  }, [user, loading]);
+
+  useEffect(() => {
+    if (!user) return;
     const loadCountdowns = async () => {
       await subscribeCountdown((c) => { setCountdowns(c) }, (error) => { console.log(error) });
     }
     loadCountdowns();
 
-  }, []);
+  }, [user]);
 
 
   return (

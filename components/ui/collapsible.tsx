@@ -1,45 +1,61 @@
-import { PropsWithChildren, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { ChevronDown, ChevronRight } from "lucide-react-native";
+import React, { useState } from "react";
+import {
+    LayoutAnimation,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    UIManager,
+    View,
+} from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
-export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const theme = useColorScheme() ?? 'light';
+type CollapsibleProps = {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+};
+
+export function Collapsible({ title, children, defaultOpen = false }: CollapsibleProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  const toggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOpen((prev) => !prev);
+  };
 
   return (
-    <ThemedView>
-      <TouchableOpacity
-        style={styles.heading}
-        onPress={() => setIsOpen((value) => !value)}
-        activeOpacity={0.8}>
-        <IconSymbol
-          name="chevron.right"
-          size={18}
-          weight="medium"
-          color={theme === 'light' ? Colors.light.icon : Colors.dark.icon}
-          style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }] }}
-        />
-
-        <ThemedText type="defaultSemiBold">{title}</ThemedText>
-      </TouchableOpacity>
-      {isOpen && <ThemedView style={styles.content}>{children}</ThemedView>}
-    </ThemedView>
+    <View style={styles.container}>
+      <Pressable onPress={toggle} style={styles.header}>
+        <Text style={styles.title}>{title}</Text>
+        {open ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+      </Pressable>
+      {open ? <View style={styles.content}>{children}</View> : null}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  container: {
+    width: "100%",
+  },
+  header: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "600",
   },
   content: {
-    marginTop: 6,
-    marginLeft: 24,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
   },
 });

@@ -10,6 +10,7 @@ import {
     where,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { registerListener } from "./listenerRegistry";
 
 export type UserProfile = {
   id: string;
@@ -59,7 +60,7 @@ export const subscribeUser = (
   const usersRef = collection(db, "users");
   const q = query(usersRef, where("userId", "==", userId));
 
-  return onSnapshot(
+  const unsubscribe = onSnapshot(
     q,
     (snapshot) => {
       if (snapshot.empty) {
@@ -76,4 +77,9 @@ export const subscribeUser = (
       if (onError) onError(error as Error);
     },
   );
+  const unregister = registerListener(unsubscribe);
+  return () => {
+    unsubscribe();
+    unregister();
+  };
 };

@@ -3,11 +3,13 @@ import CustomCalendarModal from '@/components/DatePickerModal';
 import SubtaskEditModal from '@/components/SubtaskEditModel';
 import TaskEditModal from '@/components/TaskEditModal';
 import { AppIcon } from '@/components/ui/icon-symbol';
+import { useAuth } from '@/context/authContext';
 import { ColorContext } from '@/context/colorContext';
 import { ThemeContext } from '@/context/themeContext';
 import { addNewSubTask, subscribeSubTasksByTaskId, updateSubtaskStatusBySubtaskId } from '@/services/subtaskService';
 import { add, subscribeCompleteTasksByDate, subscribePendingTasksByDate, updateTaskStatusByTaskId } from '@/services/taskService';
 import Checkbox from "expo-checkbox";
+import { useRouter } from 'expo-router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { FlatList, Image, ScrollView, Text, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
@@ -39,8 +41,10 @@ const getMonthNameFromDate = (dateStr: string): string => {
 };
 
 export default function Calendar() {
+  const { user, loading } = useAuth();
   const { currentTheme } = useContext(ThemeContext);
   const { colorTheme } = useContext(ColorContext);
+  const router = useRouter();
   const isDark = currentTheme === 'dark';
   const cardBg = isDark ? '#1B1B1B' : '#FFFFFF';
   const textPrimary = isDark ? '#E5E7EB' : '#111827';
@@ -77,6 +81,12 @@ export default function Calendar() {
 
   const subtaskUnsubscribers = useRef<Record<string, () => void>>({});
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/(auth)");
+    }
+  }, [user, loading]);
+
 
   const updateSubtasksForTask = (taskId: string, subtasks: any[]) => {
     setIncompleteTasks((prev) =>
@@ -92,6 +102,7 @@ export default function Calendar() {
   };
 
   useEffect(() => {
+    if (!user) return;
     const unsubscribe = subscribePendingTasksByDate(
       choooseDate,
       (tasks) => {
@@ -101,9 +112,10 @@ export default function Calendar() {
     );
 
     return unsubscribe;
-  }, [choooseDate]);
+  }, [choooseDate, user]);
 
   useEffect(() => {
+    if (!user) return;
     const unsubscribe = subscribeCompleteTasksByDate(
       choooseDate,
       (tasks) => setCompleteTasks(tasks),
@@ -111,7 +123,7 @@ export default function Calendar() {
     );
 
     return unsubscribe;
-  }, [choooseDate]);
+  }, [choooseDate, user]);
 
   useEffect(() => {
     const allTasks = [...incompleteTasks, ...completeTasks];
@@ -653,6 +665,10 @@ export default function Calendar() {
         task={activeTask}
         onClose={() => setShowTaskEdit(false)}
         onAddSubtask={() => setShowSubtaskModal(true)}
+        onOpenSubtaskEdit={(subtask) => {
+          setactiveSubtask(subtask);
+          setShowSubtaskEdit(true);
+        }}
       />
 
       <AddSubtaskModal

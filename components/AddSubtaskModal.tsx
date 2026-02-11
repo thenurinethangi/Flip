@@ -1,27 +1,29 @@
 import { ColorContext } from "@/context/colorContext";
 import { ThemeContext } from "@/context/themeContext";
 import {
-    BookOpen,
-    Briefcase,
-    Calendar,
-    FileText,
-    Flag,
-    Home,
-    MoveRight,
-    SendHorizontal,
-    Tag
+  BookOpen,
+  Briefcase,
+  Calendar,
+  FileText,
+  Flag,
+  Home,
+  MoveRight,
+  SendHorizontal,
+  Tag
 } from "lucide-react-native";
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import Modal from "react-native-modal";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PriorityModal from "./../components/PriorityModal";
 import TaskTypeModal from "./../components/TaskTypeModal";
 
@@ -77,16 +79,30 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   const cardBg = isDark ? "#1B1B1B" : "#fff";
   const textPrimary = isDark ? "#E5E7EB" : "#000";
   const textSecondary = isDark ? "#9CA3AF" : "#999";
+  const insets = useSafeAreaInsets();
 
   const [text, setText] = useState<string>("");
   const [height, setHeight] = useState<number>(70);
   const inputRef = useRef<TextInput>(null);
   const [priorityVisible, setPriorityVisible] = useState<boolean>(false);
   const [taskTypeVisible, setTaskTypeVisible] = useState<boolean>(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const bottomInset = Platform.OS === "android" ? keyboardHeight : 0;
 
-  const handleModalShow = () => {
-    inputRef.current?.focus();
-  };
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    const show = Keyboard.addListener("keyboardDidShow", (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hide = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
 
   const extractTagsAndTitle = (value: string) => {
     const tagMatches = value.match(/(^|\s)#([\w-]+)/g) || [];
@@ -147,20 +163,26 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         style={styles.modal}
         backdropOpacity={0.3}
         onBackdropPress={onClose}
-        onModalShow={handleModalShow}
         avoidKeyboard
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.sheet}
         >
-          <View style={[styles.container, { backgroundColor: cardBg }] }>
+          <View
+            style={[
+              styles.container,
+              { backgroundColor: cardBg },
+              { paddingBottom: 16 + bottomInset + insets.bottom },
+            ]}
+          >
             {/* Input */}
             <TextInput
               ref={inputRef}
               className="-translate-y-1.5"
               placeholder="What would you like to do?"
               placeholderTextColor={textSecondary}
+              autoFocus={false}
               multiline
               value={text}
               onChangeText={setText}

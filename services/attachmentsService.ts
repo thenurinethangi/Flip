@@ -1,16 +1,19 @@
 import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  updateDoc,
-  where,
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    getDocs,
+    query,
+    updateDoc,
+    where,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { auth, db } from "./firebase";
 
 export const addAttachmentsForTask = async (notes: any[], taskId: string) => {
+  if (!auth.currentUser) {
+    return;
+  }
   const ids = notes.map((n) => n.id);
 
   const notesRef = collection(db, "attachments");
@@ -54,8 +57,13 @@ export const addAttachmentsForTask = async (notes: any[], taskId: string) => {
   }
 };
 
-
-export const addAttachmentsForSubtask = async (notes: any[], taskId: string) => {
+export const addAttachmentsForSubtask = async (
+  notes: any[],
+  taskId: string,
+) => {
+  if (!auth.currentUser) {
+    return;
+  }
   const ids = notes.map((n) => n.id);
 
   const notesRef = collection(db, "attachments");
@@ -99,8 +107,10 @@ export const addAttachmentsForSubtask = async (notes: any[], taskId: string) => 
   }
 };
 
-
 export const getAttachmentsByTaskId = async (id: string) => {
+  if (!auth.currentUser) {
+    return [];
+  }
   const notesRef = collection(db, "attachments");
 
   const q = query(notesRef, where("taskId", "==", id));
@@ -119,8 +129,10 @@ export const getAttachmentsByTaskId = async (id: string) => {
   });
 };
 
-
 export const getAttachmentsBySubtaskId = async (id: string) => {
+  if (!auth.currentUser) {
+    return [];
+  }
   const attachmentsRef = collection(db, "attachments");
 
   const q = query(attachmentsRef, where("subtaskId", "==", id));

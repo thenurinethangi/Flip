@@ -13,6 +13,7 @@ import {
   where,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { registerListener } from "./listenerRegistry";
 import {
   cancelLocalNotification,
   scheduleLocalNotificationForCountdown,
@@ -47,7 +48,6 @@ export function getReminderDate(
     case "1 day early":
       reminderDate.setDate(reminderDate.getDate() - 1);
       break;
-
     case "2 day early":
       reminderDate.setDate(reminderDate.getDate() - 2);
       break;
@@ -233,9 +233,8 @@ const ensureRepeatCountdown = async (userId: string) => {
             updatedAt: serverTimestamp(),
           });
         }
-      }
-      else {
-        await deleteDoc(doc(db, 'countdowns', item.id));
+      } else {
+        await deleteDoc(doc(db, "countdowns", item.id));
       }
     }
   }
@@ -259,7 +258,7 @@ export const subscribeCountdown = async (
   const countdownsRef = collection(db, "countdowns");
   const q = query(countdownsRef, where("userId", "==", user.uid));
 
-  return onSnapshot(q, (snapshot) => {
+  const unsubscribe = onSnapshot(q, (snapshot) => {
     const countdowns = snapshot.docs
       .map((doc) => ({ id: doc.id, ...doc.data() }))
       .filter((doc: any) => {
@@ -274,6 +273,11 @@ export const subscribeCountdown = async (
     });
     onCountdowns(countdowns);
   });
+  const unregister = registerListener(unsubscribe);
+  return () => {
+    unsubscribe();
+    unregister();
+  };
 };
 
 export const deleteCountdown = async (id: string) => {

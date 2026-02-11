@@ -12,6 +12,26 @@ import { useContext, useEffect } from "react";
 import { StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast, { ToastConfig } from "react-native-toast-message";
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://0c66663953dacb57de87257a32bde2b3@o4510866521325568.ingest.us.sentry.io/4510866528141312',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 function RootLayoutContent() {
   const { currentTheme } = useContext(ThemeContext);
@@ -54,7 +74,7 @@ function RootLayoutContent() {
   );
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
@@ -66,4 +86,4 @@ export default function RootLayout() {
       </AuthProvider>
     </GestureHandlerRootView>
   );
-}
+});

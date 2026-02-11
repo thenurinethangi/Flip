@@ -1,11 +1,13 @@
+import { auth } from "@/services/firebase";
+import { clearAllListeners } from "@/services/listenerRegistry";
+import { onAuthStateChanged, User } from "firebase/auth";
 import React, {
     createContext,
+    ReactNode,
     useContext,
     useEffect,
     useState,
-    ReactNode,
 } from "react";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 
 type AuthContextType = {
     user: User | null;
@@ -15,12 +17,14 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const auth = getAuth();
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            if (!firebaseUser) {
+                clearAllListeners();
+            }
             setUser(firebaseUser);
             setLoading(false);
         });

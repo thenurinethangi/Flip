@@ -8,7 +8,8 @@ import { ThemeContext } from '@/context/themeContext'
 import { add, FocusType, subscribeFocusByDate } from '@/services/focusService'
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import * as Notifications from "expo-notifications"
-import { Pause, Play, Square } from 'lucide-react-native'
+import { useRouter } from 'expo-router'
+import { Pause, Play, Square } from "lucide-react-native"
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, AppState, Image, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -31,10 +32,10 @@ type PomodoroSession = {
 const STORAGE_KEY = 'ACTIVE_POMO';
 
 const focus = () => {
-
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { currentTheme } = useContext(ThemeContext);
   const { colorTheme } = useContext(ColorContext);
+  const router = useRouter();
   const isDark = currentTheme === 'dark';
 
   const [focusTimeChangeCount, setFocusTimeChangeCount] = useState(1);
@@ -71,6 +72,12 @@ const focus = () => {
   useEffect(() => {
     refreshFocusTime();
   }, [focusTimeChangeCount]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/(auth)");
+    }
+  }, [user, loading]);
 
   const clearSession = async (cancelNotification: boolean = true) => {
     if (cancelNotification && session?.notificationId) {
@@ -384,7 +391,7 @@ const focus = () => {
                     cx={size / 2}
                     cy={size / 2}
                     r={radius}
-                    stroke={isDark ? colorTheme : '#4772FA'}
+                    stroke={colorTheme}
                     strokeWidth={strokeWidth}
                     fill='none'
                     strokeDasharray={`${circumference} ${circumference}`}
@@ -412,7 +419,7 @@ const focus = () => {
                   ? <TouchableOpacity
                     onPress={() => startFocusSession()}
                     className='px-12 py-3 rounded-full w-[165px] h-[47px]'
-                    style={{ backgroundColor: isDark ? colorTheme : '#4772FA' }}
+                    style={{ backgroundColor: colorTheme }}
                   >
                     <Text className='text-white text-[16px] text-center'>Start</Text>
                   </TouchableOpacity>
@@ -428,7 +435,7 @@ const focus = () => {
                         }
                       }}
                       className='rounded-full w-[63px] h-[63px] justify-center items-center'
-                      style={{ backgroundColor: isDark ? colorTheme : '#4772FA' }}
+                      style={{ backgroundColor: colorTheme }}
                     >
                       {isRunning ? <Pause color={'white'} size={30} fill={'white'} strokeWidth={1} /> : <Play color={'white'} size={30} fill={'white'} />}
                     </TouchableOpacity>
@@ -529,7 +536,7 @@ const focus = () => {
                   ? <TouchableOpacity
                     onPress={() => startBreakSession()}
                     className='px-12 py-3 rounded-full w-[165px] h-[47px]'
-                    style={{ backgroundColor: isDark ? colorTheme : '#66BB6A' }}
+                    style={{ backgroundColor: colorTheme }}
                   >
                     <Text className='text-white text-[16px] text-center'>Start Break</Text>
                   </TouchableOpacity>
@@ -545,7 +552,7 @@ const focus = () => {
                         }
                       }}
                       className='rounded-full w-[63px] h-[63px] justify-center items-center'
-                      style={{ backgroundColor: isDark ? colorTheme : '#66BB6A' }}
+                      style={{ backgroundColor: colorTheme }}
                     >
                       {isRunningBreak ? <Pause color={'white'} size={30} fill={'white'} strokeWidth={1} /> : <Play color={'white'} size={30} fill={'white'} />}
                     </TouchableOpacity>

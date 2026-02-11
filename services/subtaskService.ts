@@ -1,31 +1,32 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  addDoc,
-  collection,
-  deleteDoc,
-  deleteField,
-  doc,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-  writeBatch,
+    addDoc,
+    collection,
+    deleteDoc,
+    deleteField,
+    doc,
+    getDoc,
+    getDocs,
+    onSnapshot,
+    orderBy,
+    query,
+    serverTimestamp,
+    updateDoc,
+    where,
+    writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { registerListener } from "./listenerRegistry";
 import {
-  cancelLocalNotification,
-  scheduleLocalNotificationForTask,
+    cancelLocalNotification,
+    scheduleLocalNotificationForTask,
 } from "./notificationService";
 import {
-  AddTaskInput,
-  getReminderBodyText,
-  getReminderDate,
-  ReminderLabel,
-} from "./taskService";
+    getReminderBodyText,
+    getReminderDate,
+    type ReminderLabel,
+} from "./taskReminder";
+import type { AddTaskInput } from "./taskTypes";
 
 export const addNewSubTask = async (input: AddTaskInput, taskId: string) => {
   const user = auth.currentUser;
@@ -123,7 +124,8 @@ export const ensureRepeatSubtasksForTask = async (
 
     if (repeatSubtasks.length > 0) {
       const batch = writeBatch(db);
-      const createdTasks: Array<{ id: string; payload: Record<string, any> }> = [];
+      const createdTasks: Array<{ id: string; payload: Record<string, any> }> =
+        [];
       repeatSubtasks.forEach((subtask: any) => {
         const {
           id: _id,
@@ -215,7 +217,7 @@ export const subscribeSubTasksByTaskId = (
     orderBy("createdAt", "asc"),
   );
 
-  return onSnapshot(
+  const unsubscribe = onSnapshot(
     q,
     (snapshot) => {
       onSubTasks(
@@ -229,6 +231,11 @@ export const subscribeSubTasksByTaskId = (
       if (onError) onError(error as Error);
     },
   );
+  const unregister = registerListener(unsubscribe);
+  return () => {
+    unsubscribe();
+    unregister();
+  };
 };
 
 export const updateSubTaskStatusByTaskId = async (

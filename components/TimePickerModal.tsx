@@ -1,10 +1,10 @@
 import { ColorContext } from "@/context/colorContext";
 import { ThemeContext } from "@/context/themeContext";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Check, Clock, X } from "lucide-react-native";
 import React, { useContext, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Modal from "react-native-modal";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 interface Props {
     visible: boolean;
@@ -72,17 +72,22 @@ const TimePickerModal: React.FC<Props> = ({ visible, onClose, onConfirm }) => {
                 </TouchableOpacity>
 
                 {/* Native Time Picker */}
-                <DateTimePickerModal
-                    isVisible={showPicker}
-                    mode="time"
-                    date={time ?? new Date()}
-                    onConfirm={(date) => {
-                        setTime(date);
-                        setShowPicker(false);
-                    }}
-                    onCancel={() => setShowPicker(false)}
-                    accentColor={colorTheme}
-                />
+                {showPicker && (
+                    <DateTimePicker
+                        value={time ?? new Date()}
+                        mode="time"
+                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        accentColor={colorTheme}
+                        onChange={(_, selectedDate) => {
+                            if (Platform.OS === "android") {
+                                setShowPicker(false);
+                            }
+                            if (selectedDate) {
+                                setTime(selectedDate);
+                            }
+                        }}
+                    />
+                )}
 
                 <TouchableOpacity onPress={() => setTime(null)}>
                     <Text style={[styles.clear, { color: isDark ? "#FCA5A5" : "red" }]}>Clear</Text>

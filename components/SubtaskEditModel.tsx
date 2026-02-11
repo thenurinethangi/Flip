@@ -23,6 +23,7 @@ import {
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     Image,
+    Keyboard,
     KeyboardAvoidingView,
     Linking,
     Modal,
@@ -162,11 +163,14 @@ export default function SubtaskEditModal({
         note: "",
     });
 
-    const editorRef = useRef<RichEditor | null>(null);
-    const prevSubtaskIdRef = useRef<string | null>(null);
+    const editorRef = useRef<any>(null);
     const [linkModalVisible, setLinkModalVisible] = useState(false);
     const [linkTitle, setLinkTitle] = useState("");
     const [linkUrl, setLinkUrl] = useState("");
+    const [isEditorReady, setIsEditorReady] = useState(false);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+    const prevSubtaskIdRef = useRef<string | null>(null);
 
     const [priorityVisible, setPriorityVisible] = useState(false);
     const [taskTypeVisible, setTaskTypeVisible] = useState(false);
@@ -204,6 +208,20 @@ export default function SubtaskEditModal({
     }, [task]);
 
     useEffect(() => {
+        if (Platform.OS !== "android") return;
+        const show = Keyboard.addListener("keyboardDidShow", (e) => {
+            setKeyboardHeight(e.endCoordinates.height);
+        });
+        const hide = Keyboard.addListener("keyboardDidHide", () => {
+            setKeyboardHeight(0);
+        });
+        return () => {
+            show.remove();
+            hide.remove();
+        };
+    }, []);
+
+    useEffect(() => {
         if (!visible) {
             prevSubtaskIdRef.current = null;
             return;
@@ -217,6 +235,7 @@ export default function SubtaskEditModal({
             setNotes({ id: "", taskId: null, subtaskId: null, note: "" });
             setAttachmentsLoaded(false);
             setNotesLoaded(false);
+            setIsEditorReady(false);
             if (editorRef.current) {
                 editorRef.current.setContentHTML("");
             }
@@ -257,7 +276,6 @@ export default function SubtaskEditModal({
                         subtaskId: task.id,
                     });
                     setNotesLoaded(true);
-
                     if (editorRef.current && notesRes.note) {
                         editorRef.current.setContentHTML(notesRes.note);
                     }
@@ -631,7 +649,7 @@ export default function SubtaskEditModal({
                                 </View>
                             </View>
 
-                            <View className='flex-row items-center gap-x-2 mt-[23px]'>
+                            <View className='flex-row items-center gap-x-2 mt-[23px] px-1'>
                                 <View className='flex-row items-center gap-x-[14px]'>
                                     <View
                                         className={`${taskForm.repeat !== 'None' ? '-translate-y-2' : ''}`}
@@ -718,7 +736,7 @@ export default function SubtaskEditModal({
                                     ref={editorRef}
                                     placeholder="Write Note ..."
                                     initialContentHTML={notes.note}
-                                    onChange={(value) =>
+                                    onChange={(value: string) =>
                                         setNotes((prev) => ({
                                             ...prev,
                                             note: value,
@@ -726,7 +744,10 @@ export default function SubtaskEditModal({
                                             subtaskId: taskForm.id || prev.subtaskId,
                                         }))
                                     }
-                                    editorInitializedCallback={disableSpellcheck}
+                                    editorInitializedCallback={() => {
+                                        disableSpellcheck();
+                                        setIsEditorReady(true);
+                                    }}
                                     editorStyle={{
                                         backgroundColor: cardBg,
                                         color: textPrimary,
@@ -746,7 +767,6 @@ export default function SubtaskEditModal({
                                     }}
                                     style={{ minHeight: 120 }}
                                 />
-
                             </View>
 
                             {attachments.length > 0 && (
@@ -851,53 +871,59 @@ export default function SubtaskEditModal({
 
                         </ScrollView>
 
-                        <View className='absolute bottom-0 left-0 right-0 px-4 py-3' style={{ backgroundColor: cardBg }}>
+                        <View
+                            className='absolute bottom-0 left-0 right-0 px-4 py-3'
+                            style={{ backgroundColor: cardBg, paddingBottom: 12 + (Platform.OS === "android" ? keyboardHeight : 0) }}
+                        >
                             <View className='flex-row items-center gap-x-5'>
                                 <View style={{ flex: 1, minWidth: 0 }}>
-                                    <RichToolbar
-                                        editor={editorRef}
-                                        actions={[
-                                            actions.setBold,
-                                            actions.setItalic,
-                                            actions.setUnderline,
-                                            actions.insertOrderedList,
-                                            actions.insertBulletsList,
-                                            actions.insertLink,
-                                            actions.alignRight,
-                                            actions.alignLeft,
-                                            actions.alignCenter,
-                                            actions.heading1,
-                                            actions.heading2,
-                                            actions.heading3,
-                                            actions.heading4,
-                                            actions.heading5,
-                                            actions.heading6,
-                                        ]}
-                                        onInsertLink={openLinkModal}
-                                        iconTint={isDark ? "#9CA3AF" : "#7E8591"}
-                                        selectedIconTint={isDark ? "#E5E7EB" : "#222"}
-                                        iconMap={{
-                                            [actions.heading1]: ({ tintColor }: { tintColor?: string }) => (
-                                                <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H1</Text>
-                                            ),
-                                            [actions.heading2]: ({ tintColor }: { tintColor?: string }) => (
-                                                <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H2</Text>
-                                            ),
-                                            [actions.heading3]: ({ tintColor }: { tintColor?: string }) => (
-                                                <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H3</Text>
-                                            ),
-                                            [actions.heading4]: ({ tintColor }: { tintColor?: string }) => (
-                                                <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H4</Text>
-                                            ),
-                                            [actions.heading5]: ({ tintColor }: { tintColor?: string }) => (
-                                                <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H5</Text>
-                                            ),
-                                            [actions.heading6]: ({ tintColor }: { tintColor?: string }) => (
-                                                <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H6</Text>
-                                            ),
-                                        }}
-                                        style={{ backgroundColor: "transparent", borderWidth: 0 }}
-                                    />
+                                    {isEditorReady ? (
+                                        <RichToolbar
+                                            editor={editorRef}
+                                            getEditor={() => editorRef.current}
+                                            actions={[
+                                                actions.setBold,
+                                                actions.setItalic,
+                                                actions.setUnderline,
+                                                actions.insertOrderedList,
+                                                actions.insertBulletsList,
+                                                actions.insertLink,
+                                                actions.alignRight,
+                                                actions.alignLeft,
+                                                actions.alignCenter,
+                                                actions.heading1,
+                                                actions.heading2,
+                                                actions.heading3,
+                                                actions.heading4,
+                                                actions.heading5,
+                                                actions.heading6,
+                                            ]}
+                                            onInsertLink={openLinkModal}
+                                            iconTint={isDark ? "#9CA3AF" : "#7E8591"}
+                                            selectedIconTint={isDark ? "#E5E7EB" : "#222"}
+                                            iconMap={{
+                                                [actions.heading1]: ({ tintColor }: { tintColor?: string }) => (
+                                                    <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H1</Text>
+                                                ),
+                                                [actions.heading2]: ({ tintColor }: { tintColor?: string }) => (
+                                                    <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H2</Text>
+                                                ),
+                                                [actions.heading3]: ({ tintColor }: { tintColor?: string }) => (
+                                                    <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H3</Text>
+                                                ),
+                                                [actions.heading4]: ({ tintColor }: { tintColor?: string }) => (
+                                                    <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H4</Text>
+                                                ),
+                                                [actions.heading5]: ({ tintColor }: { tintColor?: string }) => (
+                                                    <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H5</Text>
+                                                ),
+                                                [actions.heading6]: ({ tintColor }: { tintColor?: string }) => (
+                                                    <Text style={{ color: tintColor, fontSize: 13, fontWeight: "400" }}>H6</Text>
+                                                ),
+                                            }}
+                                            style={{ backgroundColor: "transparent", borderWidth: 0 }}
+                                        />
+                                    ) : null}
                                 </View>
                                 <Pressable onPress={pickFile}>
                                     <Paperclip size={18} color={isDark ? "#9CA3AF" : "#7E8591"} />
@@ -908,7 +934,6 @@ export default function SubtaskEditModal({
                             </View>
                         </View>
 
-                        {/* link model */}
                         <Modal
                             transparent
                             animationType="fade"

@@ -1,40 +1,37 @@
+import {
+    Balloon,
+    Bell,
+    Cake,
+    Calendar,
+    ChartPie,
+    CheckCircle,
+    ChevronDown,
+    ChevronRight,
+    Clock,
+    Code,
+    Disc,
+    EllipsisVertical,
+    Gift,
+    Heart,
+    Hourglass,
+    House,
+    Layers2,
+    Menu,
+    Play,
+    Plus,
+    Search,
+    Send,
+    User,
+    X,
+} from "lucide-react-native";
 import React from "react";
 import { OpaqueColorValue } from "react-native";
-import {
-  House,
-  Send,
-  Code,
-  ChevronRight,
-  Bell,
-  User,
-  Search,
-  Layers2,
-  Calendar,
-  Disc,
-  Menu,
-  EllipsisVertical,
-  ChevronDown,
-  Plus,
-  Clock,
-  CheckCircle,
-  Hourglass,
-  Heart,
-  Cake,
-  Gift,
-  Balloon,
-  ChartPie,
-  Play,
-  X,
-} from "lucide-react-native";
 
 type LucideIcon = React.ComponentType<{
   size?: number;
   color?: string | OpaqueColorValue;
 }>;
 
-/**
- * Define your app icon names here (no platform mapping needed)
- */
 const ICONS = {
   home: House,
   send: Send,
@@ -59,7 +56,7 @@ const ICONS = {
   Balloon: Balloon,
   ChartPie: ChartPie,
   Play: Play,
-  X: X
+  X: X,
 };
 
 export type IconName = keyof typeof ICONS;
@@ -70,15 +67,7 @@ type IconProps = {
   color?: string | OpaqueColorValue;
 };
 
-/**
- * Unified Icon component using Lucide icons
- * Works on iOS, Android, Web (Expo)
- */
-export function AppIcon({
-  name,
-  size = 24,
-  color = "#4772FA",
-}: IconProps) {
+export function AppIcon({ name, size = 24, color = "#4772FA" }: IconProps) {
   const IconComponent: LucideIcon = ICONS[name];
   return <IconComponent size={size} color={color} />;
 }

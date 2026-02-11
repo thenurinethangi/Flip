@@ -1,21 +1,26 @@
-import * as Notifications from 'expo-notifications';
-import { useEffect } from 'react';
-import { router } from 'expo-router';
+import * as Notifications from "expo-notifications";
+import { useEffect } from "react";
 
 export function useNotificationTapHandler() {
-    useEffect(() => {
-        const sub =
-            Notifications.addNotificationResponseReceivedListener(
-                response => {
-                    const data = response.notification.request.content.data;
+  useEffect(() => {
+    if (
+      typeof Notifications.addNotificationResponseReceivedListener !==
+      "function"
+    ) {
+      return;
+    }
 
-                    if (data?.taskId) { 
-                        // example action
-                        // router.push(`/task/${data.taskId}`);
-                    }
-                }
-            );
+    const sub = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const data = response.notification.request.content.data;
 
-        return () => sub.remove();
-    }, []);
+        if (data?.taskId) {
+          // example action
+          // router.push(`/task/${data.taskId}`);
+        }
+      },
+    );
+
+    return () => sub.remove();
+  }, []);
 }

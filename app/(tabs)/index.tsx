@@ -766,6 +766,10 @@ export default function HomeScreen() {
           task={activeTask}
           onClose={() => setShowTaskEdit(false)}
           onAddSubtask={() => setShowSubtaskModal(true)}
+          onOpenSubtaskEdit={(subtask) => {
+            setactiveSubtask(subtask);
+            setShowSubtaskEdit(true);
+          }}
         />
 
         <AddSubtaskModal
@@ -826,7 +830,7 @@ export default function HomeScreen() {
       />
 
       {/* Subtask edit model */}
-      <SubtaskEditModal
+      <SubtaskEditModal 
         visible={showSubtaskEdit}
         task={activeSubtask}
         onClose={() => setShowSubtaskEdit(false)}
