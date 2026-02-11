@@ -8,7 +8,7 @@
     "scheme": "flip",
     "userInterfaceStyle": "automatic",
     "jsEngine": "hermes",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
@@ -65,7 +65,8 @@
           "project": "react-native",
           "organization": "institute-of-software-engineer"
         }
-      ]
+      ],
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true,
