@@ -64,16 +64,7 @@
         }
       ],
       "expo-font",
-      "expo-web-browser",
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "react-native",
-          "organization": "institute-of-software-engineer"
-        }
-      ],
-      "@sentry/react-native"
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
