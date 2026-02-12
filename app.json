@@ -8,7 +8,7 @@
     "scheme": "flip",
     "userInterfaceStyle": "automatic",
     "jsEngine": "hermes",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -80,10 +80,7 @@
       "reactCompiler": true
     },
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "284d805f-313f-4634-bb79-1038cd7c8627"
-      }
+      "router": {}
     },
     "owner": "nethangi"
   }
