@@ -104,15 +104,18 @@ Firebase configuration is located in `services/firebase.ts`. Repeat generation r
 
 ## Screenshots
 
-| | | | |
-|:---:|:---:|:---:|:---:|
-| ![Flip](assets/readme/photo_2026-02-14_00-31-57.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-02.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-06.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-08.jpg) |
-| ![Flip](assets/readme/photo_2026-02-14_00-32-11.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-13.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-16.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-19.jpg) |
-| ![Flip](assets/readme/photo_2026-02-14_00-32-21.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-24.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-27.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-29.jpg) |
-| ![Flip](assets/readme/photo_2026-02-14_00-32-32.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-34.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-37.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-39.jpg) |
-| ![Flip](assets/readme/photo_2026-02-14_00-32-42.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-45.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-47.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-50.jpg) |
-| ![Flip](assets/readme/photo_2026-02-14_00-32-52.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-55.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-57.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-00.jpg) |
-| ![Flip](assets/readme/photo_2026-02-14_00-33-02.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-05.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-08.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-11.jpg) |
-| ![Flip](assets/readme/photo_2026-02-14_00-33-13.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-16.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-19.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-22.jpg) |
-| ![Flip](assets/readme/photo_2026-02-14_00-33-24.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-27.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-30.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-32.jpg) |
-| ![Flip](assets/readme/photo_2026-02-14_00-33-35.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-37.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-40.jpg) | |
+| | | |
+|:---:|:---:|:---:|
+| ![Flip](assets/readme/photo_2026-02-14_00-31-57.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-06.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-08.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-32-11.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-13.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-16.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-32-19.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-21.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-24.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-32-27.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-29.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-32.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-32-34.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-37.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-39.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-32-42.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-45.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-47.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-32-50.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-52.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-32-57.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-33-00.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-02.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-13.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-33-16.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-05.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-08.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-33-11.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-19.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-22.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-33-24.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-27.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-30.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-33-32.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-35.jpg) | ![Flip](assets/readme/photo_2026-02-14_00-33-37.jpg) |
+| ![Flip](assets/readme/photo_2026-02-14_00-33-40.jpg) | | |
