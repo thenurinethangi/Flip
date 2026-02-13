@@ -101,3 +101,5 @@ Firebase configuration is located in `services/firebase.ts`. Repeat generation r
 
 - `npx expo start` — Start the development server
 - `npm run reset-project` — Reset Expo starter structure (optional)
+
+## Screenshots
