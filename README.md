@@ -103,3 +103,5 @@ Firebase configuration is located in `services/firebase.ts`. Repeat generation r
 - `npm run reset-project` — Reset Expo starter structure (optional)
 
 ## Screenshots
+
+![Flip Home Screen](![photo_2026-02-14_00-31-57](https://github.com/user-attachments/assets/1054676f-074e-4cd8-91a8-77278b5a3f19))
