@@ -4,6 +4,10 @@ Flip is a production‑grade personal productivity suite that unifies planning, 
 
 Designed for real‑world use at scale, Flip delivers fast interactions, live data synchronization, and repeat‑aware scheduling that keeps routines accurate over time. Whether managing daily execution, long‑term projects, or life milestones, Flip provides the infrastructure for sustained productivity and intentional time management.
 
+## Download
+
+**[Download Flip APK for Android](https://expo.dev/accounts/nethangi/projects/Flip/builds/8b764a7a-adf0-49ac-a9bf-c718622f30ec)** — Get the latest build directly from Expo. Install on your Android device to start using Flip.
+
 ## Overview
 
 Flip is not merely a task management application. It is a comprehensive productivity platform that supports end‑to‑end planning across multiple time horizons, from granular daily execution to annual goal tracking. Users can schedule tasks, configure reminders with flexible offsets, attach rich notes and media, and maintain full visibility of their commitments through integrated calendar views. The application incorporates proven productivity methodologies such as the Pomodoro technique for focused work sessions, alongside countdown functionality for milestone and event anticipation. Full account management, theme customization, and data control round out an experience built for demanding, daily use by productivity‑oriented individuals.
