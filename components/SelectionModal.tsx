@@ -1,3 +1,4 @@
+import { ColorContext } from "@/context/colorContext";
 import { ThemeContext } from "@/context/themeContext";
 import { Check, X } from "lucide-react-native";
 import React, { useContext } from "react";
@@ -27,6 +28,7 @@ interface ListProps {
 
 const SelectionModal: React.FC<ListProps> = ({ visible, title, data, selectedValue, onClose, onSelect, }) => {
     const { currentTheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ColorContext);
     const isDark = currentTheme === "dark";
     const textPrimary = isDark ? "#E5E7EB" : "#333";
     const textSecondary = isDark ? "#9CA3AF" : "#999";
@@ -46,7 +48,7 @@ const SelectionModal: React.FC<ListProps> = ({ visible, title, data, selectedVal
                     </TouchableOpacity>
                     <Text style={[styles.headerTitle, { color: textPrimary }]}>{title}</Text>
                     <TouchableOpacity onPress={onClose}>
-                        <Check size={22} color="#4772FA" />
+                        <Check size={22} color={colorTheme} />
                     </TouchableOpacity>
                 </View>
 
@@ -67,7 +69,7 @@ const SelectionModal: React.FC<ListProps> = ({ visible, title, data, selectedVal
                                 style={[
                                     styles.itemText,
                                     { color: textPrimary },
-                                    selectedValue === item.label && styles.selectedText,
+                                    selectedValue === item.label && [styles.selectedText, { color: colorTheme }],
                                 ]}
                             >
                                 {item.label}
@@ -79,12 +81,12 @@ const SelectionModal: React.FC<ListProps> = ({ visible, title, data, selectedVal
                                     style={[
                                         styles.radio,
                                         item.isAvailable ? styles.radio : styles.radioInActive,
-                                        selectedValue === item.label && styles.radioActive,
+                                        selectedValue === item.label && [styles.radioActive, { borderColor: colorTheme }],
                                         isDark && { borderColor: "#374151" },
                                     ]}
                                 >
                                     {selectedValue === item.label && (
-                                        <View style={styles.radioInner} />
+                                        <View style={[styles.radioInner, { backgroundColor: colorTheme }]} />
                                     )}
                                 </View>
                             </View>
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     itemText: { fontSize: 16, color: "#333" },
-    selectedText: { color: "#4772FA", fontWeight: "500" },
+    selectedText: { fontWeight: "500" },
     radio: {
         width: 20,
         height: 20,
@@ -133,7 +135,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-    radioActive: { borderColor: "#4772FA" },
+    radioActive: {},
     radioInActive: { borderColor: "#DDD", opacity: 0.1 },
     radioInner: {
         width: 10,

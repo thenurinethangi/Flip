@@ -18,6 +18,7 @@ interface TaskTypeModalProps {
     selectedTaskType: string;
     onClose: () => void;
     onSelect?: (type: TaskTypeId) => void;
+    bottomInset?: number;
 }
 
 const taskTypeOptions: {
@@ -38,6 +39,7 @@ const TaskTypeModal: React.FC<TaskTypeModalProps> = ({
     selectedTaskType,
     onClose,
     onSelect,
+    bottomInset = 0,
 }) => {
     const { currentTheme } = useContext(ThemeContext);
     const { colorTheme } = useContext(ColorContext);
@@ -55,9 +57,9 @@ const TaskTypeModal: React.FC<TaskTypeModalProps> = ({
     }
 
     return (
-        <View style={styles.overlay} pointerEvents="box-none">
+        <View style={[styles.overlay, { paddingBottom: 95 + bottomInset }]} pointerEvents="box-none">
             <Pressable style={[styles.backdrop, { backgroundColor: isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.12)" }]} onPress={onClose} />
-            <View style={[styles.card, { backgroundColor: cardBg }]}>
+            <View style={[styles.card, { backgroundColor: cardBg, marginBottom: 300 }]}>
                 {taskTypeOptions.map((option, index) => (
                     <TouchableOpacity
                         key={option.id}
@@ -86,7 +88,6 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         justifyContent: "flex-end",
         alignItems: "center",
-        paddingBottom: 95,
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,

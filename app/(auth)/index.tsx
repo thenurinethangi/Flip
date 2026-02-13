@@ -26,7 +26,11 @@ import Svg, {
 
 import Spinner from "@/components/spinner";
 import { useAuth } from "@/context/authContext";
+import { auth } from "@/services/firebase";
+import * as AuthSession from "expo-auth-session";
+import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -527,38 +531,37 @@ export default function SignIn() {
     return () => clearInterval(interval);
   }, [active]);
 
-  // const redirectUri = AuthSession.makeRedirectUri({
-  //   useProxy: false,
-  // })
+  const redirectUri = AuthSession.makeRedirectUri();
 
-  // const [request, response, promptAsync] = Google.useAuthRequest({
-  //   androidClientId: "831824482548-9ua3le2q822r37k50kf0pn5r7lu5com8.apps.googleusercontent.com",
-  //   webClientId: "831824482548-larinube6no9iab9mu1ehm7m6pk58vq8.apps.googleusercontent.com",
-  //   redirectUri,
-  // });
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: "831824482548-9ua3le2q822r37k50kf0pn5r7lu5com8.apps.googleusercontent.com",
+    webClientId: "831824482548-larinube6no9iab9mu1ehm7m6pk58vq8.apps.googleusercontent.com",
+    redirectUri,
+  });
 
-  // const handleGoogleSignIn = () => {
-  //   // 2. You MUST pass the redirectUri here as well
-  //   promptAsync({
-  //     useProxy: false,
-  //   });
-  // };
+  const handleGoogleSignIn = () => {
+    promptAsync();
+  };
 
-  // useEffect(() => {
-  //   if (response?.type === "success") {
-  //     const { id_token } = response.authentication;
+  useEffect(() => {
+    if (response?.type === "success") {
+      const idToken = response.authentication?.idToken ?? response.params?.id_token;
+      if (!idToken) {
+        console.log("Google sign-in error: missing idToken", response);
+        return;
+      }
 
-  //     const credential = GoogleAuthProvider.credential(id_token);
+      const credential = GoogleAuthProvider.credential(idToken);
 
-  //     signInWithCredential(auth, credential)
-  //       .then((userCredential) => {
-  //         console.log("Firebase user:", userCredential.user);
-  //       })
-  //       .catch((error) => {
-  //         console.log("Firebase sign-in error:", error);
-  //       });
-  //   }
-  // }, [response]);
+      signInWithCredential(auth, credential)
+        .then((userCredential) => {
+          console.log("Firebase user:", userCredential.user);
+        })
+        .catch((error) => {
+          console.log("Firebase sign-in error:", error);
+        });
+    }
+  }, [response]);
 
   const BlobComponent = BlobShapes[active];
   const Illustration = slides[active].Illustration;
@@ -652,8 +655,8 @@ export default function SignIn() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              // disabled={!request}
-              // onPress={handleGoogleSignIn}
+              disabled={!request}
+              onPress={handleGoogleSignIn}
               style={[
                 styles.button,
                 {

@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { ThemeContext } from "@/context/themeContext";
+import { ColorContext } from "@/context/colorContext";
 
 type SpinnerProps = {
   size?: number | "small" | "large";
@@ -8,6 +9,7 @@ type SpinnerProps = {
 
 export default function Spinner({ size = "large" }: SpinnerProps) {
   const { currentTheme } = useContext(ThemeContext);
+  const { colorTheme } = useContext(ColorContext);
 
   return (
     <View
@@ -16,7 +18,7 @@ export default function Spinner({ size = "large" }: SpinnerProps) {
         { backgroundColor: currentTheme === "light" ? "#FAFBFC" : "#000000" },
       ]}
     >
-      <ActivityIndicator size={size} color="#4772FA" />
+      <ActivityIndicator size={size} color={colorTheme} />
     </View>
   );
 }

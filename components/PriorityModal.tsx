@@ -11,6 +11,7 @@ interface PriorityModalProps {
     selectedPriority: string;
     onClose: () => void;
     onSelect?: (priority: PriorityId) => void;
+    bottomInset?: number;
 }
 
 const priorityOptions: { id: PriorityId; label: string; color: string }[] = [
@@ -25,6 +26,7 @@ const PriorityModal: React.FC<PriorityModalProps> = ({
     selectedPriority,
     onClose,
     onSelect,
+    bottomInset = 0,
 }) => {
     const { currentTheme } = useContext(ThemeContext);
     const { colorTheme } = useContext(ColorContext);
@@ -42,9 +44,9 @@ const PriorityModal: React.FC<PriorityModalProps> = ({
     }
 
     return (
-        <View style={styles.overlay} pointerEvents="box-none">
+        <View style={[styles.overlay, { paddingBottom: 85 + bottomInset }]} pointerEvents="box-none">
             <Pressable style={[styles.backdrop, { backgroundColor: isDark ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.12)" }]} onPress={onClose} />
-            <View style={[styles.card, { backgroundColor: cardBg }]}>
+            <View style={[styles.card, { backgroundColor: cardBg, marginBottom: 300 }]}>
                 {priorityOptions.map((option, index) => (
                     <TouchableOpacity
                         key={option.id}
@@ -73,7 +75,6 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         justifyContent: "flex-end",
         alignItems: "center",
-        paddingBottom: 85,
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,

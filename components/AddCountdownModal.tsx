@@ -5,6 +5,7 @@ import { add } from "@/services/countdownService";
 import { ChevronRight, Pencil, X } from "lucide-react-native";
 import React, { useContext, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     Modal,
     Pressable,
@@ -87,6 +88,7 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
     const [selectedDate, setSelectedDate] = useState(todayStr);
     const [selectedReminder, setSelectedReminder] = useState('None');
     const [selectedRepeat, setSelectedRepeat] = useState('None');
+    const [isSaving, setIsSaving] = useState(false);
 
     const reminderOptions = [
         { id: "1", label: "None", isAvailable: true },
@@ -111,6 +113,12 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
             return;
         }
 
+        if (isSaving) {
+            return;
+        }
+
+        setIsSaving(true);
+
         const newCountdown = {
             countdownName,
             date: selectedDate,
@@ -127,6 +135,7 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
             console.log(e);
             Alert.alert('Fail!, Please try later');
         }
+        setIsSaving(false);
         onClose();
     }
 
@@ -219,8 +228,17 @@ const AddCountdownModal: React.FC<AddCountdownModalProps> = ({ visible, onClose,
                     </View>
 
                     <View className="mt-auto px-5 pb-6">
-                        <TouchableOpacity onPress={handleAddNewCountdown} className="items-center" style={{ borderRadius: 15, paddingBlock: 13, backgroundColor: colorTheme }}>
-                            <Text className="text-white text-[16px] font-semibold">Save</Text>
+                        <TouchableOpacity
+                            onPress={handleAddNewCountdown}
+                            className="items-center"
+                            style={{ borderRadius: 15, paddingBlock: 13, backgroundColor: colorTheme, opacity: isSaving ? 0.8 : 1 }}
+                            disabled={isSaving}
+                        >
+                            {isSaving ? (
+                                <ActivityIndicator size="small" color="#FFFFFF" />
+                            ) : (
+                                <Text className="text-white text-[16px] font-semibold">Save</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </SafeAreaView>

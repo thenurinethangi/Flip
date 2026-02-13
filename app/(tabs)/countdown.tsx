@@ -1,6 +1,7 @@
 import AddCountdownModal from '@/components/AddCountdownModal'
 import CountdownTypeModal, { CountdownTypeId } from '@/components/CountdownTypeModal'
 import CountdownViewModal from '@/components/CountdownViewModal'
+import Spinner from '@/components/spinner'
 import { AppIcon } from '@/components/ui/icon-symbol'
 import { useAuth } from '@/context/authContext'
 import { ColorContext } from '@/context/colorContext'
@@ -71,6 +72,7 @@ const Countdown = () => {
 
   const [countdowns, setCountdowns] = useState<Array<{ id: string } & Record<string, any>>>([]);
   const [activeCountdowns, setActiveCountdowns] = useState<any | null>(null);
+  const [isCountdownsLoading, setIsCountdownsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -79,12 +81,35 @@ const Countdown = () => {
   }, [user, loading]);
 
   useEffect(() => {
-    if (!user) return;
-    const loadCountdowns = async () => {
-      await subscribeCountdown((c) => { setCountdowns(c) }, (error) => { console.log(error) });
+    if (!user) {
+      setCountdowns([]);
+      setIsCountdownsLoading(false);
+      return;
     }
-    loadCountdowns();
-
+    setIsCountdownsLoading(true);
+    let unsubscribe: (() => void) | undefined;
+    subscribeCountdown(
+      (c) => {
+        setCountdowns(c);
+        setIsCountdownsLoading(false);
+      },
+      (error) => {
+        console.log(error);
+        setIsCountdownsLoading(false);
+      },
+    )
+      .then((unsub) => {
+        unsubscribe = unsub;
+      })
+      .catch((error) => {
+        console.log(error);
+        setIsCountdownsLoading(false);
+      });
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [user]);
 
 
@@ -128,48 +153,49 @@ const Countdown = () => {
 
         {/* countdowns container */}
         <View style={{ flex: 1, paddingHorizontal: 14, paddingTop: 20, paddingBottom: 0, marginBottom: 0 }}>
-
-          <FlatList
-            data={countdowns}
-            scrollEnabled={true}
-            showsVerticalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View className={`mb-[8px] rounded-[10px]`} style={{ backgroundColor: cardBg }}>
-                <Animated.View
-                  layout={Layout.springify().damping(18).stiffness(180)}
-                  entering={FadeInDown.duration(200)}
-                  exiting={FadeOutUp.duration(150)}
-                  className={`w-full box-content rounded-[10px] py-4 px-5 flex-row items-center justify-between shadow-md shadow-black/0.05`}
-                  style={{ backgroundColor: cardBg }}
-                >
-                  <Pressable onPress={() => { setActiveCountdowns(item); setShowViewCountdownModal(true); }} className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
-                    <View
-                      className="w-[36px] h-[36px] rounded-full flex-row justify-center items-center"
-                      style={{ backgroundColor: typeBgColorMap[item.type as CountdownType] ?? typeBgColorMap.Countdown }}
-                    >
-                      <Image source={countdownTypeImageMap[item.type as CountdownType] ?? countdownTypeImageMap.Countdown} className='w-[22px] h-[22px]'></Image>
+          {isCountdownsLoading ? (
+            <Spinner />
+          ) : (
+            <FlatList
+              data={countdowns}
+              scrollEnabled={true}
+              showsVerticalScrollIndicator={false}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View className={`mb-[8px] rounded-[10px]`} style={{ backgroundColor: cardBg }}>
+                  <Animated.View
+                    layout={Layout.springify().damping(18).stiffness(180)}
+                    entering={FadeInDown.duration(200)}
+                    exiting={FadeOutUp.duration(150)}
+                    className={`w-full box-content rounded-[10px] py-4 px-5 flex-row items-center justify-between shadow-md shadow-black/0.05`}
+                    style={{ backgroundColor: cardBg }}
+                  >
+                    <Pressable onPress={() => { setActiveCountdowns(item); setShowViewCountdownModal(true); }} className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
+                      <View
+                        className="w-[36px] h-[36px] rounded-full flex-row justify-center items-center"
+                        style={{ backgroundColor: typeBgColorMap[item.type as CountdownType] ?? typeBgColorMap.Countdown }}
+                      >
+                        <Image source={countdownTypeImageMap[item.type as CountdownType] ?? countdownTypeImageMap.Countdown} className='w-[22px] h-[22px]'></Image>
+                      </View>
+                      <View className='flex-1 justify-center'>
+                        <Text className='text-[16px] font-semibold' style={{ color: textPrimary }} numberOfLines={1} ellipsizeMode="tail">
+                          {item.countdownName}
+                        </Text>
+                      </View>
+                    </Pressable>
+                    <View className='justify-center items-end'>
+                      <View>
+                        <Text className='text-[22px] font-semibold' style={{ color: colorTheme }}>{getDaysLeftFromToday(item.date)}</Text>
+                      </View>
+                      <View>
+                        <Text className='text-[12px]' style={{ color: colorTheme }}>Days left</Text>
+                      </View>
                     </View>
-                    <View className='flex-1 justify-center'>
-                      <Text className='text-[16px] font-semibold' style={{ color: textPrimary }} numberOfLines={1} ellipsizeMode="tail">
-                        {item.countdownName}
-                      </Text>
-                    </View>
-                  </Pressable>
-                  <View className='justify-center items-end'>
-                    <View>
-                      <Text className='text-[22px] font-semibold' style={{ color: colorTheme }}>{getDaysLeftFromToday(item.date)}</Text>
-                    </View>
-                    <View>
-                      <Text className='text-[12px]' style={{ color: colorTheme }}>Days left</Text>
-                    </View>
-                  </View>
-                </Animated.View>
-              </View>
-            )}
-          >
-          </FlatList>
-
+                  </Animated.View>
+                </View>
+              )}
+            />
+          )}
         </View>
 
       </SafeAreaView>

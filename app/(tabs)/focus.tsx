@@ -504,7 +504,7 @@ const focus = () => {
                         cx={sizeBreak / 2}
                         cy={sizeBreak / 2}
                         r={radiusBreak}
-                        stroke={isDark ? '#3B82F6' : '#66BB6A'}
+                        stroke={isDark ? '#66BB6A' : '#66BB6A'}
                         strokeWidth={strokeWidthBreak}
                         fill='none'
                         strokeDasharray={`${circumferenceBreak} ${circumferenceBreak}`}

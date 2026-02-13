@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "831824482548",
+    "project_id": "flip-329a0",
+    "storage_bucket": "flip-329a0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831824482548:android:01e028c8d683ce09e90ea1",
+        "android_client_info": {
+          "package_name": "com.thenuri.Flip"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "831824482548-9sf5v5j3tln2si5hbmqj32k63rieqijt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.thenuri.Flip",
+            "certificate_hash": "cc6be3de218fdacb4612e0b6fe99723d99995bf3"
+          }
+        },
+        {
+          "client_id": "831824482548-larinube6no9iab9mu1ehm7m6pk58vq8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCg9OM6uo77Dm5C7wtRCof0EE99KBhcbPM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "831824482548-larinube6no9iab9mu1ehm7m6pk58vq8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,6 +2,7 @@ import AccountModal from '@/components/AccountModal'
 import ThemeModal from '@/components/ThemeModal'
 import { AppIcon } from '@/components/ui/icon-symbol'
 import { useAuth } from '@/context/authContext'
+import { ColorContext } from '@/context/colorContext'
 import { ThemeContext } from '@/context/themeContext'
 import { auth } from '@/services/firebase'
 import { subscribeUser, UserProfile } from '@/services/userService'
@@ -14,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 const profile = () => {
   const { user, loading } = useAuth();
   const { currentTheme } = useContext(ThemeContext);
+  const { colorTheme } = useContext(ColorContext);
   const isDark = currentTheme === 'dark';
   const cardBg = isDark ? '#1B1B1B' : '#FFFFFF';
   const textPrimary = isDark ? '#E5E7EB' : '#111827';
@@ -140,7 +142,7 @@ const profile = () => {
               <TouchableOpacity onPress={item.fuc} key={item.label} className='flex-row items-center justify-between px-4 py-4'>
                 <View className='flex-row items-center gap-x-3'>
                   <View className='w-[30px] h-[30px] rounded-[10px] bg-[#EEF2FF] items-center justify-center'>
-                    <AppIcon name={item.icon} size={18} color='#4F6EF7' />
+                    <AppIcon name={item.icon} size={18} color={colorTheme} />
                   </View>
                   <Text className='text-[15px]' style={{ color: textPrimary }}>{item.label}</Text>
                 </View>

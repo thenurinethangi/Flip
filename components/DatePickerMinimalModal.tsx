@@ -1,3 +1,4 @@
+import { ColorContext } from "@/context/colorContext";
 import { ThemeContext } from "@/context/themeContext";
 import { Check, X } from "lucide-react-native";
 import React, { useContext } from "react";
@@ -20,6 +21,7 @@ const DatePickerMinimalModal: React.FC<Props> = ({
 }) => {
     const todayStr = new Date().toLocaleDateString("en-CA");
     const { currentTheme } = useContext(ThemeContext);
+    const { colorTheme } = useContext(ColorContext);
     const isDark = currentTheme === "dark";
     const textPrimary = isDark ? "#E5E7EB" : "#374151";
     const cardBg = isDark ? "#1B1B1B" : "#fff";
@@ -42,7 +44,7 @@ const DatePickerMinimalModal: React.FC<Props> = ({
                         <Text style={[styles.activeTab, { color: textPrimary }]}>Date</Text>
                     </View>
 
-                    <Check onPress={onClose} size={22} color="#4772FA" />
+                    <Check onPress={onClose} size={22} color={colorTheme} />
                 </View>
 
                 {/* Calendar */}
@@ -54,13 +56,13 @@ const DatePickerMinimalModal: React.FC<Props> = ({
                     markedDates={{
                         [date]: {
                             selected: true,
-                            selectedColor: "#4772FA",
+                            selectedColor: colorTheme,
                         },
                     }}
                     theme={{
-                        selectedDayBackgroundColor: "#4772FA",
-                        todayTextColor: "#4772FA",
-                        arrowColor: "#4772FA",
+                        selectedDayBackgroundColor: colorTheme,
+                        todayTextColor: colorTheme,
+                        arrowColor: colorTheme,
                         monthTextColor: isDark ? "#E5E7EB" : "#222",
                         dayTextColor: isDark ? "#E5E7EB" : "#111827",
                         textDisabledColor: isDark ? "#4B5563" : "#9CA3AF",

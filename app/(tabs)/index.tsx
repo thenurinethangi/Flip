@@ -2,6 +2,7 @@ import AddSubtaskModal from '@/components/AddSubtaskModal';
 import AddTaskModal from '@/components/AddTaskModal';
 import CustomCalendarModal from '@/components/DatePickerModal';
 import SubtaskEditModal from '@/components/SubtaskEditModel';
+import Spinner from '@/components/spinner';
 import { AppIcon } from '@/components/ui/icon-symbol';
 import { requestNotificationPermission } from '@/config/notificationConfig';
 import { useAuth } from '@/context/authContext';
@@ -54,6 +55,7 @@ export default function HomeScreen() {
   const [todayCompleteTasks, setTodayCompleteTasks] = useState<any[]>([]);
   const [overdueTasks, setOverdueTasks] = useState<any[]>([]);
   const [expandedTaskIds, setExpandedTaskIds] = useState<Record<string, boolean>>({});
+  const [isTasksLoading, setIsTasksLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -66,6 +68,27 @@ export default function HomeScreen() {
   }, []);
 
   const subtaskUnsubscribers = useRef<Record<string, () => void>>({});
+  const taskLoadState = useRef({ pending: false, complete: false, overdue: false });
+
+  const markTasksLoaded = (key: keyof typeof taskLoadState.current) => {
+    if (!taskLoadState.current[key]) {
+      taskLoadState.current[key] = true;
+      const { pending, complete, overdue } = taskLoadState.current;
+      if (pending && complete && overdue) {
+        setIsTasksLoading(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!user) {
+      taskLoadState.current = { pending: false, complete: false, overdue: false };
+      setIsTasksLoading(false);
+      return;
+    }
+    taskLoadState.current = { pending: false, complete: false, overdue: false };
+    setIsTasksLoading(true);
+  }, [user, todayStr]);
 
   const updateSubtasksForTask = (taskId: string, subtasks: any[]) => {
     setTodayIncompleteTasks((prev) =>
@@ -93,8 +116,12 @@ export default function HomeScreen() {
       (tasks) => {
         // console.log(tasks);
         setTodayIncompleteTasks(tasks)
+        markTasksLoaded("pending");
       },
-      (error) => console.log(error)
+      (error) => {
+        console.log(error);
+        markTasksLoaded("pending");
+      }
     );
 
     return unsubscribe;
@@ -104,8 +131,14 @@ export default function HomeScreen() {
     if (!user) return;
     const unsubscribe = subscribeCompleteTasksByDate(
       todayStr,
-      (tasks) => setTodayCompleteTasks(tasks),
-      (error) => console.log(error)
+      (tasks) => {
+        setTodayCompleteTasks(tasks);
+        markTasksLoaded("complete");
+      },
+      (error) => {
+        console.log(error);
+        markTasksLoaded("complete");
+      }
     );
 
     return unsubscribe;
@@ -115,8 +148,14 @@ export default function HomeScreen() {
     if (!user) return;
     const unsubscribe = subscribeOverdueTasks(
       todayStr,
-      (tasks) => setOverdueTasks(tasks),
-      (error) => console.log(error)
+      (tasks) => {
+        setOverdueTasks(tasks);
+        markTasksLoaded("overdue");
+      },
+      (error) => {
+        console.log(error);
+        markTasksLoaded("overdue");
+      }
     );
 
     return unsubscribe;
@@ -329,7 +368,7 @@ export default function HomeScreen() {
 
   return (
     <>
-      <SafeAreaView className={`${currentTheme === 'light' ? 'bg-[#F5F6F8]' : 'bg-[#000000]' } flex-1`}>
+      <SafeAreaView className={`${currentTheme === 'light' ? 'bg-[#F5F6F8]' : 'bg-[#000000]'} flex-1`}>
 
         <TouchableOpacity
           onPress={() => {
@@ -366,215 +405,218 @@ export default function HomeScreen() {
         </View>
 
         <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20, paddingBottom: 0, marginBottom: 0 }}>
-          {/* today incomplete tasks */}
-          <DraggableFlatList
-            contentContainerStyle={{ paddingBottom: 100 }}
-            scrollEnabled={true}
-            showsVerticalScrollIndicator={false}
-            data={todayIncompleteTasks}
-            keyExtractor={(item) => item.task.id}
-            activationDistance={8}
-            onDragEnd={({ data }) => setTodayIncompleteTasks(data)}
-            renderItem={({ item, drag, isActive }) => (
-              <ScaleDecorator>
-                <View className={`mb-2`} style={{ opacity: isActive ? 0.9 : 1, backgroundColor: cardBg, borderRadius: 10 }}>
-                  <Animated.View
-                    layout={Layout.springify().damping(18).stiffness(180)}
-                    entering={FadeInDown.duration(200)}
-                    exiting={FadeOutUp.duration(150)}
-                    className={`w-full box-content rounded-[10px] pl-[21px] py-4 h-[48px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} ${expandedTaskIds[item.task.id] && item.subtasks?.length > 0 ? '' : 'shadow-lg shadow-black/0.05'} flex-row items-center justify-between`}
-                    style={{ backgroundColor: cardBg }}
-                  >
-                    <View className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
-                      <View pointerEvents="auto">
-                        <Checkbox
-                          value={item.task.status !== 'pending'}
-                          onValueChange={(checked) => handleChecked(item.task.id, checked)}
-                          color={getPriorityColor(item.task.priorityLevel)}
-                          style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                        />
-                      </View>
-                      <View className='w-[82%]'>
-                        <Text
-                          className='text-[15.5px] flex-1'
-                          style={{ color: textPrimary }}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                          onPress={() => {
-                            setActiveTask(item.task);
-                            setShowTaskEdit(true);
-                          }}
-                        >
-                          {item.task.taskname}
-                        </Text>
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      onLongPress={drag}
-                      delayLongPress={150}
-                      activeOpacity={0.6}
-                      className='pr-2'
-                    >
-                      <View>
-                        <View>
-                          <Text
-                            className={`text-[13px] ${item.subtasks?.length > 0 ? 'translate-x-[13px] ' : 'translate-x-2'}`}
-                            style={{ color: colorTheme }}
-                          >
-                            {item.task.time !== 'None' ? item.task.time : formatTaskDate(item.task.date)}
-                          </Text>
-                        </View>
-                        <View></View>
-                      </View>
-                    </TouchableOpacity>
-                    {item.subtasks?.length > 0 && (
-                      <TouchableOpacity
-                        onPress={() => toggleSubtasks(item.task.id)}
-                        className='pl-[7px]'
+          {isTasksLoading ? (
+            <Spinner />
+          ) : (
+            <>
+              {/* today incomplete tasks */}
+              <DraggableFlatList
+                contentContainerStyle={{ paddingBottom: 100 }}
+                scrollEnabled={true}
+                showsVerticalScrollIndicator={false}
+                data={todayIncompleteTasks}
+                keyExtractor={(item) => item.task.id}
+                activationDistance={8}
+                onDragEnd={({ data }) => setTodayIncompleteTasks(data)}
+                renderItem={({ item, drag, isActive }) => (
+                  <ScaleDecorator>
+                    <View className={`mb-2`} style={{ opacity: isActive ? 0.9 : 1, backgroundColor: cardBg, borderRadius: 10 }}>
+                      <Animated.View
+                        layout={Layout.springify().damping(18).stiffness(180)}
+                        entering={FadeInDown.duration(200)}
+                        exiting={FadeOutUp.duration(150)}
+                        className={`w-full box-content rounded-[10px] pl-[21px] py-4 h-[48px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} ${expandedTaskIds[item.task.id] && item.subtasks?.length > 0 ? '' : 'shadow-lg shadow-black/0.05'} flex-row items-center justify-between`}
+                        style={{ backgroundColor: cardBg }}
                       >
-                        <AppIcon
-                          name={expandedTaskIds[item.task.id] ? "ChevronDown" : "chevronRight"}
-                          color="#9ca3af"
-                          size={15}
-                        />
-                      </TouchableOpacity>
-                    )}
-                  </Animated.View>
-
-                  {expandedTaskIds[item.task.id] && item.subtasks?.length > 0 && (
-                    <View className='mt-1 ml-4'>
-                      {item.subtasks.map((subtask: any) => (
-                        <Animated.View
-                          layout={Layout.springify().damping(18).stiffness(180)}
-                          entering={FadeInDown.duration(200)}
-                          exiting={FadeOutUp.duration(150)}
-                          key={subtask.id}
-                          className='w-full box-content rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
-                          style={{ backgroundColor: cardBg }}
+                        <View className='flex-row items-center gap-x-3 flex-1' pointerEvents="box-none">
+                          <View pointerEvents="auto">
+                            <Checkbox
+                              value={item.task.status !== 'pending'}
+                              onValueChange={(checked) => handleChecked(item.task.id, checked)}
+                              color={getPriorityColor(item.task.priorityLevel)}
+                              style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                            />
+                          </View>
+                          <View className='w-[82%]'>
+                            <Text
+                              className='text-[15.5px] flex-1'
+                              style={{ color: textPrimary }}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                              onPress={() => {
+                                setActiveTask(item.task);
+                                setShowTaskEdit(true);
+                              }}
+                            >
+                              {item.task.taskname}
+                            </Text>
+                          </View>
+                        </View>
+                        <TouchableOpacity
+                          onLongPress={drag}
+                          delayLongPress={150}
+                          activeOpacity={0.6}
+                          className='pr-2'
                         >
-                          <TouchableWithoutFeedback onPress={() => {
-                            setactiveSubtask(subtask);
-                          }}>
-                            <View className='flex-row items-center justify-between w-full'>
-                              <View className='flex-row items-center gap-x-3'>
-                                <View>
-                                  <Checkbox
-                                    value={subtask.status !== 'pending'}
-                                    onValueChange={(checked) => handleSubtaskChecked(subtask.id, checked)}
-                                    color={subtask.status !== 'pending' ? '#B8BFC8' : getPriorityColor(subtask.priorityLevel)}
-                                    style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
-                                  />
-                                </View>
-                                <TouchableNativeFeedback onPress={() => {
-                                  setactiveSubtask(subtask);
-                                  setShowSubtaskEdit(true);
-                                }}>
-                                  <Text className={`text-[14.5px] ${subtask.status !== 'pending' ? 'text-gray-400 line-through' : ''}`} style={{ color: subtask.status !== 'pending' ? '#9CA3AF' : textPrimary }} numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
-                                </TouchableNativeFeedback>
-                              </View>
-                              <View>
-                                <Text className={`text-[12.5px] ${subtask.status !== 'pending' ? 'text-gray-400 opacity-90' : subtask.time === 'None' && !isNotPastDate(subtask.date) ? 'text-red-500' : 'text-primary'}`} style={{ color: subtask.status !== 'pending' ? '#9CA3AF' : undefined }}>
-                                  {subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}
-                                </Text>
-                              </View>
-                            </View>
-                          </TouchableWithoutFeedback>
-                        </Animated.View>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </ScaleDecorator>
-            )}
-            ListFooterComponent={
-              <>
-                {/* overdue */}
-                {overdueTasks.length > 0 && (
-                  <Animated.View
-                    layout={Layout.springify().damping(18).stiffness(180)}
-                    entering={FadeIn.duration(200)}
-                    exiting={FadeOut.duration(150)}
-                    className='py-[12px] shadow-lg shadow-black/0.05 rounded-[10px] mb-2'
-                    style={{ backgroundColor: cardBg }}
-                  >
-                    <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
-                      <View className='flex-row items-center gap-x-3'>
-                        <Text className='text-[16px] font-medium' style={{ color: textPrimary }}>Overdue</Text>
-                        <Text className='text-[14px]' style={{ color: textSecondary }}>{overdueTasks.length}</Text>
-                      </View>
-                      <View className='flex-row items-center gap-x-3'>
-                        <TouchableOpacity onPress={handlePostpone} className='flex-row items-center gap-x-1'>
-                          <Text className='text-red-500 text-[13.5px]'>Postpone</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setShowOverdueTasks((prev) => !prev)}>
-                          {showOverdueTasks
-                            ? <AppIcon name="ChevronDown" color='#9ca3af' size={17} />
-                            : <AppIcon name="chevronRight" color='#9ca3af' size={17} />
-                          }
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    {showOverdueTasks
-                      ? (
-                        <Animated.FlatList
-                          scrollEnabled={false}
-                          itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
-                          data={overdueTasks}
-                          keyExtractor={(item) => item.task.id}
-                          renderItem={({ item }) => (
-                            <View className='mb-2' style={{ backgroundColor: cardBg }}>
-                              <Animated.View
-                                layout={Layout.springify().damping(18).stiffness(180)}
-                                entering={FadeInDown.duration(200)}
-                                exiting={FadeOutUp.duration(150)}
-                                className={`rounded-[10px] pl-[21px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} py-4 flex-row items-center justify-between`}
-                                style={{ backgroundColor: cardBg }}
+                          <View>
+                            <View>
+                              <Text
+                                className={`text-[13px] ${item.subtasks?.length > 0 ? 'translate-x-[13px] ' : 'translate-x-2'}`}
+                                style={{ color: colorTheme }}
                               >
-                                <View className='flex-row items-center justify-between w-full'>
-                                  <TouchableOpacity
-                                    activeOpacity={0.9}
-                                    onPress={() => {
-                                      setActiveTask(item.task);
-                                      setShowTaskEdit(true);
-                                    }}
-                                    className='flex-row items-center justify-between flex-1'
-                                  >
-                                    <View className='flex-row items-center gap-x-3 w-[75%]'>
-                                      <View>
-                                        <Checkbox
-                                          value={item.task.status !== 'pending'}
-                                          onValueChange={(checked) => handleChecked(item.task.id, checked)}
-                                          color={getPriorityColor(item.task.priorityLevel)}
-                                          style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
-                                        />
-                                      </View>
-                                      <View className='w-[72%]'>
-                                        <Text className='text-[15.5px]' style={{ color: textPrimary }} numberOfLines={1} ellipsizeMode="tail">{item.task.taskname}</Text>
-                                      </View>
-                                    </View>
-                                    <View>
-                                      <View>
-                                        <Text className='text-red-500 text-[13px]'>{formatTaskDate(item.task.date)}</Text>
-                                      </View>
-                                      <View></View>
-                                    </View>
-                                  </TouchableOpacity>
-                                  {item.subtasks?.length > 0 && (
-                                    <TouchableOpacity
-                                      onPress={() => toggleSubtasks(item.task.id)}
-                                      className='pl-[5px]'
-                                    >
-                                      {expandedTaskIds[item.task.id]
-                                        ? <AppIcon name="ChevronDown" color="#9ca3af" size={15} />
-                                        : <AppIcon name="chevronRight" color="#9ca3af" size={15} />
-                                      }
-                                    </TouchableOpacity>
-                                  )}
-                                </View>
-                              </Animated.View>
+                                {item.task.time !== 'None' ? item.task.time : formatTaskDate(item.task.date)}
+                              </Text>
+                            </View>
+                            <View></View>
+                          </View>
+                        </TouchableOpacity>
+                        {item.subtasks?.length > 0 && (
+                          <TouchableOpacity
+                            onPress={() => toggleSubtasks(item.task.id)}
+                            className='pl-[7px]'
+                          >
+                            <AppIcon
+                              name={expandedTaskIds[item.task.id] ? "ChevronDown" : "chevronRight"}
+                              color="#9ca3af"
+                              size={15}
+                            />
+                          </TouchableOpacity>
+                        )}
+                      </Animated.View>
 
-                              {expandedTaskIds[item.task.id] && item.subtasks?.length > 0 && (
+                      {expandedTaskIds[item.task.id] && item.subtasks?.length > 0 && (
+                        <View className='mt-1 ml-4'>
+                          {item.subtasks.map((subtask: any) => (
+                            <Animated.View
+                              layout={Layout.springify().damping(18).stiffness(180)}
+                              entering={FadeInDown.duration(200)}
+                              exiting={FadeOutUp.duration(150)}
+                              key={subtask.id}
+                              className='w-full box-content rounded-[10px] pl-[21px] pr-4 py-3 h-[46px] flex-row items-center justify-between mb-2'
+                              style={{ backgroundColor: cardBg }}
+                            >
+                              <TouchableWithoutFeedback onPress={() => {
+                                setactiveSubtask(subtask);
+                              }}>
+                                <View className='flex-row items-center justify-between w-full'>
+                                  <View className='flex-row items-center gap-x-3'>
+                                    <View>
+                                      <Checkbox
+                                        value={subtask.status !== 'pending'}
+                                        onValueChange={(checked) => handleSubtaskChecked(subtask.id, checked)}
+                                        color={subtask.status !== 'pending' ? '#B8BFC8' : getPriorityColor(subtask.priorityLevel)}
+                                        style={{ transform: [{ scale: 0.85 }], borderRadius: 5, borderWidth: 2 }}
+                                      />
+                                    </View>
+                                    <TouchableNativeFeedback onPress={() => {
+                                      setactiveSubtask(subtask);
+                                      setShowSubtaskEdit(true);
+                                    }}>
+                                      <Text className={`text-[14.5px] ${subtask.status !== 'pending' ? 'text-gray-400 line-through' : ''}`} style={{ color: subtask.status !== 'pending' ? '#9CA3AF' : textPrimary }} numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                    </TouchableNativeFeedback>
+                                  </View>
+                                  <View>
+                                    <Text className={`text-[12.5px]`} style={{ color: subtask.status !== 'pending' ? '#9CA3AF' : subtask.time === 'None' && !isNotPastDate(subtask.date) ? '#ef4444' : colorTheme }}>
+                                      {subtask.time !== 'None' ? subtask.time : formatTaskDate(subtask.date)}
+                                    </Text>
+                                  </View>
+                                </View>
+                              </TouchableWithoutFeedback>
+                            </Animated.View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  </ScaleDecorator>
+                )}
+                ListFooterComponent={
+                  <>
+                    {/* overdue */}
+                    {overdueTasks.length > 0 && (
+                      <Animated.View
+                        layout={Layout.springify().damping(18).stiffness(180)}
+                        entering={FadeIn.duration(200)}
+                        exiting={FadeOut.duration(150)}
+                        className='py-[12px] shadow-lg shadow-black/0.05 rounded-[10px] mb-2'
+                        style={{ backgroundColor: cardBg }}
+                      >
+                        <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
+                          <View className='flex-row items-center gap-x-3'>
+                            <Text className='text-[16px] font-medium' style={{ color: textPrimary }}>Overdue</Text>
+                            <Text className='text-[14px]' style={{ color: textSecondary }}>{overdueTasks.length}</Text>
+                          </View>
+                          <View className='flex-row items-center gap-x-3'>
+                            <TouchableOpacity onPress={handlePostpone} className='flex-row items-center gap-x-1'>
+                              <Text className='text-red-500 text-[13.5px]'>Postpone</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => setShowOverdueTasks((prev) => !prev)}>
+                              {showOverdueTasks
+                                ? <AppIcon name="ChevronDown" color='#9ca3af' size={17} />
+                                : <AppIcon name="chevronRight" color='#9ca3af' size={17} />
+                              }
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+
+                        {showOverdueTasks ? (
+                          <Animated.FlatList
+                            scrollEnabled={false}
+                            itemLayoutAnimation={Layout.springify().damping(18).stiffness(180)}
+                            data={overdueTasks}
+                            keyExtractor={(item) => item.task.id}
+                            renderItem={({ item }) => (
+                              <View className='mb-2' style={{ backgroundColor: cardBg }}>
+                                <Animated.View
+                                  layout={Layout.springify().damping(18).stiffness(180)}
+                                  entering={FadeInDown.duration(200)}
+                                  exiting={FadeOutUp.duration(150)}
+                                  className={`rounded-[10px] pl-[21px] ${item.subtasks?.length > 0 ? 'pr-0' : 'pr-4'} py-4 flex-row items-center justify-between`}
+                                  style={{ backgroundColor: cardBg }}
+                                >
+                                  <View className='flex-row items-center justify-between w-full'>
+                                    <TouchableOpacity
+                                      activeOpacity={0.9}
+                                      onPress={() => {
+                                        setActiveTask(item.task);
+                                        setShowTaskEdit(true);
+                                      }}
+                                      className='flex-row items-center justify-between flex-1'
+                                    >
+                                      <View className='flex-row items-center gap-x-3 w-[75%]'>
+                                        <View>
+                                          <Checkbox
+                                            value={item.task.status !== 'pending'}
+                                            onValueChange={(checked) => handleChecked(item.task.id, checked)}
+                                            color={getPriorityColor(item.task.priorityLevel)}
+                                            style={{ transform: [{ scale: 0.87 }], borderRadius: 5, borderWidth: 2 }}
+                                          />
+                                        </View>
+                                        <View className='w-[72%]'>
+                                          <Text className='text-[15.5px]' style={{ color: textPrimary }} numberOfLines={1} ellipsizeMode="tail">{item.task.taskname}</Text>
+                                        </View>
+                                      </View>
+                                      <View>
+                                        <View>
+                                          <Text className='text-red-500 text-[13px]'>{formatTaskDate(item.task.date)}</Text>
+                                        </View>
+                                        <View></View>
+                                      </View>
+                                    </TouchableOpacity>
+                                    {item.subtasks?.length > 0 && (
+                                      <TouchableOpacity
+                                        onPress={() => toggleSubtasks(item.task.id)}
+                                        className='pl-[5px]'
+                                      >
+                                        {expandedTaskIds[item.task.id]
+                                          ? <AppIcon name="ChevronDown" color="#9ca3af" size={15} />
+                                          : <AppIcon name="chevronRight" color="#9ca3af" size={15} />
+                                        }
+                                      </TouchableOpacity>
+                                    )}
+                                  </View>
+                                </Animated.View>
+
+                                {expandedTaskIds[item.task.id] && item.subtasks?.length > 0 && (
                                 <View className='mt-1 ml-4'>
                                   {item.subtasks.map((subtask: any) => (
                                     <View
@@ -597,12 +639,12 @@ export default function HomeScreen() {
                                               />
                                             </View>
                                             <View className='w-[72%]'>
-                                              <Text className={`text-[14.5px] ${subtask.status !== 'pending' ? 'text-gray-400 line-through' : ''}`} numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
+                                              <Text className={`text-[14.5px] ${subtask.status !== 'pending' ? 'text-gray-400 line-through' : 'text-white'}`} numberOfLines={1} ellipsizeMode="tail">{subtask.taskname}</Text>
                                             </View>
                                           </View>
                                           <View>
                                             <View>
-                                              <Text className={`text-[12.5px] ${subtask.status !== 'pending' ? 'text-gray-400' : isNotPastDate(subtask.date) ? 'text-primary' : 'text-red-500'}`}>{formatTaskDate(subtask.date)}</Text>
+                                              <Text className={`text-[12.5px]`} style={{ color: subtask.status !== 'pending' ? '#9CA3AF' : !isNotPastDate(subtask.date) ? '#ef4444' : colorTheme }}>{formatTaskDate(subtask.date)}</Text>
                                             </View>
                                             <View></View>
                                           </View>
@@ -615,12 +657,10 @@ export default function HomeScreen() {
                             </View>
                           )}
                         >
-                        </Animated.FlatList>
-                      )
-                      : ''
-                    }
-                  </Animated.View>
-                )}
+                          </Animated.FlatList>
+                        ) : null}
+                      </Animated.View>
+                    )}
 
 
                 {/* today complete task container */}
@@ -630,8 +670,8 @@ export default function HomeScreen() {
                     layout={Layout.springify().damping(18).stiffness(180)}
                     entering={FadeIn.duration(200)}
                     exiting={FadeOut.duration(150)}
-                      className={`py-[12.5px] shadow-lg shadow-black/0.05 mb-2 rounded-[10px] ${todayCompleteTasks.length > 0 ? 'visible' : 'invisible'}`}
-                      style={{ backgroundColor: cardBg }}
+                    className={`py-[12.5px] shadow-lg shadow-black/0.05 mb-2 rounded-[10px] ${todayCompleteTasks.length > 0 ? 'visible' : 'invisible'}`}
+                    style={{ backgroundColor: cardBg }}
                   >
                     <View className='flex-row items-center justify-between pl-[21px] pr-4 mb-2'>
                       <View className='flex-row items-center gap-x-3'>
@@ -759,6 +799,8 @@ export default function HomeScreen() {
               </>
             }
           />
+            </>
+          )}
         </View>
 
         <TaskEditModal
@@ -830,7 +872,7 @@ export default function HomeScreen() {
       />
 
       {/* Subtask edit model */}
-      <SubtaskEditModal 
+      <SubtaskEditModal
         visible={showSubtaskEdit}
         task={activeSubtask}
         onClose={() => setShowSubtaskEdit(false)}
